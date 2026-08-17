@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customizador de Avatar Dinâmico</title>
+    <style>
+        :root {
+            --bg-main: #121214;
+            --bg-container: #1a181f;
+            --bg-sheet: #1a1822;
+            --bg-card: #26242f;
+            --bg-nav: #141219;
+            --primary: #c96b7c;
+            --text-main: #ffffff;
+            --text-secondary: #8c8891;
+            --text-muted: #b0acb8;
+            --border-color: #26242f;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Container responsivo */
+        .app-container {
+            width: 100%;
+            height: 100vh;
+            max-width: 480px;
+            max-height: 960px;
+            background-color: var(--bg-container);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.7);
+        }
+
+        @media (min-width: 481px) {
+            .app-container {
+                border-radius: 40px;
+                border: 1px solid var(--border-color);
+            }
+        }
+
+        /* Área central do avatar e degradê */
+        .viewport {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle, #382e3f 0%, #17151b 75%);
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center bottom;
+            position: absolute;
+            bottom: 0;
+        }
+
+        /* Menu Lateral Direito */
+        .side-menu {
+            position: absolute;
+            right: 12px;
+            top: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 10;
+            max-height: calc(100% - 120px);
+            overflow-y: auto;
+            scrollbar-width: none;
+            padding: 4px 0;
+        }
+
+        .side-menu::-webkit-scrollbar {
+            display: none;
+        }
+
+        .side-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 10px;
+            cursor: pointer;
+            gap: 3px;
+            transition: color 0.2s;
+        }
+
+        .side-item.active {
+            color: var(--primary);
+        }
+
+        .side-icon-wrapper {
+            width: 34px;
+            height: 34px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .side-icon-wrapper svg {
+            width: 22px;
+            height: 22px;
+            fill: currentColor;
+        }
+
+        /* Barra de Navegação Inferior Fixa no Rodapé do App */
+        .footer-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            background-color: var(--bg-nav);
+            padding: 10px 0 20px 0;
+            border-top: 1px solid var(--border-color);
+            z-index: 40;
+        }
+
+        .nav-item {
+            background: none;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-secondary);
+            font-size: 10px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-icon-wrapper {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .nav-icon-wrapper svg {
+            width: 22px;
+            height: 22px;
+            fill: currentColor;
+        }
+
+        /* Painel Inferior Deslizável (BottomSheet) */
+        .bottom-sheet {
+            position: absolute;
+            bottom: 74px;
+            left: 0;
+            width: 100%;
+            background-color: var(--bg-sheet);
+            border-top-left-radius: 28px;
+            border-top-right-radius: 28px;
+            padding: 10px 16px 16px 16px;
+            z-index: 30;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Cabeçalho de arraste do painel com cursor de mãozinha (pointer) */
+        .sheet-header-area {
+            width: 100%;
+            cursor: pointer;
+            padding: 4px 0 12px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .sheet-handle {
+            width: 42px;
+            height: 6px;
+            background-color: #5c5765;
+            border-radius: 10px;
+        }
+
+        .sheet-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            letter-spacing: 0.3px;
+            position: absolute;
+            top: 22px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s ease;
+        }
+
+        /* Conteúdo interno do painel deslizável */
+        .sheet-content {
+            overflow-y: auto;
+            scrollbar-width: none;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            flex: 1;
+            opacity: 1;
+            transition: opacity 0.15s ease;
+        }
+
+        .sheet-content::-webkit-scrollbar {
+            display: none;
+        }
+
+        .sheet-content > * {
+            flex-shrink: 0;
+        }
+
+        /* Seção Horizontal com rolagem e cursor de mãozinha nas listas */
+        .styles-scroll-container {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+            width: 100%;
+            cursor: pointer;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .styles-scroll-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .style-card {
+            background-color: var(--bg-card);
+            border: 2px solid transparent;
+            border-radius: 16px;
+            min-width: 74px;
+            height: 84px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            padding-bottom: 6px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+            transition: border-color 0.2s;
+        }
+
+        .style-card.active {
+            border-color: var(--primary);
+        }
+
+        .style-card span {
+            font-size: 10px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        /* Seção de Cores com rolagem e cursor de mãozinha */
+        .color-section-title {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .colors-scroll-container {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+            width: 100%;
+            cursor: pointer;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .colors-scroll-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .color-dot {
+            min-width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: transform 0.2s;
+        }
+
+        .color-dot.active {
+            border-color: var(--primary);
+            padding: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container" id="appContainer">
+        <!-- Área Central (Degradê e Avatar) -->
+        <div class="viewport">
+            <img src="avatar.png" alt="Avatar Model" class="avatar-img" id="avatarImg">
+        </div>
+
+        <!-- Menu Lateral Direito -->
+        <div class="side-menu">
+            <button class="side-item active" onclick="selectSideOption(this)">
+                <div class="side-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12C4,13.85 4.63,15.55 5.68,16.91C6.7,15.5 8.5,14.5 12,14.5C15.5,14.5 17.3,15.5 18.32,16.91C19.37,15.55 20,13.85 20,12A8,8 0 0,0 12,4M12,6A3,3 0 0,1 15,9A3,3 0 0,1 12,12A3,3 0 0,1 9,9A3,3 0 0,1 12,6Z"/></svg></div>
+                Cabelo
+            </button>
+            <button class="side-item" onclick="selectSideOption(this)">
+                <div class="side-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17C10.34,17 9,15.66 9,14C9,12.34 10.34,11 12,11C13.66,11 15,12.34 15,14C15,15.66 13.66,17 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z"/></svg></div>
+                Olhos
+            </button>
+            <button class="side-item" onclick="selectSideOption(this)">
+                <div class="side-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M12,2C14.76,2 17,4.24 17,7C17,8.65 16.18,10.11 14.9,11C16.18,11.89 17,13.35 17,15C17,17.76 14.76,20 12,20C9.24,20 7,17.76 7,15C7,13.35 7.82,11.89 9.1,11C7.82,10.11 7,8.65 7,7C7,4.24 9.24,2 12,2M12,4C10.34,4 9,5.34 9,7C9,8.66 10.34,10 12,10C13.66,10 15,8.66 15,7C15,5.34 13.66,4 12,4M12,12C10.34,12 9,13.34 9,15C9,16.66 10.34,18 12,18C13.66,18 15,16.66 15,15C15,13.34 13.66,12 12,12Z"/></svg></div>
+                Boca
+            </button>
+        </div>
+
+        <!-- Painel Inferior Deslizável -->
+        <div class="bottom-sheet" id="bottomSheet">
+            <div class="sheet-header-area" id="sheetHeader">
+                <div class="sheet-handle"></div>
+                <div class="sheet-title" id="sheetTitle">Configurações</div>
+            </div>
+            
+            <div class="sheet-content" id="sheetContent">
+                <!-- Seção de Estilos com rolagem horizontal -->
+                <div class="styles-scroll-container" id="stylesScroll">
+                    <div class="style-card active" onclick="selectStyle(this)"><span>Liso longo</span></div>
+                    <div class="style-card" onclick="selectStyle(this)"><span>Ondulado</span></div>
+                    <div class="style-card" onclick="selectStyle(this)"><span>Cacheado</span></div>
+                    <div class="style-card" onclick="selectStyle(this)"><span>Curto</span></div>
+                    <div class="style-card" onclick="selectStyle(this)"><span>Afro</span></div>
+                    <div class="style-card" onclick="selectStyle(this)"><span>Moicano</span></div>
+                    <div class="style-card" onclick="selectStyle(this)"><span>Raspado</span></div>
+                    <div class="style-card" onclick="selectStyle(this)"><span>Tranças</span></div>
+                </div>
+
+                <div class="color-section-title">Cor do cabelo</div>
+                <!-- Seção de Cores com rolagem horizontal -->
+                <div class="colors-scroll-container" id="colorsScroll">
+                    <div class="color-dot active" style="background-color: #1a1a1a;" onclick="selectColor(this)"></div>
+                    <div class="color-dot" style="background-color: #3b2b22;" onclick="selectColor(this)"></div>
+                    <div class="color-dot" style="background-color: #6b442b;" onclick="selectColor(this)"></div>
+                    <div class="color-dot" style="background-color: #a87d4a;" onclick="selectColor(this)"></div>
+                    <div class="color-dot" style="background-color: #e6c594;" onclick="selectColor(this)"></div>
+                    <div class="color-dot" style="background-color: #c93b3b;" onclick="selectColor(this)"></div>
+                    <div class="color-dot" style="background-color: #3b7dc9;" onclick="selectColor(this)"></div>
+                    <div class="color-dot" style="background-color: #ffffff;" onclick="selectColor(this)"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra de Navegação Inferior Fixa -->
+        <div class="footer-nav">
+            <button class="nav-item" onclick="selectFooterTab(this)">
+                <div class="nav-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M12,2A3,3 0 0,1 15,5A3,3 0 0,1 12,8A3,3 0 0,1 9,5A3,3 0 0,1 12,2M12,10C14.67,10 20,11.34 20,14V16H4V14C4,11.34 9.33,10 12,10Z"/></svg></div>
+                Corpo
+            </button>
+            <button class="nav-item" onclick="selectFooterTab(this)">
+                <div class="nav-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12C4,13.9 4.6,15.6 5.6,17C7.1,15.3 9.4,14 12,14C14.6,14 16.9,15.3 18.4,17C19.4,15.6 20,13.9 20,12A8,8 0 0,0 12,4Z"/></svg></div>
+                Rosto
+            </button>
+            <button class="nav-item active" onclick="selectFooterTab(this)">
+                <div class="nav-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12C4,13.85 4.63,15.55 5.68,16.91C6.7,15.5 8.5,14.5 12,14.5C15.5,14.5 17.3,15.5 18.32,16.91C19.37,15.55 20,13.85 20,12A8,8 0 0,0 12,4Z"/></svg></div>
+                Cabelo
+            </button>
+            <button class="nav-item" onclick="selectFooterTab(this)">
+                <div class="nav-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M12,3L2,12H5V20H19V12H22L12,3M12,7.7C14.1,7.7 15.8,9.4 15.8,11.5C15.8,13.6 14.1,15.3 12,15.3C9.9,15.3 8.2,13.6 8.2,11.5C8.2,9.4 9.9,7.7 12,7.7Z"/></svg></div>
+                Estilo
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const bottomSheet = document.getElementById('bottomSheet');
+        const sheetHeader = document.getElementById('sheetHeader');
+        const sheetContent = document.getElementById('sheetContent');
+        const sheetTitle = document.getElementById('sheetTitle');
+        const appContainer = document.getElementById('appContainer');
+
+        let isDragging = false;
+        let startY = 0;
+        let startHeight = 0;
+        const minHeight = 44; 
+
+        function getMaxHeight() { 
+            return appContainer.clientHeight - 120; 
+        }
+        function getInitialHeight() { 
+            return appContainer.clientHeight * 0.32; 
+        }
+
+        let currentHeight = getInitialHeight();
+        bottomSheet.style.height = currentHeight + 'px';
+        updateSheetState(currentHeight);
+
+        sheetHeader.addEventListener('mousedown', startDrag);
+        window.addEventListener('mousemove', onDrag);
+        window.addEventListener('mouseup', stopDrag);
+
+        sheetHeader.addEventListener('touchstart', startDrag, {passive: true});
+        window.addEventListener('touchmove', onDrag, {passive: true});
+        window.addEventListener('touchend', stopDrag);
+
+        function startDrag(e) {
+            isDragging = true;
+            startY = e.clientY || e.touches[0].clientY;
+            startHeight = bottomSheet.clientHeight;
+            bottomSheet.style.transition = 'none';
+        }
+
+        function onDrag(e) {
+            if (!isDragging) return;
+            const currentY = e.clientY || e.touches[0].clientY;
+            const diff = startY - currentY; 
+            let newHeight = startHeight + diff;
+            const max = getMaxHeight();
+            if (newHeight < minHeight) newHeight = minHeight;
+            if (newHeight > max) newHeight = max;
+
+            bottomSheet.style.height = newHeight + 'px';
+            updateSheetState(newHeight);
+        }
+
+        function stopDrag() {
+            if (!isDragging) return;
+            isDragging = false;
+            bottomSheet.style.transition = 'height 0.2s ease-out';
+        }
+
+        function updateSheetState(height) {
+            const max = getMaxHeight();
+            const range = max - minHeight;
+            const progress = (height - minHeight) / (range || 1);
+
+            if (height <= minHeight + 15) {
+                sheetTitle.style.opacity = '1';
+                sheetContent.style.opacity = '0';
+                sheetContent.style.pointerEvents = 'none';
+            } else {
+                sheetTitle.style.opacity = '0';
+                sheetContent.style.opacity = '1';
+                sheetContent.style.pointerEvents = 'auto';
+            }
+        }
+
+        // Função de Arrastar com o Mouse nas listas horizontais (mantém o clique/arraste funcional com cursor de ponteiro)
+        function enableHorizontalDrag(containerId) {
+            const slider = document.getElementById(containerId);
+            let isDown = false;
+            let startX, scrollLeft;
+
+            slider.addEventListener('mousedown', (e) => {
+                isDown = true;
+                startX = e.pageX - slider.offsetLeft;
+                scrollLeft = slider.scrollLeft;
+            });
+
+            slider.addEventListener('mouseleave', () => { isDown = false; });
+            slider.addEventListener('mouseup', () => { isDown = false; });
+
+            slider.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - slider.offsetLeft;
+                const walk = (x - startX) * 1.5;
+                slider.scrollLeft = scrollLeft - walk;
+            });
+        }
+
+        enableHorizontalDrag('stylesScroll');
+        enableHorizontalDrag('colorsScroll');
+
+        function selectSideOption(el) {
+            document.querySelectorAll('.side-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+        }
+        function selectStyle(el) {
+            document.querySelectorAll('.style-card').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+        }
+        function selectColor(el) {
+            document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+            el.classList.add('active');
+        }
+        function selectFooterTab(el) {
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            el.classList.add('active');
+        }
+    </script>
+</body>
+</html>
