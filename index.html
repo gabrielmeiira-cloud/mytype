@@ -2,7 +2,11 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#121214">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Customizador de Avatar Dinâmico</title>
     <style>
         :root {
@@ -16,6 +20,13 @@
             --text-secondary: #8c8891;
             --text-muted: #b0acb8;
             --border-color: #26242f;
+
+            /* Safe Area Support */
+            --sat: env(safe-area-inset-top, 0px);
+            --sar: env(safe-area-inset-right, 0px);
+            --sab: env(safe-area-inset-bottom, 0px);
+            --sal: env(safe-area-inset-left, 0px);
+            --nav-height: 60px;
         }
 
         * {
@@ -25,21 +36,25 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             user-select: none;
             -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        body {
+        html, body {
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
             background-color: var(--bg-main);
             color: var(--text-main);
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
         }
 
         .app-container {
             width: 100%;
-            height: 100vh;
+            height: 100%;
+            height: 100dvh;
             max-width: 480px;
             max-height: 960px;
             background-color: var(--bg-container);
@@ -47,13 +62,15 @@
             flex-direction: column;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.7);
         }
 
-        @media (min-width: 481px) {
+        @media (min-width: 481px) and (min-height: 600px) {
             .app-container {
-                border-radius: 40px;
+                height: 94vh;
+                max-height: 880px;
+                border-radius: 36px;
                 border: 1px solid var(--border-color);
+                box-shadow: 0 24px 48px rgba(0,0,0,0.7);
             }
         }
 
@@ -62,13 +79,14 @@
             top: 0;
             left: 0;
             width: 100%;
-            bottom: 84px; 
+            bottom: calc(var(--nav-height) + 16px + var(--sab)); 
             display: flex;
             justify-content: center;
             align-items: center;
-            background: radial-gradient(circle, #382e3f 0%, #17151b 75%);
+            background: radial-gradient(circle at center, #382e3f 0%, #17151b 75%);
             overflow: hidden;
             z-index: 1;
+            padding-top: var(--sat);
         }
 
         .avatar-container {
@@ -83,24 +101,27 @@
         .avatar-img {
             width: 100%;
             height: 100%;
+            max-height: 100%;
             object-fit: contain;
             object-position: center bottom;
             position: absolute;
             bottom: 0;
+            pointer-events: none;
         }
 
         .side-menu {
             position: absolute;
-            right: 12px;
-            top: 24px;
+            right: max(10px, var(--sar));
+            top: calc(16px + var(--sat));
             display: flex;
             flex-direction: column;
             gap: 10px;
-            z-index: 10;
-            max-height: calc(100% - 120px);
+            z-index: 15;
+            max-height: calc(100% - var(--nav-height) - var(--sab) - var(--sat) - 90px);
             overflow-y: auto;
             scrollbar-width: none;
-            padding: 4px 0;
+            padding: 4px 2px;
+            -webkit-overflow-scrolling: touch;
         }
 
         .side-menu::-webkit-scrollbar {
@@ -111,47 +132,53 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            background: none;
-            border: none;
+            background: rgba(26, 24, 31, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 4px 6px;
             color: var(--text-secondary);
             font-size: 10px;
             cursor: pointer;
             gap: 3px;
-            transition: color 0.2s;
+            transition: all 0.2s ease;
         }
 
         .side-item.active {
             color: var(--primary);
+            border-color: rgba(201, 107, 124, 0.4);
+            background: rgba(201, 107, 124, 0.12);
         }
 
         .side-icon-wrapper {
-            width: 34px;
-            height: 34px;
+            width: 32px;
+            height: 32px;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
         .side-icon-wrapper svg {
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
             fill: currentColor;
         }
 
         .footer-nav {
             position: absolute;
-            bottom: 16px;
-            left: 16px;
-            right: 16px;
+            bottom: calc(10px + var(--sab));
+            left: max(10px, var(--sal));
+            right: max(10px, var(--sar));
             display: flex;
-            gap: 8px;
+            gap: 6px;
             align-items: center;
             background-color: var(--bg-pill);
-            padding: 10px 12px;
-            border-radius: 16px;
+            padding: 8px 10px;
+            border-radius: 18px;
             border: 1px solid var(--border-color);
             z-index: 40;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
             overflow-x: auto;
             scrollbar-width: none;
             -webkit-overflow-scrolling: touch;
@@ -167,20 +194,20 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
             color: var(--text-secondary);
             font-size: 10px;
             cursor: pointer;
-            transition: color 0.2s;
-            flex: 0 0 calc((100% - (4 * 8px)) / 5);
-            min-width: 58px;
+            transition: color 0.2s, transform 0.15s;
+            flex: 1 0 auto;
+            min-width: 52px;
             white-space: nowrap;
+            padding: 2px 4px;
+            border-radius: 10px;
         }
 
-        @media (max-width: 360px) {
-            .nav-item {
-                flex: 0 0 62px;
-            }
+        .nav-item:active {
+            transform: scale(0.95);
         }
 
         .nav-item.active {
@@ -188,8 +215,8 @@
         }
 
         .nav-icon-wrapper {
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -203,34 +230,37 @@
 
         .bottom-sheet {
             position: absolute;
-            bottom: 84px;
+            bottom: calc(var(--nav-height) + 16px + var(--sab));
             left: 0;
+            right: 0;
             width: 100%;
             background-color: var(--bg-sheet);
             border-top-left-radius: 28px;
             border-top-right-radius: 28px;
-            padding: 10px 16px 16px 16px;
+            padding: 8px 16px 14px 16px;
             z-index: 30;
             box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            border-top: 1px solid rgba(255,255,255,0.06);
         }
 
         .sheet-header-area {
             width: 100%;
             cursor: pointer;
-            padding: 4px 0 12px 0;
+            padding: 6px 0 10px 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             flex-shrink: 0;
+            touch-action: none;
         }
 
         .sheet-handle {
-            width: 42px;
-            height: 6px;
+            width: 44px;
+            height: 5px;
             background-color: #5c5765;
             border-radius: 10px;
             transition: background-color 0.2s ease;
@@ -248,7 +278,7 @@
             color: var(--text-secondary);
             letter-spacing: 0.3px;
             position: absolute;
-            top: 22px;
+            top: 20px;
             left: 50%;
             transform: translateX(-50%);
             opacity: 0;
@@ -261,10 +291,12 @@
             scrollbar-width: none;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 14px;
             flex: 1;
             opacity: 1;
             transition: opacity 0.15s ease;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 6px;
         }
 
         .sheet-content::-webkit-scrollbar {
@@ -276,15 +308,18 @@
         }
 
         .section-title {
-            font-size: 13px;
+            font-size: 12px;
+            font-weight: 500;
             color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .section-divider {
             width: 100%;
             height: 1px;
             background-color: var(--border-color);
-            margin: 2px 0;
+            margin: 1px 0;
         }
 
         .styles-scroll-container {
@@ -292,7 +327,7 @@
             gap: 10px;
             overflow-x: auto;
             overflow-y: hidden;
-            padding-bottom: 4px;
+            padding: 2px 2px 6px 2px;
             scrollbar-width: none;
             width: 100%;
             cursor: pointer;
@@ -307,26 +342,31 @@
             background-color: var(--bg-card); 
             border: 2px solid transparent;
             border-radius: 16px;
-            min-width: 74px;
-            height: 84px;
+            min-width: 72px;
+            height: 80px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: flex-end;
-            padding-bottom: 6px;
+            padding-bottom: 8px;
             cursor: pointer;
             position: relative;
             overflow: hidden;
             flex-shrink: 0;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, transform 0.15s;
+        }
+
+        .style-card:active {
+            transform: scale(0.96);
         }
 
         .style-card.active {
             border-color: var(--primary);
+            background-color: rgba(201, 107, 124, 0.08);
         }
 
         .style-card span {
-            font-size: 10px;
+            font-size: 11px;
             color: var(--text-muted);
             white-space: nowrap;
             pointer-events: none;
@@ -337,7 +377,7 @@
             gap: 12px;
             overflow-x: auto;
             overflow-y: hidden;
-            padding-bottom: 4px;
+            padding: 2px 2px 6px 2px;
             scrollbar-width: none;
             width: 100%;
             cursor: pointer;
@@ -356,11 +396,17 @@
             cursor: pointer;
             flex-shrink: 0;
             transition: transform 0.2s;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
+        }
+
+        .color-dot:active {
+            transform: scale(0.92);
         }
 
         .color-dot.active {
             border-color: var(--primary);
-            padding: 2px;
+            transform: scale(1.08);
+            box-shadow: 0 0 0 2px var(--bg-sheet), 0 0 0 4px var(--primary);
         }
     </style>
 </head>
@@ -433,10 +479,10 @@
         const minHeight = 44; 
 
         function getMaxHeight() { 
-            return appContainer.clientHeight - 130; 
+            return Math.max(180, appContainer.clientHeight - 130); 
         }
         function getInitialHeight() { 
-            return appContainer.clientHeight * 0.32; 
+            return Math.max(160, Math.min(appContainer.clientHeight * 0.34, 320)); 
         }
 
         let currentHeight = getInitialHeight();
@@ -447,8 +493,8 @@
         window.addEventListener('mousemove', onDrag);
         window.addEventListener('mouseup', stopDrag);
 
-        sheetHeader.addEventListener('touchstart', startDrag, {passive: true});
-        window.addEventListener('touchmove', onDrag, {passive: true});
+        sheetHeader.addEventListener('touchstart', startDrag, {passive: false});
+        window.addEventListener('touchmove', onDrag, {passive: false});
         window.addEventListener('touchend', stopDrag);
 
         sheetHeader.addEventListener('click', (e) => {
@@ -465,19 +511,24 @@
             }
         });
 
+        function getClientY(e) {
+            return (e.touches && e.touches.length > 0) ? e.touches[0].clientY : e.clientY;
+        }
+
         function startDrag(e) {
             isDragging = true;
             hasMoved = false;
             sheetHandle.classList.add('active-pink'); 
-            startY = e.clientY || e.touches[0].clientY;
+            startY = getClientY(e);
             startHeight = bottomSheet.clientHeight;
             bottomSheet.style.transition = 'none';
         }
 
         function onDrag(e) {
             if (!isDragging) return;
+            if (e.cancelable) e.preventDefault();
             hasMoved = true; 
-            const currentY = e.clientY || e.touches[0].clientY;
+            const currentY = getClientY(e);
             const diff = startY - currentY; 
             let newHeight = startHeight + diff;
             const max = getMaxHeight();
@@ -496,10 +547,6 @@
         }
 
         function updateSheetState(height) {
-            const max = getMaxHeight();
-            const range = max - minHeight;
-            const progress = (height - minHeight) / (range || 1);
-
             if (height <= minHeight + 15) {
                 sheetTitle.style.opacity = '1';
                 sheetContent.style.opacity = '0';
@@ -514,15 +561,13 @@
         function checkAndResetSheet() {
             const currentH = bottomSheet.clientHeight;
             const initialH = getInitialHeight();
-            const threshold = initialH * 0.3; // 30% da altura inicial
+            const threshold = initialH * 0.3;
 
-            // Se estiver abaixo de 30% da altura inicial, volta para a altura padrão
             if (currentH < threshold) {
                 bottomSheet.style.transition = 'height 0.25s ease-out';
                 bottomSheet.style.height = initialH + 'px';
                 updateSheetState(initialH);
             }
-            // Se estiver acima ou igual a 30%, permanece exatamente na mesma altura atual
         }
 
         function enableHorizontalDrag(containerId) {
@@ -549,6 +594,15 @@
             });
         }
 
+        window.addEventListener('resize', () => {
+            if (bottomSheet.clientHeight > minHeight + 15) {
+                const max = getMaxHeight();
+                if (bottomSheet.clientHeight > max) {
+                    bottomSheet.style.height = max + 'px';
+                }
+            }
+        });
+
         enableHorizontalDrag('footerNav');
 
         const tabData = {
@@ -573,7 +627,7 @@
                 sideButtons: [
                     { label: "Cabelo", active: true, icon: '<path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12C4,13.85 4.63,15.55 5.68,16.91C6.7,15.5 8.5,14.5 12,14.5C15.5,14.5 17.3,15.5 18.32,16.91C19.37,15.55 20,13.85 20,12A8,8 0 0,0 12,4M12,6A3,3 0 0,1 15,9A3,3 0 0,1 12,12A3,3 0 0,1 9,9A3,3 0 0,1 12,6Z"/>' },
                     { label: "Olhos", active: false, icon: '<path d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17C10.34,17 9,15.66 9,14C9,12.34 10.34,11 12,11C13.66,11 15,12.34 15,14C15,15.66 13.66,17 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z"/>' },
-                    { label: "Boca", active: false, icon: '<path d="M12,2C14.76,2 17,4.24 17,7C17,8.65 16.18,10.11 14.9,11C16.18,11.89 17,13.35 17,15C17,17.76 14.76,20 12,20C9.24,20 7,17.76 7,15C7,13.35 7.82,11.89 9.1,11C7.82,10.11 7,8.65 7,7C7,4.24 9.24,2 12,2M12,4C10.34,4 9,5.34 9,7C9,8.66 10.34,10 12,10C13.66,10 15,8.66 15,7C15,5.34 13.66,4 12,4M12,12C10.34,12 9,13.34 9,15C9,16.66 10.34,18 12,18C13.66,18 15,16.66 15,15C15,13.34 13.66,12 12,12Z"/>' }
+                    { label: "Boca", active: false, icon: '<path d="M12,2C14.76,2 17,4.24 17,7C17,8.65 16.18,10.11 14.9,11C16.18,11.89 17,13.35 17,15C17,17.76 14.76,20 12,20C9.24,20 7,17.76 7,15C7,13.35 7.82,11.89 9.1,11C7.82,10.11 7,8.65 7,7C7,4.24 9.24,2 12,2M12,4C10.34,4 9,5.34 9,7C9,8.66 10.34,10 12,10C10.34,10 15,8.66 15,7C15,5.34 13.66,4 12,4M12,12C10.34,12 9,13.34 9,15C9,16.66 10.34,18 12,18C13.66,18 15,16.66 15,15C15,13.34 13.66,12 12,12Z"/>' }
                 ],
                 sheetHTML: `
                     <div class="section-title">Tipo de Cabelo</div>
@@ -644,7 +698,7 @@
             "Estilo": {
                 sideButtons: [
                     { label: "Roupas", active: true, icon: '<path d="M12,3L2,12H5V20H19V12H22L12,3M12,7.7C14.1,7.7 15.8,9.4 15.8,11.5C15.8,13.6 14.1,15.3 12,15.3C9.9,15.3 8.2,13.6 8.2,11.5C8.2,9.4 9.9,7.7 12,7.7Z"/>' },
-                    { label: "Acessórios", active: false, icon: '<path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12C4,13.85 4.63,15.55 5.68,16.91C6.7,15.5 8.5,14.5 12,14.5C15.5,14.5 17.3,15.5 18.32,16.91C19.37,15.55 20,13.85 20,12A8,8 0 0,0 12,4Z"/>' }
+                    { label: "Acessórios", active: false, icon: '<path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12C4,13.85 4.63,15.55 5.68,16.91C6.7,15.5 8.5,14.5 12,14.5C15.5,14.5 17.3,15.5 18.32,16.91C19.37,15.55 20,13.85 20,12A8,8 0 0,0 12,4M12,6A3,3 0 0,1 15,9A3,3 0 0,1 12,12A3,3 0 0,1 9,9A3,3 0 0,1 12,6Z"/>' }
                 ],
                 sheetHTML: `
                     <div class="section-title">Guarda-Roupa</div>
