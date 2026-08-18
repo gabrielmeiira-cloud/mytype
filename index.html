@@ -858,6 +858,27 @@
             });
         }
 
+        /* --- LIMITES DE MOVIMENTAÇÃO (NÃO DEIXA A AVATAR SAIR DA MOLDURA) --- */
+        function getPanBounds() {
+            const w = viewportCanvas ? viewportCanvas.clientWidth : 350;
+            const h = viewportCanvas ? viewportCanvas.clientHeight : 600;
+            
+            // Limites inteligentes proporcionais ao zoom para nunca sair da moldura
+            const maxX = Math.max(30, (w * Math.max(0, avatarScale - 0.7)) * 0.45 + 50);
+            const maxY = Math.max(40, (h * Math.max(0, avatarScale - 0.7)) * 0.65 + 230);
+            const minY = -Math.max(40, (h * Math.max(0, avatarScale - 0.7)) * 0.65 + 250);
+            
+            return { minX: -maxX, maxX: maxX, minY: minY, maxY: maxY };
+        }
+
+        function clampPan(x, y) {
+            const bounds = getPanBounds();
+            return {
+                x: Math.min(bounds.maxX, Math.max(bounds.minX, x)),
+                y: Math.min(bounds.maxY, Math.max(bounds.minY, y))
+            };
+        }
+
         /* --- ZOOM COM SCROLL DO MOUSE (FOCO NO CURSOR) --- */
         if (viewportCanvas) {
             viewportCanvas.addEventListener('wheel', (e) => {
@@ -872,9 +893,13 @@
                 const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, avatarScale * zoomFactor));
 
                 if (newScale !== avatarScale) {
-                    avatarPanX = mouseX - (mouseX - avatarPanX) * (newScale / avatarScale);
-                    avatarPanY = mouseY - (mouseY - avatarPanY) * (newScale / avatarScale);
+                    let nextX = mouseX - (mouseX - avatarPanX) * (newScale / avatarScale);
+                    let nextY = mouseY - (mouseY - avatarPanY) * (newScale / avatarScale);
                     avatarScale = newScale;
+
+                    const clamped = clampPan(nextX, nextY);
+                    avatarPanX = clamped.x;
+                    avatarPanY = clamped.y;
                     updateAvatarTransform(false);
                 }
             }, { passive: false });
@@ -905,7 +930,8 @@
                         const rect = viewportCanvas.getBoundingClientRect();
                         const tapX = e.clientX - rect.left - rect.width / 2;
                         const tapY = e.clientY - rect.top - rect.height / 2;
-                        animateAvatarCamera(2.15, -tapX * 0.75, -tapY * 0.75, 400);
+                        const clamped = clampPan(-tapX * 0.75, -tapY * 0.75);
+                        animateAvatarCamera(2.15, clamped.x, clamped.y, 400);
                     }
                     lastTapTime = 0;
                     return;
@@ -923,8 +949,25 @@
 
             viewportCanvas.addEventListener('pointermove', (e) => {
                 if (!isPanningAvatar || isCameraAnimating) return;
-                avatarPanX = panInitialX + (e.clientX - panStartX);
-                avatarPanY = panInitialY + (e.clientY - panStartY);
+                let targetX = panInitialX + (e.clientX - panStartX);
+                let targetY = panInitialY + (e.clientY - panStartY);
+
+                // Resistência elástica ao tentar passar dos limites da moldura
+                const bounds = getPanBounds();
+                if (targetX < bounds.minX) {
+                    targetX = bounds.minX + (targetX - bounds.minX) * 0.22;
+                } else if (targetX > bounds.maxX) {
+                    targetX = bounds.maxX + (targetX - bounds.maxX) * 0.22;
+                }
+
+                if (targetY < bounds.minY) {
+                    targetY = bounds.minY + (targetY - bounds.minY) * 0.22;
+                } else if (targetY > bounds.maxY) {
+                    targetY = bounds.maxY + (targetY - bounds.maxY) * 0.22;
+                }
+
+                avatarPanX = targetX;
+                avatarPanY = targetY;
                 updateAvatarTransform(false);
             });
 
@@ -932,10 +975,24 @@
                 if (!isPanningAvatar) return;
                 isPanningAvatar = false;
                 try { viewportCanvas.releasePointerCapture(e.pointerId); } catch(err){}
+
+                // Se passou dos limites durante o arraste rápido, retorna suavemente para dentro da moldura
+                const bounds = getPanBounds();
+                if (avatarPanX < bounds.minX || avatarPanX > bounds.maxX || avatarPanY < bounds.minY || avatarPanY > bounds.maxY) {
+                    avatarPanX = Math.min(bounds.maxX, Math.max(bounds.minX, avatarPanX));
+                    avatarPanY = Math.min(bounds.maxY, Math.max(bounds.minY, avatarPanY));
+                    updateAvatarTransform(true);
+                }
             });
 
             viewportCanvas.addEventListener('pointercancel', (e) => {
                 isPanningAvatar = false;
+                const bounds = getPanBounds();
+                if (avatarPanX < bounds.minX || avatarPanX > bounds.maxX || avatarPanY < bounds.minY || avatarPanY > bounds.maxY) {
+                    avatarPanX = Math.min(bounds.maxX, Math.max(bounds.minX, avatarPanX));
+                    avatarPanY = Math.min(bounds.maxY, Math.max(bounds.minY, avatarPanY));
+                    updateAvatarTransform(true);
+                }
             });
 
             viewportCanvas.addEventListener('touchstart', (e) => {
@@ -956,6 +1013,9 @@
                     );
                     const scaleFactor = currentDist / initialPinchDist;
                     avatarScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, initialPinchScale * scaleFactor));
+                    const clamped = clampPan(avatarPanX, avatarPanY);
+                    avatarPanX = clamped.x;
+                    avatarPanY = clamped.y;
                     updateAvatarTransform(false);
                 }
             }, { passive: true });
