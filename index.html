@@ -1277,16 +1277,20 @@
         }
 
         /* --- MOTOR DE ENQUADRAMENTO UNIVERSAL DE CÂMERA (100% IDÊNTICO EM QUALQUER DISPOSITIVO) --- */
-        function calculateFramingFromBoundingBox(box) {
+        function calculateFramingFromBoundingBox(box, customSheetH = null) {
             const m = getAvatarLayoutMetrics();
             
-            // Altura do Bottom Sheet visível (para nunca cobrir o foco da modelo em celulares)
-            const bottomSheetH = (bottomSheet && bottomSheet.offsetHeight > 0) ? Math.min(bottomSheet.offsetHeight, m.h * 0.40) : 70;
+            // Limite padrão do menu para enquadramento da câmera (~32% da altura da tela)
+            const standardMenuLimit = Math.max(120, Math.min(m.h * 0.32, 240));
+            const rawSheetH = customSheetH !== null ? customSheetH : ((bottomSheet && bottomSheet.offsetHeight > 0) ? bottomSheet.offsetHeight : 40);
+            
+            // Ajusta o foco da câmera só até o limite padrão do menu; se subir acima, ignora o excesso!
+            const effectiveSheetH = Math.min(rawSheetH, standardMenuLimit);
             
             // Área Segura Visível (Safe Viewing Window)
             const safeTop = 15;
-            const safeBottom = m.h - bottomSheetH - 10;
-            const safeHeight = Math.max(100, safeBottom - safeTop);
+            const safeBottom = m.h - effectiveSheetH - 10;
+            const safeHeight = Math.max(120, safeBottom - safeTop);
             const safeWidth = m.w;
             const safeCenterY = safeTop + (safeHeight / 2);
 
@@ -1317,6 +1321,20 @@
                 x: clamped.x,
                 y: clamped.y
             };
+        }
+
+        // Função de atualização contínua e em tempo real da câmera conforme o menu é arrastado
+        function updateCameraFramingRealtime(targetDuration = 0, customSheetH = null) {
+            const framing = calculateFramingFromBoundingBox(currentBox, customSheetH);
+            if (targetDuration > 0) {
+                animateAvatarCamera(framing.scale, framing.x, framing.y, targetDuration);
+            } else {
+                avatarContainer.style.transition = 'none';
+                avatarScale = framing.scale;
+                avatarPanX = framing.x;
+                avatarPanY = framing.y;
+                updateAvatarTransform(false);
+            }
         }
 
         function renderCollisionBoxDOM() {
@@ -1881,7 +1899,7 @@
             }, 420);
         }
 
-        /* --- BOTTOM SHEET DRAG & STATE (FECHADA POR PADRÃO) --- */
+        /* --- BOTTOM SHEET DRAG & STATE (AJUSTE EM TEMPO REAL E GESTOS RÁPIDOS) --- */
         let isDraggingSheet = false;
         let sheetStartY = 0;
         let sheetStartHeight = 0;
@@ -1892,7 +1910,7 @@
             return appContainer.clientHeight - 110; 
         }
         function getInitialHeight() { 
-            return Math.max(140, Math.min(appContainer.clientHeight * 0.32, 280)); 
+            return Math.max(140, Math.min(appContainer.clientHeight * 0.32, 260)); 
         }
 
         let currentHeight = minHeight;
@@ -1920,32 +1938,50 @@
 
             bottomSheet.style.height = newHeight + 'px';
             updateSheetState(newHeight);
+            
+            // Ajusta o enquadramento da câmera em tempo real durante o arraste!
+            updateCameraFramingRealtime(0, newHeight);
         });
 
         sheetHeader.addEventListener('pointerup', (e) => {
             if (!isDraggingSheet) return;
             isDraggingSheet = false;
             sheetHandle.classList.remove('active-pink'); 
-            bottomSheet.style.transition = 'height 0.25s cubic-bezier(0.25, 1, 0.5, 1)';
             try { sheetHeader.releasePointerCapture(e.pointerId); } catch(err){}
 
-            if (!sheetHasMoved) {
-                if (bottomSheet.clientHeight <= minHeight + 15) {
-                    let targetH = getInitialHeight();
-                    bottomSheet.style.height = targetH + 'px';
-                    updateSheetState(targetH);
+            const diff = sheetStartY - e.clientY;
+            let targetH;
+
+            if (sheetHasMoved) {
+                // Arrastar para cima abre todo o menu!
+                // Arrastar para baixo fecha todo o menu!
+                if (diff > 15) {
+                    targetH = getMaxHeight();
+                } else if (diff < -15) {
+                    targetH = minHeight;
                 } else {
-                    bottomSheet.style.height = minHeight + 'px';
-                    updateSheetState(minHeight);
+                    targetH = bottomSheet.clientHeight > (getMaxHeight() * 0.5) ? getMaxHeight() : minHeight;
+                }
+            } else {
+                // Clique/Toque simples: alterna entre aberto e fechado
+                if (bottomSheet.clientHeight <= minHeight + 15) {
+                    targetH = getInitialHeight();
+                } else {
+                    targetH = minHeight;
                 }
             }
+
+            bottomSheet.style.transition = 'height 0.32s cubic-bezier(0.22, 1, 0.36, 1)';
+            bottomSheet.style.height = targetH + 'px';
+            updateSheetState(targetH);
+            updateCameraFramingRealtime(320, targetH);
         });
 
         sheetHeader.addEventListener('pointercancel', (e) => {
             if (!isDraggingSheet) return;
             isDraggingSheet = false;
             sheetHandle.classList.remove('active-pink'); 
-            bottomSheet.style.transition = 'height 0.25s cubic-bezier(0.25, 1, 0.5, 1)';
+            bottomSheet.style.transition = 'height 0.32s cubic-bezier(0.22, 1, 0.36, 1)';
         });
 
         function updateSheetState(height) {
