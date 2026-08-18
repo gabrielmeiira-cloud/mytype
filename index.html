@@ -305,7 +305,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background: radial-gradient(circle at center, #1f1d26 0%, #131217 80%);
+            background: radial-gradient(circle, #382e3f 0%, #17151b 75%);
             overflow: hidden;
             z-index: 1;
             cursor: grab;
@@ -338,7 +338,7 @@
             pointer-events: none;
         }
 
-        /* Marcador de Zoom e Coordenadas em Tempo Real */
+        /* Marcador de Zoom e Coordenadas em Tempo Real (HUD) */
         .camera-hud-badge {
             position: absolute;
             top: 14px;
@@ -782,6 +782,51 @@
         let avatarPanY = 0;
         let isCameraAnimating = false;
 
+        /* --- CÁLCULO DE LIMITES DINÂMICOS DA MODELO --- */
+        function getAvatarPanBounds(scale) {
+            const vW = viewportCanvas.clientWidth || 350;
+            const vH = viewportCanvas.clientHeight || 500;
+
+            let maxX, maxY;
+            if (scale <= 1.0) {
+                // Em 55% a 90%: a modelo NUNCA sai da tela
+                maxX = Math.max(0, (vW * (1 - scale * 0.85)) * 0.45);
+                maxY = Math.max(0, (vH * (1 - scale * 0.85)) * 0.45);
+            } else {
+                // Com zoom: pelo menos 20% do corpo dela permanece sempre na tela (máximo 80% fora)
+                maxX = (vW * 0.5) + (vW * scale * 0.30);
+                maxY = (vH * 0.5) + (vH * scale * 0.32);
+            }
+            return {
+                minX: -maxX,
+                maxX: maxX,
+                minY: -maxY,
+                maxY: maxY
+            };
+        }
+
+        function clampPan(val, min, max, elastic = false) {
+            if (val < min) {
+                return elastic ? min + (val - min) * 0.22 : min;
+            }
+            if (val > max) {
+                return elastic ? max + (val - max) * 0.22 : max;
+            }
+            return val;
+        }
+
+        function snapAvatarToBounds(smooth = true) {
+            const bounds = getAvatarPanBounds(avatarScale);
+            const clampedX = clampPan(avatarPanX, bounds.minX, bounds.maxX, false);
+            const clampedY = clampPan(avatarPanY, bounds.minY, bounds.maxY, false);
+
+            if (clampedX !== avatarPanX || clampedY !== avatarPanY) {
+                avatarPanX = clampedX;
+                avatarPanY = clampedY;
+                updateAvatarTransform(smooth);
+            }
+        }
+
         function updateAvatarTransform(smooth = false) {
             if (smooth) {
                 avatarContainer.style.transition = 'transform 0.45s cubic-bezier(0.25, 1, 0.5, 1)';
@@ -804,10 +849,12 @@
         // Animação suave para focar em partes do corpo ditadas pelos botões
         function animateAvatarCamera(targetScale, targetX, targetY, duration = 480) {
             isCameraAnimating = true;
-            avatarContainer.style.transition = `transform ${duration}ms cubic-bezier(0.22, 1, 0.36, 1)`;
             avatarScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, targetScale));
-            avatarPanX = targetX;
-            avatarPanY = targetY;
+            const bounds = getAvatarPanBounds(avatarScale);
+            avatarPanX = clampPan(targetX, bounds.minX, bounds.maxX, false);
+            avatarPanY = clampPan(targetY, bounds.minY, bounds.maxY, false);
+
+            avatarContainer.style.transition = `transform ${duration}ms cubic-bezier(0.22, 1, 0.36, 1)`;
             avatarContainer.style.transform = `translate(${avatarPanX}px, ${avatarPanY}px) scale(${avatarScale})`;
             updateHudDisplay();
 
@@ -844,7 +891,7 @@
             });
         }
 
-        /* --- ZOOM COM SCROLL DO MOUSE (FOCO NO CURSOR) --- */
+        /* --- ZOOM COM SCROLL DO MOUSE (FOCO NO CURSOR + LIMITES) --- */
         if (viewportCanvas) {
             viewportCanvas.addEventListener('wheel', (e) => {
                 e.preventDefault();
@@ -858,15 +905,19 @@
                 const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, avatarScale * zoomFactor));
 
                 if (newScale !== avatarScale) {
-                    avatarPanX = mouseX - (mouseX - avatarPanX) * (newScale / avatarScale);
-                    avatarPanY = mouseY - (mouseY - avatarPanY) * (newScale / avatarScale);
+                    let nextPanX = mouseX - (mouseX - avatarPanX) * (newScale / avatarScale);
+                    let nextPanY = mouseY - (mouseY - avatarPanY) * (newScale / avatarScale);
+                    
+                    const bounds = getAvatarPanBounds(newScale);
+                    avatarPanX = clampPan(nextPanX, bounds.minX, bounds.maxX, false);
+                    avatarPanY = clampPan(nextPanY, bounds.minY, bounds.maxY, false);
                     avatarScale = newScale;
                     updateAvatarTransform(false);
                 }
             }, { passive: false });
         }
 
-        /* --- ARRASTAR E MOVER A MODELO COM O CLIQUE / TOUCH --- */
+        /* --- ARRASTAR E MOVER A MODELO COM O CLIQUE / TOUCH (COM LIMITES) --- */
         let isPanningAvatar = false;
         let panStartX = 0;
         let panStartY = 0;
@@ -909,8 +960,12 @@
 
             viewportCanvas.addEventListener('pointermove', (e) => {
                 if (!isPanningAvatar || isCameraAnimating) return;
-                avatarPanX = panInitialX + (e.clientX - panStartX);
-                avatarPanY = panInitialY + (e.clientY - panStartY);
+                const rawX = panInitialX + (e.clientX - panStartX);
+                const rawY = panInitialY + (e.clientY - panStartY);
+
+                const bounds = getAvatarPanBounds(avatarScale);
+                avatarPanX = clampPan(rawX, bounds.minX, bounds.maxX, true);
+                avatarPanY = clampPan(rawY, bounds.minY, bounds.maxY, true);
                 updateAvatarTransform(false);
             });
 
@@ -918,10 +973,12 @@
                 if (!isPanningAvatar) return;
                 isPanningAvatar = false;
                 try { viewportCanvas.releasePointerCapture(e.pointerId); } catch(err){}
+                snapAvatarToBounds(true);
             });
 
             viewportCanvas.addEventListener('pointercancel', (e) => {
                 isPanningAvatar = false;
+                snapAvatarToBounds(true);
             });
 
             viewportCanvas.addEventListener('touchstart', (e) => {
@@ -941,7 +998,11 @@
                         e.touches[0].clientY - e.touches[1].clientY
                     );
                     const scaleFactor = currentDist / initialPinchDist;
-                    avatarScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, initialPinchScale * scaleFactor));
+                    const nextScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, initialPinchScale * scaleFactor));
+                    const bounds = getAvatarPanBounds(nextScale);
+                    avatarScale = nextScale;
+                    avatarPanX = clampPan(avatarPanX, bounds.minX, bounds.maxX, false);
+                    avatarPanY = clampPan(avatarPanY, bounds.minY, bounds.maxY, false);
                     updateAvatarTransform(false);
                 }
             }, { passive: true });
@@ -1208,7 +1269,7 @@
                 sideButtons: [
                     { label: "Cabelo", active: true, icon: '<path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12C4,13.85 4.63,15.55 5.68,16.91C6.7,15.5 8.5,14.5 12,14.5C15.5,14.5 17.3,15.5 18.32,16.91C19.37,15.55 20,13.85 20,12A8,8 0 0,0 12,4M12,6A3,3 0 0,1 15,9A3,3 0 0,1 12,12A3,3 0 0,1 9,9A3,3 0 0,1 12,6Z"/>' },
                     { label: "Olhos", active: false, icon: '<path d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17C10.34,17 9,15.66 9,14C9,12.34 10.34,11 12,11C13.66,11 15,12.34 15,14C15,15.66 13.66,17 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z"/>' },
-                    { label: "Boca", active: false, icon: '<path d="M12,2C14.76,2 17,4.24 17,7C17,8.65 16.18,10.11 14.9,11C16.18,11.89 17,13.35 17,15C17,17.76 14.76,20 12,20C9.24,20 7,17.76 7,15C7,13.35 7.82,11.89 9.1,11C7.82,10.11 7,8.65 7,7C7,4.24 9.24,2 12,2M12,4C10.34,4 9,5.34 9,7C9,8.66 10.34,10 12,10C10.34,10 15,8.66 15,7C15,5.34 13.66,4 12,4M12,12C10.34,12 9,13.34 9,15C9,16.66 10.34,18 12,18C13.66,18 15,16.66 15,15C15,13.34 13.66,12 12,12Z"/>' }
+                    { label: "Boca", active: false, icon: '<path d="M12,2C14.76,2 17,4.24 17,7C17,8.65 16.18,10.11 14.9,11C16.18,11.89 17,13.35 17,15C17,17.76 14.76,20 12,20C9.24,20 7,17.76 7,15C7,13.35 7.82,11.89 9.1,11C7.82,10.11 7,8.65 7,7C7,4.24 9.24,2 12,2M12,4C10.34,4 9,5.34 9,7C9,8.66 10.34,10 12,10C10.34,10 9,8.66 9,7C9,5.34 10.34,4 12,4M12,13C15.03,13 17.5,15.47 17.5,18.5H6.5C6.5,15.47 8.97,13 12,13Z"/></svg></div>
                 ],
                 sheetHTML: `
                     <div class="section-title">Tipo de Cabelo</div>
@@ -1279,7 +1340,7 @@
             "Estilo": {
                 sideButtons: [
                     { label: "Roupas", active: true, icon: '<path d="M12,3L2,12H5V20H19V12H22L12,3M12,7.7C14.1,7.7 15.8,9.4 15.8,11.5C15.8,13.6 14.1,15.3 12,15.3C9.9,15.3 8.2,13.6 8.2,11.5C8.2,9.4 9.9,7.7 12,7.7Z"/>' },
-                    { label: "Acessórios", active: false, icon: '<path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12C4,13.85 4.63,15.55 5.68,16.91C6.7,15.5 8.5,14.5 12,14.5C15.5,14.5 17.3,15.5 18.32,16.91C19.37,15.55 20,13.85 20,12A8,8 0 0,0 12,4M12,6A3,3 0 0,1 15,9A3,3 0 0,1 12,12A3,3 0 0,1 9,9A3,3 0 0,1 12,6Z"/>' }
+                    { label: "Acessórios", active: false, icon: '<path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12C4,13.85 4.63,15.55 5.68,16.91C6.7,15.5 8.5,14.5 12,14.5C15.5,14.5 17.3,15.5 18.32,16.91C19.37,15.55 20,13.85 20,12A8,8 0 0,0 12,4M12,6A3,3 0 0,1 15,9A3,3 0 0,1 12,12A3,3 0 0,1 9,9A3,3 0 0,1 12,6Z"/>' }
                 ],
                 sheetHTML: `
                     <div class="section-title">Guarda-Roupa</div>
