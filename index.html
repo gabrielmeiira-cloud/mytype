@@ -782,14 +782,14 @@
         let cameraY = 0;
         let isCameraAnimating = false;
 
-        /* --- LIMITE DE 50% DE EXCURSÃO DA CÂMERA SOBRE A MODELO --- */
+        /* --- LIMITE DE 35% NA HORIZONTAL E 20% NA VERTICAL --- */
         function getCameraBounds(zoom) {
             const vW = (viewportCanvas && viewportCanvas.clientWidth) ? viewportCanvas.clientWidth : 350;
             const vH = (viewportCanvas && viewportCanvas.clientHeight) ? viewportCanvas.clientHeight : 500;
 
-            // Limite de 50% para a modelo nunca sumir mais do que metade do quadro
-            const maxX = Math.max(90, (vW * 0.5) * zoom * 0.50);
-            const maxY = Math.max(130, (vH * 0.5) * zoom * 0.50);
+            // Limite de 35% na horizontal e 20% na vertical
+            const maxX = Math.max(70, (vW * 0.5) * zoom * 0.35);
+            const maxY = Math.max(100, (vH * 0.5) * zoom * 0.20);
 
             return {
                 minX: -maxX,
