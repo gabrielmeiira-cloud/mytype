@@ -1052,10 +1052,22 @@
                 let targetX = panInitialX + (e.clientX - panStartX);
                 let targetY = panInitialY + (e.clientY - panStartY);
 
-                // Trava de colisão física rígida nas bordas
-                const clamped = clampPan(targetX, targetY);
-                avatarPanX = clamped.x;
-                avatarPanY = clamped.y;
+                // Resistência elástica ao puxar além dos limites do corpo (braço, cabeça ou pé)
+                const bounds = getStrictPanBounds();
+                if (targetX < bounds.minX) {
+                    targetX = bounds.minX + (targetX - bounds.minX) * 0.22;
+                } else if (targetX > bounds.maxX) {
+                    targetX = bounds.maxX + (targetX - bounds.maxX) * 0.22;
+                }
+
+                if (targetY < bounds.minY) {
+                    targetY = bounds.minY + (targetY - bounds.minY) * 0.22;
+                } else if (targetY > bounds.maxY) {
+                    targetY = bounds.maxY + (targetY - bounds.maxY) * 0.22;
+                }
+
+                avatarPanX = targetX;
+                avatarPanY = targetY;
                 updateAvatarTransform(false);
             });
 
@@ -1064,20 +1076,23 @@
                 isPanningAvatar = false;
                 try { viewportCanvas.releasePointerCapture(e.pointerId); } catch(err){}
 
-                const clamped = clampPan(avatarPanX, avatarPanY);
-                if (avatarPanX !== clamped.x || avatarPanY !== clamped.y) {
-                    avatarPanX = clamped.x;
-                    avatarPanY = clamped.y;
+                // Movimento suave e fluido de volta para o limite da moldura
+                const bounds = getStrictPanBounds();
+                if (avatarPanX < bounds.minX || avatarPanX > bounds.maxX || avatarPanY < bounds.minY || avatarPanY > bounds.maxY) {
+                    avatarPanX = Math.min(bounds.maxX, Math.max(bounds.minX, avatarPanX));
+                    avatarPanY = Math.min(bounds.maxY, Math.max(bounds.minY, avatarPanY));
                     updateAvatarTransform(true);
                 }
             });
 
             viewportCanvas.addEventListener('pointercancel', (e) => {
                 isPanningAvatar = false;
-                const clamped = clampPan(avatarPanX, avatarPanY);
-                avatarPanX = clamped.x;
-                avatarPanY = clamped.y;
-                updateAvatarTransform(true);
+                const bounds = getStrictPanBounds();
+                if (avatarPanX < bounds.minX || avatarPanX > bounds.maxX || avatarPanY < bounds.minY || avatarPanY > bounds.maxY) {
+                    avatarPanX = Math.min(bounds.maxX, Math.max(bounds.minX, avatarPanX));
+                    avatarPanY = Math.min(bounds.maxY, Math.max(bounds.minY, avatarPanY));
+                    updateAvatarTransform(true);
+                }
             });
 
             viewportCanvas.addEventListener('touchstart', (e) => {
