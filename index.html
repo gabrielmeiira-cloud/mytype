@@ -986,6 +986,9 @@
                 <button class="pin-action-btn btn-register-action" id="btnRegisterPreset" onclick="registerCurrentOptionPreset()" title="Registrar Zoom, Coordenadas e Posição do PIN para a sessão atual">
                     💾 Registrar Opção
                 </button>
+                <button class="pin-action-btn" id="btnExportFixed" onclick="exportFixedPresetsConfig()" title="Copiar todas as posições salvas para fixar no código">
+                    📋 Exportar
+                </button>
             </div>
 
             <!-- Botão para alternar entre degradê antigo e novo -->
@@ -1367,6 +1370,25 @@
                 setTimeout(() => {
                     updatePinPositionDOM();
                 }, 2000);
+            }
+        }
+
+        function exportFixedPresetsConfig() {
+            const jsonText = JSON.stringify(responsiveCameraPresets, null, 4);
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(jsonText);
+            }
+            if (pinInfoText) {
+                pinInfoText.innerText = "📋 Código copiado! Só colar aqui no chat!";
+                setTimeout(() => {
+                    updatePinPositionDOM();
+                }, 3000);
+            }
+            const btn = document.getElementById('btnExportFixed');
+            if (btn) {
+                const prev = btn.innerHTML;
+                btn.innerHTML = `✅ Copiado!`;
+                setTimeout(() => { btn.innerHTML = prev; }, 2000);
             }
         }
 
