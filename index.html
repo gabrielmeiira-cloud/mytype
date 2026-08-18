@@ -39,7 +39,7 @@
             overflow: hidden;
         }
 
-        /* Moldura de Smartphone (Padrão iPhone 15/16) para visualização no Navegador Desktop */
+        /* Moldura de Smartphone para visualização no Navegador Desktop */
         .phone-wrapper {
             position: relative;
             display: flex;
@@ -58,50 +58,23 @@
             overflow: hidden;
         }
 
-        /* Desktop: Moldura de Celular Fixa e Realista */
+        /* Desktop: Moldura Fina e com Proporção Padrão de Celular */
         @media (min-width: 501px) {
             body {
                 background: radial-gradient(circle at center, #1b1922 0%, #0c0b0e 100%);
             }
 
             .phone-wrapper {
-                padding: 18px;
+                padding: 16px;
             }
 
             .app-container {
-                width: 393px;
-                height: min(852px, 92vh);
-                max-width: 393px;
-                max-height: 852px;
-                border-radius: 48px;
-                border: 11px solid #23222a;
-                box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-            }
-
-            .phone-island {
-                position: absolute;
-                top: 22px;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 110px;
-                height: 26px;
-                background-color: #000000;
-                border-radius: 18px;
-                z-index: 50;
-                display: flex;
-                align-items: center;
-                justify-content: flex-end;
-                padding-right: 9px;
-                pointer-events: none;
-                box-shadow: 0 1px 4px rgba(0,0,0,0.6);
-            }
-
-            .phone-island-cam {
-                width: 9px;
-                height: 9px;
-                background: radial-gradient(circle, #1c2738 30%, #0a0a0f 80%);
-                border-radius: 50%;
-                border: 1px solid #1f1f2a;
+                width: 375px;
+                height: 780px;
+                max-height: 86vh;
+                border-radius: 36px;
+                border: 2px solid var(--border-color);
+                box-shadow: 0 20px 48px rgba(0, 0, 0, 0.7);
             }
         }
 
@@ -121,10 +94,6 @@
                 border-radius: 0;
                 border: none;
                 box-shadow: none;
-            }
-
-            .phone-island {
-                display: none;
             }
         }
 
@@ -441,10 +410,6 @@
 <body>
 
     <div class="phone-wrapper">
-        <div class="phone-island">
-            <div class="phone-island-cam"></div>
-        </div>
-
         <div class="app-container" id="appContainer">
             
             <div class="viewport">
