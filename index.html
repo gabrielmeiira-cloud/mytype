@@ -367,10 +367,14 @@
             left: 0;
             pointer-events: none;
             image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
             image-rendering: high-quality;
+            -webkit-font-smoothing: antialiased;
             -webkit-backface-visibility: hidden;
             backface-visibility: hidden;
-            transform: translateZ(0);
+            -webkit-transform: translate3d(0, 0, 0);
+            transform: translate3d(0, 0, 0);
+            will-change: transform;
             transition: opacity 0.25s ease, filter 0.3s ease;
         }
 
@@ -1217,16 +1221,16 @@
 
         // Caixas de Colisão Normalizadas (0.0 a 1.0) para cada Sessão
         const sessionBoundingBoxes = {
-            "Identidade": { x: 0.10, y: 0.00, w: 0.80, h: 1.00 }, // Corpo Inteiro
-            "Aparência":  { x: 0.30, y: 0.00, w: 0.40, h: 0.18 }, // Cabeça e Rosto
-            "Busto":      { x: 0.20, y: 0.16, w: 0.60, h: 0.25 }, // Busto e Cintura
-            "Pernas":     { x: 0.22, y: 0.40, w: 0.56, h: 0.46 }, // Pernas e Joelhos
-            "Pés":        { x: 0.25, y: 0.80, w: 0.50, h: 0.20 }, // Tornozelos e Pés
-            "Estilo":     { x: 0.12, y: 0.05, w: 0.76, h: 0.88 }, // Moda Geral
-            "Gravação":   { x: 0.10, y: 0.00, w: 0.80, h: 1.00 }  // Estúdio
+            "Identidade": { x: 0.05, y: 0.00, w: 0.90, h: 1.00 }, // Corpo Inteiro
+            "Aparência":  { x: 0.28, y: 0.00, w: 0.44, h: 0.16 }, // Cabeça e Rosto
+            "Busto":      { x: 0.18, y: 0.14, w: 0.64, h: 0.24 }, // Busto e Cintura
+            "Pernas":     { x: 0.20, y: 0.38, w: 0.60, h: 0.44 }, // Pernas e Joelhos
+            "Pés":        { x: 0.24, y: 0.80, w: 0.52, h: 0.20 }, // Tornozelos e Pés
+            "Estilo":     { x: 0.10, y: 0.04, w: 0.80, h: 0.90 }, // Moda Geral
+            "Gravação":   { x: 0.05, y: 0.00, w: 0.90, h: 1.00 }  // Estúdio
         };
 
-        // Carrega caixas de colisão registradas previamente no navegador
+        // Carrega caixas de colisão salvas localmente
         try {
             const savedBoxes = localStorage.getItem('mytype_collision_boxes');
             if (savedBoxes) {
@@ -1234,6 +1238,26 @@
                 Object.assign(sessionBoundingBoxes, parsed);
             }
         } catch(e) {}
+
+        // Sincronização em Nuvem Global: Busca as configurações do servidor ao carregar
+        async function fetchGlobalCloudPresets() {
+            try {
+                const res = await fetch('/api/presets');
+                if (res.ok) {
+                    const cloudBoxes = await res.json();
+                    if (cloudBoxes && typeof cloudBoxes === 'object') {
+                        Object.assign(sessionBoundingBoxes, cloudBoxes);
+                        if (sessionBoundingBoxes[activeSessionName]) {
+                            currentBox = { ...sessionBoundingBoxes[activeSessionName] };
+                            renderCollisionBoxDOM();
+                        }
+                    }
+                }
+            } catch(err) {
+                // Modo offline ou desenvolvimento local
+            }
+        }
+        fetchGlobalCloudPresets();
 
         // Caixa de Colisão Atualmente Editada
         let currentBox = { ...sessionBoundingBoxes["Identidade"] };
@@ -1252,36 +1276,39 @@
             }
         }
 
-        /* --- MOTOR DE ENQUADRAMENTO DA CÂMERA BASEADO NA CAIXA DE COLISÃO --- */
+        /* --- MOTOR DE ENQUADRAMENTO UNIVERSAL DE CÂMERA (100% IDÊNTICO EM QUALQUER DISPOSITIVO) --- */
         function calculateFramingFromBoundingBox(box) {
             const m = getAvatarLayoutMetrics();
             
-            // Largura e altura da caixa em pixels reais da modelo quando scale = 1.0
-            const boxPixelW = Math.max(20, m.renderedW * box.w);
-            const boxPixelH = Math.max(20, m.renderedH * box.h);
+            // Altura do Bottom Sheet visível (para nunca cobrir o foco da modelo em celulares)
+            const bottomSheetH = (bottomSheet && bottomSheet.offsetHeight > 0) ? Math.min(bottomSheet.offsetHeight, m.h * 0.40) : 70;
+            
+            // Área Segura Visível (Safe Viewing Window)
+            const safeTop = 15;
+            const safeBottom = m.h - bottomSheetH - 10;
+            const safeHeight = Math.max(100, safeBottom - safeTop);
+            const safeWidth = m.w;
+            const safeCenterY = safeTop + (safeHeight / 2);
 
-            // Espaço visível disponível no viewport com margem de respiro
-            const availW = m.w * 0.82;
-            const availH = m.h * 0.65; // deixa respiro pro cabeçalho e bottom-sheet
+            // Largura e altura da caixa na modelo em pixels reais
+            const boxPixelW = Math.max(15, m.renderedW * box.w);
+            const boxPixelH = Math.max(15, m.renderedH * box.h);
 
-            // Escala ideal para preencher confortavelmente a tela
-            const scaleX = availW / boxPixelW;
-            const scaleY = availH / boxPixelH;
+            // Margem confortável dentro da janela segura
+            const scaleX = (safeWidth * 0.86) / boxPixelW;
+            const scaleY = (safeHeight * 0.82) / boxPixelH;
             const targetScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, Math.min(scaleX, scaleY)));
 
-            // Ponto central da caixa no espaço do avatar
+            // Centro da caixa de colisão no espaço do avatar
             const centerNormX = box.x + (box.w / 2);
             const centerNormY = box.y + (box.h / 2);
 
             const ptX = m.offsetX + (m.renderedW * centerNormX);
             const ptY = m.offsetY + (m.renderedH * centerNormY);
 
-            const relX = ptX - (m.w / 2);
-            const relY = ptY - (m.h / 2);
-
-            // Centraliza o ponto focal na tela
-            const targetPanX = -relX * targetScale;
-            const targetPanY = -relY * targetScale + (m.h * 0.04);
+            // Calcula o pan necessário para projetar exatamente no centro da Safe Area
+            const targetPanX = - (ptX - (m.w / 2)) * targetScale;
+            const targetPanY = (safeCenterY - (m.h / 2)) - (ptY - (m.h / 2)) * targetScale;
 
             const clamped = clampPan(targetPanX, targetPanY, targetScale);
 
@@ -1386,8 +1413,8 @@
             animateAvatarCamera(framing.scale, framing.x, framing.y, 450);
         }
 
-        /* --- REGISTRAR CAIXA DE COLISÃO DA SESSÃO --- */
-        function registerCurrentBoxPreset() {
+        /* --- REGISTRAR CAIXA DE COLISÃO DA SESSÃO COM SINCRONIZAÇÃO GLOBAL --- */
+        async function registerCurrentBoxPreset() {
             sessionBoundingBoxes[activeSessionName] = {
                 x: parseFloat(currentBox.x.toFixed(3)),
                 y: parseFloat(currentBox.y.toFixed(3)),
@@ -1395,14 +1422,24 @@
                 h: parseFloat(currentBox.h.toFixed(3))
             };
 
+            // Salva no armazenamento local do navegador
             try {
                 localStorage.setItem('mytype_collision_boxes', JSON.stringify(sessionBoundingBoxes));
+            } catch(e) {}
+
+            // Envia para a Nuvem Global na Vercel (muda para todo mundo automaticamente)
+            try {
+                fetch('/api/presets', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(sessionBoundingBoxes)
+                }).catch(() => {});
             } catch(e) {}
 
             const btn = document.getElementById('btnRegisterBox');
             if (btn) {
                 const prev = btn.innerHTML;
-                btn.innerHTML = `✅ Colisor Salvo!`;
+                btn.innerHTML = `🌐 Salvo Global!`;
                 btn.style.backgroundColor = '#2ecc71';
                 btn.style.borderColor = '#ffffff';
                 setTimeout(() => {
@@ -1413,10 +1450,10 @@
             }
 
             if (boxInfoText) {
-                boxInfoText.innerText = `✅ Colisor de "${activeSessionName}" registrado!`;
+                boxInfoText.innerText = `🌐 Colisor de "${activeSessionName}" salvo globalmente!`;
                 setTimeout(() => {
                     renderCollisionBoxDOM();
-                }, 2000);
+                }, 2200);
             }
         }
 
