@@ -305,7 +305,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: #0c0b0e;
+            background-color: #121016;
             overflow: hidden;
             z-index: 1;
             cursor: grab;
@@ -331,11 +331,11 @@
 
         .studio-backdrop {
             position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle at 50% 50%, #3e3347 0%, #1e1925 50%, #0e0c12 100%);
+            top: -100%;
+            left: -100%;
+            width: 300%;
+            height: 300%;
+            background: radial-gradient(circle at 50% 50%, #44374e 0%, #1f1b26 45%, #100e15 80%);
             pointer-events: none;
             z-index: 0;
         }
@@ -356,10 +356,10 @@
             position: absolute;
             top: 14px;
             left: 14px;
-            background: rgba(20, 18, 26, 0.78);
+            background: rgba(20, 18, 26, 0.85);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 12px;
             padding: 5px 10px;
             display: flex;
@@ -368,11 +368,11 @@
             z-index: 20;
             cursor: pointer;
             transition: all 0.2s ease;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
         }
 
         .camera-hud-badge:hover {
-            background: rgba(35, 30, 42, 0.92);
+            background: rgba(35, 30, 42, 0.95);
             border-color: var(--primary);
             transform: scale(1.03);
         }
@@ -788,7 +788,7 @@
         const cameraHudBadge = document.getElementById('cameraHudBadge');
 
         /* --- CONTROLE DE CÂMERA, ZOOM & PAN DO AVATAR --- */
-        const DEFAULT_SCALE = 0.9; // 90% padrão solicitado
+        const DEFAULT_SCALE = 0.9; // 90% padrão
         const MIN_SCALE = 0.55;
         const MAX_SCALE = 3.5;
 
@@ -836,8 +836,8 @@
         const cameraPresets = {
             "Aparência": { scale: 2.15, x: 0, y: 200 },   // Zoom no rosto (rebaixada para o rosto ficar perfeitamente enquadrado)
             "Identidade": { scale: 0.9, x: 0, y: 0 },     // Padrão 90%
-            "Busto": { scale: 1.8, x: 0, y: 85 },         // 180% solicitado
-            "Pernas": { scale: 1.75, x: 0, y: -140 },     // 175% solicitado
+            "Busto": { scale: 1.8, x: 0, y: 85 },         // 180%
+            "Pernas": { scale: 1.75, x: 0, y: -140 },     // 175%
             "Pés": { scale: 1.9, x: 0, y: -220 },         // Foco nos pés
             "Estilo": { scale: 1.1, x: 0, y: 20 },        // Moda
             "Gravação": { scale: 0.9, x: 0, y: 0 }        // Visão estúdio
@@ -1082,7 +1082,6 @@
             return Math.max(140, Math.min(appContainer.clientHeight * 0.32, 280)); 
         }
 
-        // Inicia com a gaveta de configurações fechada por padrão (40px)
         let currentHeight = minHeight;
         bottomSheet.style.height = currentHeight + 'px';
         updateSheetState(currentHeight);
@@ -1114,7 +1113,7 @@
             if (!isDraggingSheet) return;
             isDraggingSheet = false;
             sheetHandle.classList.remove('active-pink'); 
-            bottomSheet.style.transition = 'height 0.2s ease-out';
+            bottomSheet.style.transition = 'height 0.25s cubic-bezier(0.25, 1, 0.5, 1)';
             try { sheetHeader.releasePointerCapture(e.pointerId); } catch(err){}
 
             if (!sheetHasMoved) {
@@ -1133,7 +1132,7 @@
             if (!isDraggingSheet) return;
             isDraggingSheet = false;
             sheetHandle.classList.remove('active-pink'); 
-            bottomSheet.style.transition = 'height 0.2s ease-out';
+            bottomSheet.style.transition = 'height 0.25s cubic-bezier(0.25, 1, 0.5, 1)';
         });
 
         function updateSheetState(height) {
@@ -1192,7 +1191,10 @@
 
         const tabData = {
             "Identidade": {
-                sideButtons: [],
+                sideButtons: [
+                    { label: "Geral", active: true, icon: '<path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/>' },
+                    { label: "Bio", active: false, icon: '<path d="M14,17H7V15H14M17,13H7V11H17M17,9H7V7H17M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3Z"/>' }
+                ],
                 sheetHTML: `
                     <div class="section-title">Nome</div>
                     <div class="section-divider"></div>
@@ -1200,7 +1202,7 @@
                     <div class="section-divider"></div>
                     <div class="section-title">Gênero</div>
                     <div class="section-divider"></div>
-                    <div class="section-title">Etinia</div>
+                    <div class="section-title">Etnia</div>
                     <div class="section-divider"></div>
                     <div class="section-title">Idade</div>
                     <div class="section-divider"></div>
@@ -1212,7 +1214,7 @@
                 sideButtons: [
                     { label: "Cabelo", active: true, icon: '<path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12C4,13.85 4.63,15.55 5.68,16.91C6.7,15.5 8.5,14.5 12,14.5C15.5,14.5 17.3,15.5 18.32,16.91C19.37,15.55 20,13.85 20,12A8,8 0 0,0 12,4M12,6A3,3 0 0,1 15,9A3,3 0 0,1 12,12A3,3 0 0,1 9,9A3,3 0 0,1 12,6Z"/>' },
                     { label: "Olhos", active: false, icon: '<path d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17C10.34,17 9,15.66 9,14C9,12.34 10.34,11 12,11C13.66,11 15,12.34 15,14C15,15.66 13.66,17 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z"/>' },
-                    { label: "Boca", active: false, icon: '<path d="M12,2C14.76,2 17,4.24 17,7C17,8.65 16.18,10.11 14.9,11C16.18,11.89 17,13.35 17,15C17,17.76 14.76,20 12,20C9.24,20 7,17.76 7,15C7,13.35 7.82,11.89 9.1,11C7.82,10.11 7,8.65 7,7C7,4.24 9.24,2 12,2M12,4C10.34,4 9,5.34 9,7C9,8.66 10.34,10 12,10C10.34,10 9,8.66 9,7C9,5.34 10.34,4 12,4M12,13C15.03,13 17.5,15.47 17.5,18.5H6.5C6.5,15.47 8.97,13 12,13Z"/></svg></div>
+                    { label: "Boca", active: false, icon: '<path d="M12,2C14.76,2 17,4.24 17,7C17,8.65 16.18,10.11 14.9,11C16.18,11.89 17,13.35 17,15C17,17.76 14.76,20 12,20C9.24,20 7,17.76 7,15C7,13.35 7.82,11.89 9.1,11C7.82,10.11 7,8.65 7,7C7,4.24 9.24,2 12,2M12,4C10.34,4 9,5.34 9,7C9,8.66 10.34,10 12,10C10.34,10 15,8.66 15,7C15,5.34 13.66,4 12,4M12,12C10.34,12 9,13.34 9,15C9,16.66 10.34,18 12,18C13.66,18 15,16.66 15,15C15,13.34 13.66,12 12,12Z"/>' }
                 ],
                 sheetHTML: `
                     <div class="section-title">Tipo de Cabelo</div>
