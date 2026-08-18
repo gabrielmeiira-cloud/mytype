@@ -348,19 +348,33 @@
             transition: opacity 0.3s ease;
         }
 
-        .viewport.mode-static-bg .infinite-gradient-backdrop {
-            opacity: 0;
-        }
-
-        .avatar-img {
+        .avatar-layer {
             width: 100%;
             height: 100%;
             object-fit: contain;
             object-position: center bottom;
             position: absolute;
             bottom: 0;
+            left: 0;
             pointer-events: none;
+            transition: opacity 0.25s ease, filter 0.3s ease;
+        }
+
+        .avatar-layer.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .avatar-base {
             z-index: 1;
+        }
+
+        #layerOutfit {
+            z-index: 2;
+        }
+
+        #layerHair {
+            z-index: 3;
         }
 
         /* HUD: Marcador de Zoom, Coordenadas e Botão de Alternar Degradê */
@@ -768,7 +782,9 @@
 
                     <div class="avatar-container" id="avatarContainer">
                         <div class="infinite-gradient-backdrop" id="infiniteBackdrop"></div>
-                        <img src="avatar.png" alt="Avatar Model" class="avatar-img" id="avatarImg">
+                        <img src="avatar.png" alt="Base Avatar" class="avatar-layer avatar-base" id="layerBase">
+                        <img src="assets/outfit_casual.png" alt="Outfit Layer" class="avatar-layer" id="layerOutfit">
+                        <img src="assets/hair_blonde_bob.png" alt="Hair Layer" class="avatar-layer hidden" id="layerHair">
                     </div>
                 </div>
 
@@ -1428,9 +1444,9 @@
                     <div class="section-title">Tipo de Cabelo</div>
                     <div class="styles-scroll-container" id="stylesScroll">
                         <div class="style-card active" onclick="selectStyle(this)"><span>Liso longo</span></div>
-                        <div class="style-card" onclick="selectStyle(this)"><span>Ondulado</span></div>
-                        <div class="style-card" onclick="selectStyle(this)"><span>Cacheado</span></div>
                         <div class="style-card" onclick="selectStyle(this)"><span>Curto</span></div>
+                        <div class="style-card" onclick="selectStyle(this)"><span>Cacheado</span></div>
+                        <div class="style-card" onclick="selectStyle(this)"><span>Ondulado</span></div>
                         <div class="style-card" onclick="selectStyle(this)"><span>Afro</span></div>
                         <div class="style-card" onclick="selectStyle(this)"><span>Moicano</span></div>
                         <div class="style-card" onclick="selectStyle(this)"><span>Raspado</span></div>
@@ -1439,14 +1455,14 @@
                     <div class="section-divider"></div>
                     <div class="section-title">Cor do cabelo</div>
                     <div class="colors-scroll-container" id="colorsScroll">
-                        <div class="color-dot active" style="background-color: #1a1a1a;" onclick="selectColor(this)"></div>
-                        <div class="color-dot" style="background-color: #3b2b22;" onclick="selectColor(this)"></div>
-                        <div class="color-dot" style="background-color: #6b442b;" onclick="selectColor(this)"></div>
-                        <div class="color-dot" style="background-color: #a87d4a;" onclick="selectColor(this)"></div>
-                        <div class="color-dot" style="background-color: #e6c594;" onclick="selectColor(this)"></div>
-                        <div class="color-dot" style="background-color: #c93b3b;" onclick="selectColor(this)"></div>
-                        <div class="color-dot" style="background-color: #3b7dc9;" onclick="selectColor(this)"></div>
-                        <div class="color-dot" style="background-color: #ffffff;" onclick="selectColor(this)"></div>
+                        <div class="color-dot active" data-color="#1a1a1a" style="background-color: #1a1a1a;" onclick="selectColor(this)"></div>
+                        <div class="color-dot" data-color="#3b2b22" style="background-color: #3b2b22;" onclick="selectColor(this)"></div>
+                        <div class="color-dot" data-color="#6b442b" style="background-color: #6b442b;" onclick="selectColor(this)"></div>
+                        <div class="color-dot" data-color="#a87d4a" style="background-color: #a87d4a;" onclick="selectColor(this)"></div>
+                        <div class="color-dot" data-color="#e6c594" style="background-color: #e6c594;" onclick="selectColor(this)"></div>
+                        <div class="color-dot" data-color="#c93b3b" style="background-color: #c93b3b;" onclick="selectColor(this)"></div>
+                        <div class="color-dot" data-color="#3b7dc9" style="background-color: #3b7dc9;" onclick="selectColor(this)"></div>
+                        <div class="color-dot" data-color="#ffffff" style="background-color: #ffffff;" onclick="selectColor(this)"></div>
                     </div>
                 `
             },
@@ -1485,8 +1501,8 @@
                 sheetHTML: `
                     <div class="section-title">Calçados / Pés</div>
                     <div class="styles-scroll-container" id="pesScroll">
-                        <div class="style-card active" onclick="selectStyle(this)"><span>Padrão</span></div>
-                        <div class="style-card" onclick="selectStyle(this)"><span>Longo</span></div>
+                        <div class="style-card active" onclick="selectStyle(this)"><span>Descalço</span></div>
+                        <div class="style-card" onclick="selectStyle(this)"><span>Tênis</span></div>
                     </div>
                 `
             },
@@ -1499,6 +1515,7 @@
                     <div class="section-title">Guarda-Roupa</div>
                     <div class="styles-scroll-container" id="estiloScroll">
                         <div class="style-card active" onclick="selectStyle(this)"><span>Casual</span></div>
+                        <div class="style-card" onclick="selectStyle(this)"><span>Lingerie</span></div>
                         <div class="style-card" onclick="selectStyle(this)"><span>Social</span></div>
                         <div class="style-card" onclick="selectStyle(this)"><span>Esportivo</span></div>
                     </div>
@@ -1517,6 +1534,59 @@
                 `
             }
         };
+
+        /* --- ESTADO E GERENCIAMENTO MODULAR DO AVATAR --- */
+        const avatarState = {
+            hairStyle: "Liso longo",
+            hairColor: "#1a1a1a",
+            outfit: "Casual"
+        };
+
+        const layerBase = document.getElementById('layerBase');
+        const layerOutfit = document.getElementById('layerOutfit');
+        const layerHair = document.getElementById('layerHair');
+
+        const hairColorFilters = {
+            "#1a1a1a": "none",
+            "#3b2b22": "sepia(0.5) brightness(0.85) hue-rotate(330deg)",
+            "#6b442b": "sepia(0.6) brightness(1.1) saturate(1.5) hue-rotate(345deg)",
+            "#a87d4a": "sepia(0.7) brightness(1.25) saturate(1.8) hue-rotate(15deg)",
+            "#e6c594": "sepia(0.5) brightness(1.45) saturate(1.4) hue-rotate(30deg)",
+            "#c93b3b": "sepia(0.8) brightness(0.95) saturate(3.2) hue-rotate(310deg)",
+            "#3b7dc9": "hue-rotate(185deg) saturate(2.5) brightness(0.95)",
+            "#ffffff": "grayscale(1) brightness(1.6) contrast(1.1)"
+        };
+
+        function applyHairStyle(styleName) {
+            avatarState.hairStyle = styleName;
+            if (styleName === "Curto") {
+                layerHair.src = "assets/hair_blonde_bob.png";
+                layerHair.classList.remove('hidden');
+            } else if (styleName === "Cacheado" || styleName === "Ondulado" || styleName === "Afro") {
+                layerHair.src = "assets/hair_curly_dark.png";
+                layerHair.classList.remove('hidden');
+            } else {
+                // Liso longo original da base
+                layerHair.classList.add('hidden');
+            }
+            applyHairColor(avatarState.hairColor);
+        }
+
+        function applyHairColor(hexColor) {
+            avatarState.hairColor = hexColor;
+            const filterValue = hairColorFilters[hexColor] || "none";
+            layerHair.style.filter = filterValue;
+        }
+
+        function applyOutfit(outfitName) {
+            avatarState.outfit = outfitName;
+            if (outfitName === "Casual" || outfitName === "Esportivo" || outfitName === "Social") {
+                layerOutfit.src = "assets/outfit_casual.png";
+                layerOutfit.classList.remove('hidden');
+            } else if (outfitName === "Lingerie" || outfitName === "Biquíni" || outfitName === "Base") {
+                layerOutfit.classList.add('hidden');
+            }
+        }
 
         function loadTabContent(tabName) {
             const data = tabData[tabName];
@@ -1561,13 +1631,32 @@
         }
 
         function selectStyle(el) {
-            document.querySelectorAll('.style-card').forEach(c => c.classList.remove('active'));
+            const parent = el.parentElement;
+            parent.querySelectorAll('.style-card').forEach(c => c.classList.remove('active'));
             el.classList.add('active');
+            const label = el.querySelector('span') ? el.querySelector('span').innerText.trim() : '';
+
+            if (parent.id === 'stylesScroll') {
+                applyHairStyle(label);
+            } else if (parent.id === 'estiloScroll') {
+                applyOutfit(label);
+            } else if (parent.id === 'pesScroll') {
+                if (label === 'Descalço') {
+                    layerOutfit.classList.add('hidden');
+                } else {
+                    layerOutfit.classList.remove('hidden');
+                }
+            }
         }
 
         function selectColor(el) {
-            document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+            const parent = el.parentElement;
+            parent.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
             el.classList.add('active');
+            const hex = el.getAttribute('data-color') || el.style.backgroundColor;
+            if (parent.id === 'colorsScroll') {
+                applyHairColor(hex);
+            }
         }
 
         function selectFooterTab(el) {
