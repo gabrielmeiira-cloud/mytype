@@ -295,7 +295,7 @@
             100% { transform: translateY(0px) rotate(0deg); }
         }
 
-        /* Viewport / Canvas Interativo com Zoom e Pan */
+        /* Viewport / Canvas Interativo */
         .viewport {
             position: absolute;
             top: 0;
@@ -310,10 +310,16 @@
             z-index: 1;
             cursor: grab;
             touch-action: none;
+            transition: background 0.3s ease;
         }
 
         .viewport:active {
             cursor: grabbing;
+        }
+
+        /* Modo Fundo Antigo / Fixo */
+        .viewport.mode-static-bg {
+            background: radial-gradient(circle, #382e3f 0%, #17151b 75%) !important;
         }
 
         .avatar-container {
@@ -328,7 +334,7 @@
             pointer-events: none;
         }
 
-        /* Clone exato do degradê 10x maior que se move junto com o avatar */
+        /* Clone exato do degradê 10x maior que se move junto com o avatar (Modo Câmera) */
         .infinite-gradient-backdrop {
             position: absolute;
             top: -450%;
@@ -338,6 +344,12 @@
             background: radial-gradient(circle at 50% 50%, #382e3f 0%, #17151b 7.5%, #17151b 100%);
             pointer-events: none;
             z-index: 0;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .viewport.mode-static-bg .infinite-gradient-backdrop {
+            opacity: 0;
         }
 
         .avatar-img {
@@ -351,11 +363,18 @@
             z-index: 1;
         }
 
-        /* Marcador de Zoom e Coordenadas em Tempo Real */
-        .camera-hud-badge {
+        /* HUD: Marcador de Zoom, Coordenadas e Botão de Alternar Degradê */
+        .camera-hud-group {
             position: absolute;
             top: 14px;
             left: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 20;
+        }
+
+        .camera-hud-badge {
             background: rgba(20, 18, 26, 0.85);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
@@ -365,7 +384,6 @@
             display: flex;
             flex-direction: column;
             gap: 2px;
-            z-index: 20;
             cursor: pointer;
             transition: all 0.2s ease;
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
@@ -374,7 +392,7 @@
         .camera-hud-badge:hover {
             background: rgba(35, 30, 42, 0.95);
             border-color: var(--primary);
-            transform: scale(1.03);
+            transform: scale(1.02);
         }
 
         .hud-row {
@@ -398,6 +416,39 @@
             color: var(--text-muted);
             font-family: monospace, sans-serif;
             letter-spacing: -0.2px;
+        }
+
+        /* Botão para alternar entre Degradê Antigo (Fixo) e Degradê Novo (Câmera) */
+        .bg-mode-btn {
+            background: rgba(20, 18, 26, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 5px 9px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            color: #ffffff;
+            font-size: 9px;
+            font-weight: 500;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+            transition: all 0.2s ease;
+            width: fit-content;
+        }
+
+        .bg-mode-btn:hover {
+            background: rgba(35, 30, 42, 0.95);
+            border-color: var(--primary);
+            transform: scale(1.02);
+        }
+
+        .bg-mode-btn svg {
+            width: 12px;
+            height: 12px;
+            fill: var(--primary);
+            flex-shrink: 0;
         }
 
         .side-menu {
@@ -698,17 +749,25 @@
                 <!-- Viewport / Canvas Interativo da Modelo -->
                 <div class="viewport" id="viewportCanvas">
                     
-                    <!-- Marcador de Zoom e Coordenadas em Tempo Real -->
-                    <div class="camera-hud-badge" id="cameraHudBadge" title="Clique para copiar os valores exatos de Zoom e Coordenadas">
-                        <div class="hud-row">
-                            <svg viewBox="0 0 24 24"><path d="M15.5,14L20.5,19L19,20.5L14,15.5V14.71L13.73,14.43C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.43,13.73L14.71,14H15.5M9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14M12,10H10V12H9V10H7V9H9V7H10V9H12V10Z"/></svg>
-                            <span id="zoomLevelText">Zoom: 90%</span>
+                    <!-- HUD: Marcador de Zoom, Coordenadas e Botão de Alternar Degradê -->
+                    <div class="camera-hud-group">
+                        <div class="camera-hud-badge" id="cameraHudBadge" title="Clique para copiar os valores de Zoom e Coordenadas">
+                            <div class="hud-row">
+                                <svg viewBox="0 0 24 24"><path d="M15.5,14L20.5,19L19,20.5L14,15.5V14.71L13.73,14.43C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.43,13.73L14.71,14H15.5M9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14M12,10H10V12H9V10H7V9H9V7H10V9H12V10Z"/></svg>
+                                <span id="zoomLevelText">Zoom: 90%</span>
+                            </div>
+                            <div class="hud-sub" id="coordsText">X: 0 | Y: 0</div>
                         </div>
-                        <div class="hud-sub" id="coordsText">X: 0 | Y: 0</div>
+
+                        <!-- Botão para alternar entre degradê antigo e novo -->
+                        <button class="bg-mode-btn" id="bgToggleBtn" title="Clique para alternar o estilo do fundo" onclick="toggleBackgroundMode()">
+                            <svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20V4Z"/></svg>
+                            <span id="bgModeLabel">Fundo: Câmera (Novo)</span>
+                        </button>
                     </div>
 
                     <div class="avatar-container" id="avatarContainer">
-                        <div class="infinite-gradient-backdrop"></div>
+                        <div class="infinite-gradient-backdrop" id="infiniteBackdrop"></div>
                         <img src="avatar.png" alt="Avatar Model" class="avatar-img" id="avatarImg">
                     </div>
                 </div>
@@ -785,6 +844,21 @@
         const zoomLevelText = document.getElementById('zoomLevelText');
         const coordsText = document.getElementById('coordsText');
         const cameraHudBadge = document.getElementById('cameraHudBadge');
+        const bgModeLabel = document.getElementById('bgModeLabel');
+
+        /* --- CONTROLE DE MODO DE DEGRADÊ (ANTIGO FIXO VS NOVO CÂMERA) --- */
+        let isCameraBg = true; // Padrão: Câmera (Novo)
+
+        function toggleBackgroundMode() {
+            isCameraBg = !isCameraBg;
+            if (isCameraBg) {
+                viewportCanvas.classList.remove('mode-static-bg');
+                bgModeLabel.innerText = "Fundo: Câmera (Novo)";
+            } else {
+                viewportCanvas.classList.add('mode-static-bg');
+                bgModeLabel.innerText = "Fundo: Fixo (Antigo)";
+            }
+        }
 
         /* --- CONTROLE DE CÂMERA, ZOOM & PAN DO AVATAR --- */
         const DEFAULT_SCALE = 0.9; // 90% padrão
@@ -798,7 +872,7 @@
 
         function updateAvatarTransform(smooth = false) {
             if (smooth) {
-                avatarContainer.style.transition = 'transform 0.45s cubic-bezier(0.25, 1, 0.5, 1)';
+                avatarContainer.style.transition = 'transform 0.35s cubic-bezier(0.25, 1, 0.5, 1)';
             } else {
                 avatarContainer.style.transition = 'none';
             }
@@ -833,7 +907,7 @@
 
         // Presets de Câmera configurados por Abas
         const cameraPresets = {
-            "Aparência": { scale: 2.15, x: 0, y: 200 },   // Zoom no rosto (rebaixada para o rosto ficar perfeitamente enquadrado)
+            "Aparência": { scale: 2.15, x: 0, y: 190 },   // Zoom no rosto (rosto perfeitamente enquadrado)
             "Identidade": { scale: 0.9, x: 0, y: 0 },     // Padrão 90%
             "Busto": { scale: 1.8, x: 0, y: 85 },         // 180%
             "Pernas": { scale: 1.75, x: 0, y: -140 },     // 175%
@@ -858,21 +932,47 @@
             });
         }
 
-        /* --- LIMITES DE MOVIMENTAÇÃO (NÃO DEIXA A AVATAR SAIR DA MOLDURA) --- */
-        function getPanBounds() {
+        /* --- LIMITES RÍGIDOS DE COLISÃO DA AVATAR (BRAÇOS, CABEÇA E PÉS NUNCA PASSAM DA BORDA) --- */
+        function getStrictPanBounds() {
             const w = viewportCanvas ? viewportCanvas.clientWidth : 350;
             const h = viewportCanvas ? viewportCanvas.clientHeight : 600;
-            
-            // Limites inteligentes proporcionais ao zoom para nunca sair da moldura
-            const maxX = Math.max(30, (w * Math.max(0, avatarScale - 0.7)) * 0.45 + 50);
-            const maxY = Math.max(40, (h * Math.max(0, avatarScale - 0.7)) * 0.65 + 230);
-            const minY = -Math.max(40, (h * Math.max(0, avatarScale - 0.7)) * 0.65 + 250);
-            
-            return { minX: -maxX, maxX: maxX, minY: minY, maxY: maxY };
+
+            // A silhueta da modelo: braço a braço ocupa ~68% da largura, cabeça ~44% do centro ao topo, pés ~48% do centro à base
+            const avatarHalfWidth = (w * 0.34) * avatarScale;
+            const avatarHeadTop = (h * 0.44) * avatarScale; 
+            const avatarFeetBottom = (h * 0.48) * avatarScale;
+
+            // Limites laterais (Braço esquerdo na borda esquerda / Braço direito na borda direita)
+            let maxX, minX;
+            if (avatarHalfWidth * 2 > w) {
+                // Em zoom, não deixa o braço passar para dentro além da borda
+                maxX = avatarHalfWidth - (w / 2);
+                minX = -maxX;
+            } else {
+                // Afastada (zoom menor), não deixa nenhum braço sair da tela
+                maxX = (w / 2) - avatarHalfWidth;
+                minX = -maxX;
+            }
+
+            // Limites verticais (Cabeça no topo / Pés na base)
+            let maxY, minY;
+            if (avatarScale > 1.05) {
+                maxY = avatarHeadTop - (h * 0.36); // Cabeça atinge o topo da moldura
+                minY = (h * 0.46) - avatarFeetBottom; // Pés atingem a base da moldura
+            } else {
+                // Zoom 90% ou menor
+                maxY = (h * (1 - avatarScale)) * 0.5 + 20;
+                minY = -(h * (1 - avatarScale)) * 0.5 - 20;
+            }
+
+            if (minX > maxX) [minX, maxX] = [maxX, minX];
+            if (minY > maxY) [minY, maxY] = [maxY, minY];
+
+            return { minX, maxX, minY, maxY };
         }
 
         function clampPan(x, y) {
-            const bounds = getPanBounds();
+            const bounds = getStrictPanBounds();
             return {
                 x: Math.min(bounds.maxX, Math.max(bounds.minX, x)),
                 y: Math.min(bounds.maxY, Math.max(bounds.minY, y))
@@ -905,7 +1005,7 @@
             }, { passive: false });
         }
 
-        /* --- ARRASTAR E MOVER A MODELO COM O CLIQUE / TOUCH --- */
+        /* --- ARRASTAR E MOVER A MODELO COM O CLIQUE / TOUCH (COLISÃO RÍGIDA) --- */
         let isPanningAvatar = false;
         let panStartX = 0;
         let panStartY = 0;
@@ -918,7 +1018,7 @@
 
         if (viewportCanvas) {
             viewportCanvas.addEventListener('pointerdown', (e) => {
-                if (e.target.closest('.side-menu') || e.target.closest('.bottom-sheet') || e.target.closest('.footer-nav') || e.target.closest('.camera-hud-badge')) return;
+                if (e.target.closest('.side-menu') || e.target.closest('.bottom-sheet') || e.target.closest('.footer-nav') || e.target.closest('.camera-hud-group')) return;
 
                 const currentTime = new Date().getTime();
                 const tapLength = currentTime - lastTapTime;
@@ -952,22 +1052,10 @@
                 let targetX = panInitialX + (e.clientX - panStartX);
                 let targetY = panInitialY + (e.clientY - panStartY);
 
-                // Resistência elástica ao tentar passar dos limites da moldura
-                const bounds = getPanBounds();
-                if (targetX < bounds.minX) {
-                    targetX = bounds.minX + (targetX - bounds.minX) * 0.22;
-                } else if (targetX > bounds.maxX) {
-                    targetX = bounds.maxX + (targetX - bounds.maxX) * 0.22;
-                }
-
-                if (targetY < bounds.minY) {
-                    targetY = bounds.minY + (targetY - bounds.minY) * 0.22;
-                } else if (targetY > bounds.maxY) {
-                    targetY = bounds.maxY + (targetY - bounds.maxY) * 0.22;
-                }
-
-                avatarPanX = targetX;
-                avatarPanY = targetY;
+                // Trava de colisão física rígida nas bordas
+                const clamped = clampPan(targetX, targetY);
+                avatarPanX = clamped.x;
+                avatarPanY = clamped.y;
                 updateAvatarTransform(false);
             });
 
@@ -976,23 +1064,20 @@
                 isPanningAvatar = false;
                 try { viewportCanvas.releasePointerCapture(e.pointerId); } catch(err){}
 
-                // Se passou dos limites durante o arraste rápido, retorna suavemente para dentro da moldura
-                const bounds = getPanBounds();
-                if (avatarPanX < bounds.minX || avatarPanX > bounds.maxX || avatarPanY < bounds.minY || avatarPanY > bounds.maxY) {
-                    avatarPanX = Math.min(bounds.maxX, Math.max(bounds.minX, avatarPanX));
-                    avatarPanY = Math.min(bounds.maxY, Math.max(bounds.minY, avatarPanY));
+                const clamped = clampPan(avatarPanX, avatarPanY);
+                if (avatarPanX !== clamped.x || avatarPanY !== clamped.y) {
+                    avatarPanX = clamped.x;
+                    avatarPanY = clamped.y;
                     updateAvatarTransform(true);
                 }
             });
 
             viewportCanvas.addEventListener('pointercancel', (e) => {
                 isPanningAvatar = false;
-                const bounds = getPanBounds();
-                if (avatarPanX < bounds.minX || avatarPanX > bounds.maxX || avatarPanY < bounds.minY || avatarPanY > bounds.maxY) {
-                    avatarPanX = Math.min(bounds.maxX, Math.max(bounds.minX, avatarPanX));
-                    avatarPanY = Math.min(bounds.maxY, Math.max(bounds.minY, avatarPanY));
-                    updateAvatarTransform(true);
-                }
+                const clamped = clampPan(avatarPanX, avatarPanY);
+                avatarPanX = clamped.x;
+                avatarPanY = clamped.y;
+                updateAvatarTransform(true);
             });
 
             viewportCanvas.addEventListener('touchstart', (e) => {
