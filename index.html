@@ -45,6 +45,8 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            width: 100%;
+            height: 100%;
         }
 
         .app-container {
@@ -58,31 +60,29 @@
             overflow: hidden;
         }
 
-        /* Desktop: Moldura Fina e com Proporção Padrão de Celular */
+        /* Desktop: Moldura Fina, Esguia e aproveitando toda a altura útil */
         @media (min-width: 501px) {
             body {
                 background: radial-gradient(circle at center, #1b1922 0%, #0c0b0e 100%);
             }
 
             .phone-wrapper {
-                padding: 16px;
+                padding: 12px;
             }
 
             .app-container {
-                width: 375px;
-                height: 780px;
-                max-height: 86vh;
-                border-radius: 36px;
+                width: 350px;
+                height: calc(100vh - 24px);
+                max-height: 94vh;
+                border-radius: 34px;
                 border: 2px solid var(--border-color);
                 box-shadow: 0 20px 48px rgba(0, 0, 0, 0.7);
             }
         }
 
-        /* Celular Físico: Ocupa todo o espaço útil da tela do navegador */
+        /* Celular Físico: Ocupa 100% da tela e altura do navegador */
         @media (max-width: 500px) {
             .phone-wrapper {
-                width: 100%;
-                height: 100%;
                 padding: 0;
             }
 
@@ -102,7 +102,7 @@
             top: 0;
             left: 0;
             width: 100%;
-            bottom: 84px; 
+            bottom: 74px; 
             display: flex;
             justify-content: center;
             align-items: center;
@@ -131,16 +131,16 @@
 
         .side-menu {
             position: absolute;
-            right: 12px;
-            top: 24px;
+            right: 10px;
+            top: 16px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
             z-index: 10;
-            max-height: calc(100% - 120px);
+            max-height: calc(100% - 100px);
             overflow-y: auto;
             scrollbar-width: none;
-            padding: 4px 0;
+            padding: 2px 0;
             -webkit-overflow-scrolling: touch;
         }
 
@@ -155,9 +155,9 @@
             background: none;
             border: none;
             color: var(--text-secondary);
-            font-size: 10px;
+            font-size: 9px;
             cursor: pointer;
-            gap: 3px;
+            gap: 2px;
             transition: color 0.2s;
         }
 
@@ -166,33 +166,33 @@
         }
 
         .side-icon-wrapper {
-            width: 34px;
-            height: 34px;
+            width: 30px;
+            height: 30px;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
         .side-icon-wrapper svg {
-            width: 22px;
-            height: 22px;
+            width: 19px;
+            height: 19px;
             fill: currentColor;
         }
 
         .footer-nav {
             position: absolute;
-            bottom: 16px;
-            left: 16px;
-            right: 16px;
+            bottom: 12px;
+            left: 12px;
+            right: 12px;
             display: flex;
-            gap: 8px;
+            gap: 6px;
             align-items: center;
             background-color: var(--bg-pill);
-            padding: 10px 12px;
-            border-radius: 16px;
+            padding: 8px 10px;
+            border-radius: 14px;
             border: 1px solid var(--border-color);
             z-index: 40;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
             overflow-x: auto;
             scrollbar-width: none;
             -webkit-overflow-scrolling: touch;
@@ -208,19 +208,19 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
             color: var(--text-secondary);
-            font-size: 10px;
+            font-size: 9px;
             cursor: pointer;
             transition: color 0.2s;
-            flex: 0 0 calc((100% - (4 * 8px)) / 5);
-            min-width: 58px;
+            flex: 0 0 calc((100% - (4 * 6px)) / 5);
+            min-width: 50px;
             white-space: nowrap;
         }
 
         @media (max-width: 360px) {
             .nav-item {
-                flex: 0 0 62px;
+                flex: 0 0 54px;
             }
         }
 
@@ -229,30 +229,30 @@
         }
 
         .nav-icon-wrapper {
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
         .nav-icon-wrapper svg {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             fill: currentColor;
         }
 
         .bottom-sheet {
             position: absolute;
-            bottom: 84px;
+            bottom: 74px;
             left: 0;
             width: 100%;
             background-color: var(--bg-sheet);
-            border-top-left-radius: 28px;
-            border-top-right-radius: 28px;
-            padding: 10px 16px 16px 16px;
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+            padding: 8px 14px 14px 14px;
             z-index: 30;
-            box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 -8px 25px rgba(0,0,0,0.5);
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -261,18 +261,18 @@
         .sheet-header-area {
             width: 100%;
             cursor: pointer;
-            padding: 4px 0 12px 0;
+            padding: 4px 0 10px 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             flex-shrink: 0;
             touch-action: none;
         }
 
         .sheet-handle {
-            width: 42px;
-            height: 6px;
+            width: 36px;
+            height: 5px;
             background-color: #5c5765;
             border-radius: 10px;
             transition: background-color 0.2s ease;
@@ -285,12 +285,12 @@
         }
 
         .sheet-title {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
             color: var(--text-secondary);
             letter-spacing: 0.3px;
             position: absolute;
-            top: 22px;
+            top: 20px;
             left: 50%;
             transform: translateX(-50%);
             opacity: 0;
@@ -303,7 +303,7 @@
             scrollbar-width: none;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 12px;
             flex: 1;
             opacity: 1;
             transition: opacity 0.15s ease;
@@ -319,7 +319,7 @@
         }
 
         .section-title {
-            font-size: 13px;
+            font-size: 12px;
             color: var(--text-secondary);
         }
 
@@ -332,7 +332,7 @@
 
         .styles-scroll-container {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             overflow-x: auto;
             overflow-y: hidden;
             padding-bottom: 4px;
@@ -349,9 +349,9 @@
         .style-card {
             background-color: var(--bg-card); 
             border: 2px solid transparent;
-            border-radius: 16px;
-            min-width: 74px;
-            height: 84px;
+            border-radius: 14px;
+            min-width: 68px;
+            height: 76px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -369,7 +369,7 @@
         }
 
         .style-card span {
-            font-size: 10px;
+            font-size: 9.5px;
             color: var(--text-muted);
             white-space: nowrap;
             pointer-events: none;
@@ -377,7 +377,7 @@
 
         .colors-scroll-container {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             overflow-x: auto;
             overflow-y: hidden;
             padding-bottom: 4px;
@@ -392,8 +392,8 @@
         }
 
         .color-dot {
-            min-width: 36px;
-            height: 36px;
+            min-width: 32px;
+            height: 32px;
             border-radius: 50%;
             border: 2px solid transparent;
             cursor: pointer;
@@ -475,13 +475,13 @@
         let startY = 0;
         let startHeight = 0;
         let hasMoved = false; 
-        const minHeight = 44; 
+        const minHeight = 40; 
 
         function getMaxHeight() { 
-            return appContainer.clientHeight - 130; 
+            return appContainer.clientHeight - 110; 
         }
         function getInitialHeight() { 
-            return appContainer.clientHeight * 0.32; 
+            return Math.max(140, Math.min(appContainer.clientHeight * 0.32, 280)); 
         }
 
         let currentHeight = getInitialHeight();
@@ -566,7 +566,6 @@
             const initialH = getInitialHeight();
             const threshold = initialH * 0.3; // 30% da altura inicial
 
-            // Se estiver abaixo de 30% da altura inicial, volta para a altura padrão
             if (currentH < threshold) {
                 bottomSheet.style.transition = 'height 0.25s ease-out';
                 bottomSheet.style.height = initialH + 'px';
