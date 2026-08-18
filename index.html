@@ -703,6 +703,43 @@
         .box-handle.handle-w  { left: -5px; top: calc(50% - 5px); cursor: ew-resize; }
         .box-handle.handle-e  { right: -5px; top: calc(50% - 5px); cursor: ew-resize; }
 
+        /* Caixa de Colisão da Área Útil do Canvas (Colisor Azul de Enquadramento) */
+        .debug-viewport-box {
+            position: absolute;
+            border: 2px dashed #38bdf8;
+            background: rgba(56, 189, 248, 0.04);
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.35), inset 0 0 20px rgba(56, 189, 248, 0.06);
+            border-radius: 4px;
+            pointer-events: none;
+            z-index: 10;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s ease;
+            box-sizing: border-box;
+        }
+
+        .debug-viewport-box.debug-visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .viewport-box-tag {
+            position: absolute;
+            top: 4px;
+            left: 6px;
+            background: rgba(12, 11, 14, 0.94);
+            color: #38bdf8;
+            font-size: 8px;
+            font-weight: 700;
+            font-family: monospace;
+            padding: 2px 7px;
+            border-radius: 4px;
+            border: 1px solid #38bdf8;
+            white-space: nowrap;
+            pointer-events: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+        }
+
         .bg-mode-btn svg {
             width: 12px;
             height: 12px;
@@ -1055,6 +1092,12 @@
                 
                 <!-- Viewport / Canvas Interativo da Modelo -->
                 <div class="viewport" id="viewportCanvas">
+                    
+                    <!-- Caixa de Colisão da Área Útil do Canvas (Colisor Azul) -->
+                    <div class="debug-viewport-box" id="debugViewportBox">
+                        <div class="viewport-box-tag">Área Útil do Canvas (Colisor de Enquadramento)</div>
+                    </div>
+
                     <div class="avatar-container" id="avatarContainer">
                         <div class="infinite-gradient-backdrop" id="infiniteBackdrop"></div>
                         <img src="avatar.webp" alt="Base Avatar" class="avatar-layer avatar-base" id="layerBase">
@@ -1210,6 +1253,7 @@
         const btnDebugMode = document.getElementById('btnDebugMode');
         const cameraHudGroup = document.getElementById('cameraHudGroup');
         const debugCollisionBox = document.getElementById('debugCollisionBox');
+        const debugViewportBox = document.getElementById('debugViewportBox');
         const boxBadgeTag = document.getElementById('boxBadgeTag');
         const boxInfoText = document.getElementById('boxInfoText');
         const debugSessionsBar = document.getElementById('debugSessionsBar');
@@ -1266,51 +1310,72 @@
                 if (btnDebugMode) btnDebugMode.classList.add('active');
                 if (cameraHudGroup) cameraHudGroup.classList.add('debug-visible');
                 if (debugCollisionBox) debugCollisionBox.classList.add('debug-visible');
+                if (debugViewportBox) debugViewportBox.classList.add('debug-visible');
                 renderCollisionBoxDOM();
+                renderViewportBoxDOM();
             } else {
                 if (btnDebugMode) btnDebugMode.classList.remove('active');
                 if (cameraHudGroup) cameraHudGroup.classList.remove('debug-visible');
                 if (debugCollisionBox) debugCollisionBox.classList.remove('debug-visible');
+                if (debugViewportBox) debugViewportBox.classList.remove('debug-visible');
             }
         }
 
-        /* --- MOTOR DE ENQUADRAMENTO UNIVERSAL DE CÂMERA (100% IDÊNTICO EM QUALQUER DISPOSITIVO) --- */
-        function calculateFramingFromBoundingBox(box, customSheetH = null) {
+        /* --- MOTOR DE ENQUADRAMENTO BASEADO NA COLISÃO BORDA-A-BORDA COM O CANVAS ÚTIL --- */
+        function getSafeViewportBounds(customSheetH = null) {
             const m = getAvatarLayoutMetrics();
             
             // Limite padrão do menu para enquadramento da câmera (~32% da altura da tela)
             const standardMenuLimit = Math.max(120, Math.min(m.h * 0.32, 240));
             const rawSheetH = customSheetH !== null ? customSheetH : ((bottomSheet && bottomSheet.offsetHeight > 0) ? bottomSheet.offsetHeight : 40);
-            
-            // Ajusta o foco da câmera só até o limite padrão do menu; se subir acima, ignora o excesso!
             const effectiveSheetH = Math.min(rawSheetH, standardMenuLimit);
             
-            // Área Segura Visível (Safe Viewing Window)
-            const safeTop = 15;
-            const safeBottom = m.h - effectiveSheetH - 10;
-            const safeHeight = Math.max(120, safeBottom - safeTop);
-            const safeWidth = m.w;
-            const safeCenterY = safeTop + (safeHeight / 2);
+            const marginX = 8;
+            const topY = 12;
+            const bottomY = m.h - effectiveSheetH - 8;
+            
+            const left = marginX;
+            const width = Math.max(80, m.w - (marginX * 2));
+            const top = topY;
+            const height = Math.max(100, bottomY - topY);
+            const centerY = top + (height / 2);
+            const centerX = left + (width / 2);
 
-            // Largura e altura da caixa na modelo em pixels reais
+            return { left, top, width, height, centerX, centerY };
+        }
+
+        function renderViewportBoxDOM() {
+            if (!debugViewportBox) return;
+            const vb = getSafeViewportBounds();
+            debugViewportBox.style.left = `${vb.left}px`;
+            debugViewportBox.style.top = `${vb.top}px`;
+            debugViewportBox.style.width = `${vb.width}px`;
+            debugViewportBox.style.height = `${vb.height}px`;
+        }
+
+        function calculateFramingFromBoundingBox(box, customSheetH = null) {
+            const m = getAvatarLayoutMetrics();
+            const vb = getSafeViewportBounds(customSheetH);
+
+            // Largura e altura da caixa de colisão da modelo quando scale = 1.0
             const boxPixelW = Math.max(15, m.renderedW * box.w);
             const boxPixelH = Math.max(15, m.renderedH * box.h);
 
-            // Margem confortável dentro da janela segura
-            const scaleX = (safeWidth * 0.86) / boxPixelW;
-            const scaleY = (safeHeight * 0.82) / boxPixelH;
+            // O zoom exato em que a caixa da modelo COLIDE e encosta nas bordas da Área Útil (Colisor Azul):
+            const scaleX = vb.width / boxPixelW;
+            const scaleY = vb.height / boxPixelH;
             const targetScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, Math.min(scaleX, scaleY)));
 
-            // Centro da caixa de colisão no espaço do avatar
+            // Centro da caixa de colisão da modelo
             const centerNormX = box.x + (box.w / 2);
             const centerNormY = box.y + (box.h / 2);
 
             const ptX = m.offsetX + (m.renderedW * centerNormX);
             const ptY = m.offsetY + (m.renderedH * centerNormY);
 
-            // Calcula o pan necessário para projetar exatamente no centro da Safe Area
-            const targetPanX = - (ptX - (m.w / 2)) * targetScale;
-            const targetPanY = (safeCenterY - (m.h / 2)) - (ptY - (m.h / 2)) * targetScale;
+            // Centraliza a caixa da modelo perfeitamente dentro do centro do Colisor Azul do Canvas
+            const targetPanX = (vb.centerX - (m.w / 2)) - (ptX - (m.w / 2)) * targetScale;
+            const targetPanY = (vb.centerY - (m.h / 2)) - (ptY - (m.h / 2)) * targetScale;
 
             const clamped = clampPan(targetPanX, targetPanY, targetScale);
 
@@ -1333,6 +1398,7 @@
                 avatarPanY = framing.y;
                 updateAvatarTransform(false);
             }
+            renderViewportBoxDOM();
         }
 
         function renderCollisionBoxDOM() {
