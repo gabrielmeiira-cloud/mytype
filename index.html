@@ -338,32 +338,53 @@
             pointer-events: none;
         }
 
-        /* Indicador sutil de reset de zoom (duplo clique / toque) */
-        .zoom-hint-pill {
+        /* Marcador de Zoom e Coordenadas em Tempo Real */
+        .camera-hud-badge {
             position: absolute;
             top: 14px;
             left: 14px;
-            background: rgba(26, 24, 31, 0.65);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 4px 8px;
-            font-size: 9.5px;
-            color: var(--text-secondary);
+            background: rgba(20, 18, 26, 0.78);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            padding: 5px 10px;
             display: flex;
-            align-items: center;
-            gap: 4px;
+            flex-direction: column;
+            gap: 2px;
             z-index: 20;
-            pointer-events: none;
-            opacity: 0.85;
-            transition: opacity 0.3s ease;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
         }
 
-        .zoom-hint-pill svg {
-            width: 12px;
-            height: 12px;
+        .camera-hud-badge:hover {
+            background: rgba(35, 30, 42, 0.92);
+            border-color: var(--primary);
+            transform: scale(1.03);
+        }
+
+        .hud-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 10px;
+            color: #ffffff;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+
+        .hud-row svg {
+            width: 11px;
+            height: 11px;
             fill: var(--primary);
+        }
+
+        .hud-sub {
+            font-size: 8.5px;
+            color: var(--text-muted);
+            font-family: monospace, sans-serif;
+            letter-spacing: -0.2px;
         }
 
         .side-menu {
@@ -663,9 +684,14 @@
                 
                 <!-- Viewport / Canvas Interativo da Modelo -->
                 <div class="viewport" id="viewportCanvas">
-                    <div class="zoom-hint-pill" id="zoomHint">
-                        <svg viewBox="0 0 24 24"><path d="M15.5,14L20.5,19L19,20.5L14,15.5V14.71L13.73,14.43C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.43,13.73L14.71,14H15.5M9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14M12,10H10V12H9V10H7V9H9V7H10V9H12V10Z"/></svg>
-                        <span id="zoomLevelText">80%</span>
+                    
+                    <!-- Marcador de Zoom e Coordenadas em Tempo Real -->
+                    <div class="camera-hud-badge" id="cameraHudBadge" title="Clique para copiar os valores exatos de Zoom e Coordenadas">
+                        <div class="hud-row">
+                            <svg viewBox="0 0 24 24"><path d="M15.5,14L20.5,19L19,20.5L14,15.5V14.71L13.73,14.43C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.43,13.73L14.71,14H15.5M9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14M12,10H10V12H9V10H7V9H9V7H10V9H12V10Z"/></svg>
+                            <span id="zoomLevelText">Zoom: 90%</span>
+                        </div>
+                        <div class="hud-sub" id="coordsText">X: 0 | Y: 0</div>
                     </div>
 
                     <div class="avatar-container" id="avatarContainer">
@@ -743,9 +769,11 @@
         const viewportCanvas = document.getElementById('viewportCanvas');
         const avatarContainer = document.getElementById('avatarContainer');
         const zoomLevelText = document.getElementById('zoomLevelText');
+        const coordsText = document.getElementById('coordsText');
+        const cameraHudBadge = document.getElementById('cameraHudBadge');
 
         /* --- CONTROLE DE CÂMERA, ZOOM & PAN DO AVATAR --- */
-        const DEFAULT_SCALE = 0.8; // 125% distanciada para fora
+        const DEFAULT_SCALE = 0.9; // 90% padrão solicitado
         const MIN_SCALE = 0.55;
         const MAX_SCALE = 3.5;
 
@@ -761,8 +789,15 @@
                 avatarContainer.style.transition = 'none';
             }
             avatarContainer.style.transform = `translate(${avatarPanX}px, ${avatarPanY}px) scale(${avatarScale})`;
+            updateHudDisplay();
+        }
+
+        function updateHudDisplay() {
             if (zoomLevelText) {
-                zoomLevelText.innerText = Math.round(avatarScale * 100) + '%';
+                zoomLevelText.innerText = `Zoom: ${Math.round(avatarScale * 100)}%`;
+            }
+            if (coordsText) {
+                coordsText.innerText = `X: ${Math.round(avatarPanX)} | Y: ${Math.round(avatarPanY)}`;
             }
         }
 
@@ -774,25 +809,40 @@
             avatarPanX = targetX;
             avatarPanY = targetY;
             avatarContainer.style.transform = `translate(${avatarPanX}px, ${avatarPanY}px) scale(${avatarScale})`;
-            if (zoomLevelText) {
-                zoomLevelText.innerText = Math.round(avatarScale * 100) + '%';
-            }
+            updateHudDisplay();
+
             setTimeout(() => {
                 isCameraAnimating = false;
                 avatarContainer.style.transition = 'none';
             }, duration);
         }
 
-        // Presets de Câmera por Abas
+        // Presets de Câmera configurados por Abas
         const cameraPresets = {
-            "Aparência": { scale: 2.15, x: 0, y: 125 },   // Zoom no rosto da modelo
-            "Identidade": { scale: 0.8, x: 0, y: 0 },     // Visão completa (125% afastada)
-            "Busto": { scale: 1.55, x: 0, y: 55 },        // Zoom no busto
-            "Pernas": { scale: 1.45, x: 0, y: -95 },      // Zoom nas pernas
-            "Pés": { scale: 1.75, x: 0, y: -190 },        // Zoom nos pés
-            "Estilo": { scale: 1.0, x: 0, y: 15 },        // Visão de moda
-            "Gravação": { scale: 0.8, x: 0, y: 0 }        // Visão padrão de estúdio
+            "Aparência": { scale: 2.15, x: 0, y: 200 },   // Zoom no rosto (rebaixada para o rosto ficar perfeitamente enquadrado)
+            "Identidade": { scale: 0.9, x: 0, y: 0 },     // Padrão 90%
+            "Busto": { scale: 1.8, x: 0, y: 85 },         // 180% solicitado
+            "Pernas": { scale: 1.75, x: 0, y: -140 },     // 175% solicitado
+            "Pés": { scale: 1.9, x: 0, y: -220 },         // Foco nos pés
+            "Estilo": { scale: 1.1, x: 0, y: 20 },        // Moda
+            "Gravação": { scale: 0.9, x: 0, y: 0 }        // Visão estúdio
         };
+
+        // Copiar coordenadas atuais ao clicar no HUD
+        if (cameraHudBadge) {
+            cameraHudBadge.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const textToCopy = `Zoom: ${Math.round(avatarScale * 100)}%, X: ${Math.round(avatarPanX)}, Y: ${Math.round(avatarPanY)}`;
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(textToCopy);
+                }
+                const originalText = coordsText.innerText;
+                coordsText.innerText = "Copiado!";
+                setTimeout(() => {
+                    coordsText.innerText = originalText;
+                }, 1000);
+            });
+        }
 
         /* --- ZOOM COM SCROLL DO MOUSE (FOCO NO CURSOR) --- */
         if (viewportCanvas) {
@@ -801,7 +851,6 @@
                 if (isCameraAnimating) return;
 
                 const rect = viewportCanvas.getBoundingClientRect();
-                // Ponto do cursor relativo ao centro do canvas
                 const mouseX = e.clientX - rect.left - rect.width / 2;
                 const mouseY = e.clientY - rect.top - rect.height / 2;
 
@@ -809,7 +858,6 @@
                 const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, avatarScale * zoomFactor));
 
                 if (newScale !== avatarScale) {
-                    // Mantém o ponto sob o mouse fixo no espaço da tela
                     avatarPanX = mouseX - (mouseX - avatarPanX) * (newScale / avatarScale);
                     avatarPanY = mouseY - (mouseY - avatarPanY) * (newScale / avatarScale);
                     avatarScale = newScale;
@@ -825,28 +873,25 @@
         let panInitialX = 0;
         let panInitialY = 0;
 
-        // Gestos Touch (Pinch Zoom & Toque Duplo)
         let lastTapTime = 0;
         let initialPinchDist = 0;
         let initialPinchScale = avatarScale;
 
         if (viewportCanvas) {
             viewportCanvas.addEventListener('pointerdown', (e) => {
-                // Não intercepta se o clique foi em menus, bottom sheet ou botões
-                if (e.target.closest('.side-menu') || e.target.closest('.bottom-sheet') || e.target.closest('.footer-nav')) return;
+                if (e.target.closest('.side-menu') || e.target.closest('.bottom-sheet') || e.target.closest('.footer-nav') || e.target.closest('.camera-hud-badge')) return;
 
-                // Detecta toque duplo para zoom no mobile/desktop
                 const currentTime = new Date().getTime();
                 const tapLength = currentTime - lastTapTime;
                 if (tapLength < 280 && tapLength > 0) {
                     e.preventDefault();
-                    if (avatarScale > 1.2) {
+                    if (avatarScale > 1.3) {
                         animateAvatarCamera(DEFAULT_SCALE, 0, 0, 400);
                     } else {
                         const rect = viewportCanvas.getBoundingClientRect();
                         const tapX = e.clientX - rect.left - rect.width / 2;
                         const tapY = e.clientY - rect.top - rect.height / 2;
-                        animateAvatarCamera(2.1, -tapX * 0.8, -tapY * 0.8, 400);
+                        animateAvatarCamera(2.15, -tapX * 0.75, -tapY * 0.75, 400);
                     }
                     lastTapTime = 0;
                     return;
@@ -879,7 +924,6 @@
                 isPanningAvatar = false;
             });
 
-            // Suporte a Pinch-to-Zoom multitoque no mobile
             viewportCanvas.addEventListener('touchstart', (e) => {
                 if (e.touches.length === 2) {
                     initialPinchDist = Math.hypot(
@@ -1235,7 +1279,7 @@
             "Estilo": {
                 sideButtons: [
                     { label: "Roupas", active: true, icon: '<path d="M12,3L2,12H5V20H19V12H22L12,3M12,7.7C14.1,7.7 15.8,9.4 15.8,11.5C15.8,13.6 14.1,15.3 12,15.3C9.9,15.3 8.2,13.6 8.2,11.5C8.2,9.4 9.9,7.7 12,7.7Z"/>' },
-                    { label: "Acessórios", active: false, icon: '<path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12C4,13.85 4.63,15.55 5.68,16.91C6.7,15.5 8.5,14.5 12,14.5C15.5,14.5 17.3,15.5 18.32,16.91C19.37,15.55 20,13.85 20,12A8,8 0 0,0 12,4M12,6A3,3 0 0,1 15,9A3,3 0 0,1 12,12A3,3 0 0,1 9,9A3,3 0 0,1 12,6Z"/>' }
+                    { label: "Acessórios", active: false, icon: '<path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12C4,13.85 4.63,15.55 5.68,16.91C6.7,15.5 8.5,14.5 12,14.5C15.5,14.5 17.3,15.5 18.32,16.91C19.37,15.55 20,13.85 20,12A8,8 0 0,0 12,4M12,6A3,3 0 0,1 15,9A3,3 0 0,1 12,12A3,3 0 0,1 9,9A3,3 0 0,1 12,6Z"/>' }
                 ],
                 sheetHTML: `
                     <div class="section-title">Guarda-Roupa</div>
@@ -1321,7 +1365,7 @@
             checkAndResetSheet();
         }
 
-        // Inicia carregando "Aparência" com foco no rosto
+        // Inicia carregando "Aparência"
         loadTabContent("Aparência");
     </script>
 </body>
