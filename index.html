@@ -295,6 +295,7 @@
             100% { transform: translateY(0px) rotate(0deg); }
         }
 
+        /* Viewport / Canvas Interativo com Zoom e Pan */
         .viewport {
             position: absolute;
             top: 0;
@@ -307,6 +308,12 @@
             background: radial-gradient(circle, #382e3f 0%, #17151b 75%);
             overflow: hidden;
             z-index: 1;
+            cursor: grab;
+            touch-action: none;
+        }
+
+        .viewport:active {
+            cursor: grabbing;
         }
 
         .avatar-container {
@@ -316,6 +323,9 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            transform-origin: center center;
+            will-change: transform;
+            pointer-events: none;
         }
 
         .avatar-img {
@@ -325,6 +335,35 @@
             object-position: center bottom;
             position: absolute;
             bottom: 0;
+            pointer-events: none;
+        }
+
+        /* Indicador sutil de reset de zoom (duplo clique / toque) */
+        .zoom-hint-pill {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            background: rgba(26, 24, 31, 0.65);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 4px 8px;
+            font-size: 9.5px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            z-index: 20;
+            pointer-events: none;
+            opacity: 0.85;
+            transition: opacity 0.3s ease;
+        }
+
+        .zoom-hint-pill svg {
+            width: 12px;
+            height: 12px;
+            fill: var(--primary);
         }
 
         .side-menu {
@@ -334,7 +373,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            z-index: 10;
+            z-index: 25;
             max-height: calc(100% - 100px);
             overflow-y: auto;
             scrollbar-width: none;
@@ -622,8 +661,14 @@
 
             <div class="app-container" id="appContainer">
                 
-                <div class="viewport">
-                    <div class="avatar-container">
+                <!-- Viewport / Canvas Interativo da Modelo -->
+                <div class="viewport" id="viewportCanvas">
+                    <div class="zoom-hint-pill" id="zoomHint">
+                        <svg viewBox="0 0 24 24"><path d="M15.5,14L20.5,19L19,20.5L14,15.5V14.71L13.73,14.43C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.43,13.73L14.71,14H15.5M9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14M12,10H10V12H9V10H7V9H9V7H10V9H12V10Z"/></svg>
+                        <span id="zoomLevelText">80%</span>
+                    </div>
+
+                    <div class="avatar-container" id="avatarContainer">
                         <img src="avatar.png" alt="Avatar Model" class="avatar-img" id="avatarImg">
                     </div>
                 </div>
@@ -695,8 +740,170 @@
         const windowDragHandle = document.getElementById('windowDragHandle');
         const btnMinimize = document.getElementById('btnMinimize');
         const floatingBubble = document.getElementById('floatingBubble');
+        const viewportCanvas = document.getElementById('viewportCanvas');
+        const avatarContainer = document.getElementById('avatarContainer');
+        const zoomLevelText = document.getElementById('zoomLevelText');
 
-        /* --- CONTROLE DE ARRASTE DA JANELA (APENAS PELO BOTÃO DE MOVER) --- */
+        /* --- CONTROLE DE CÂMERA, ZOOM & PAN DO AVATAR --- */
+        const DEFAULT_SCALE = 0.8; // 125% distanciada para fora
+        const MIN_SCALE = 0.55;
+        const MAX_SCALE = 3.5;
+
+        let avatarScale = DEFAULT_SCALE;
+        let avatarPanX = 0;
+        let avatarPanY = 0;
+        let isCameraAnimating = false;
+
+        function updateAvatarTransform(smooth = false) {
+            if (smooth) {
+                avatarContainer.style.transition = 'transform 0.45s cubic-bezier(0.25, 1, 0.5, 1)';
+            } else {
+                avatarContainer.style.transition = 'none';
+            }
+            avatarContainer.style.transform = `translate(${avatarPanX}px, ${avatarPanY}px) scale(${avatarScale})`;
+            if (zoomLevelText) {
+                zoomLevelText.innerText = Math.round(avatarScale * 100) + '%';
+            }
+        }
+
+        // Animação suave para focar em partes do corpo ditadas pelos botões
+        function animateAvatarCamera(targetScale, targetX, targetY, duration = 480) {
+            isCameraAnimating = true;
+            avatarContainer.style.transition = `transform ${duration}ms cubic-bezier(0.22, 1, 0.36, 1)`;
+            avatarScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, targetScale));
+            avatarPanX = targetX;
+            avatarPanY = targetY;
+            avatarContainer.style.transform = `translate(${avatarPanX}px, ${avatarPanY}px) scale(${avatarScale})`;
+            if (zoomLevelText) {
+                zoomLevelText.innerText = Math.round(avatarScale * 100) + '%';
+            }
+            setTimeout(() => {
+                isCameraAnimating = false;
+                avatarContainer.style.transition = 'none';
+            }, duration);
+        }
+
+        // Presets de Câmera por Abas
+        const cameraPresets = {
+            "Aparência": { scale: 2.15, x: 0, y: 125 },   // Zoom no rosto da modelo
+            "Identidade": { scale: 0.8, x: 0, y: 0 },     // Visão completa (125% afastada)
+            "Busto": { scale: 1.55, x: 0, y: 55 },        // Zoom no busto
+            "Pernas": { scale: 1.45, x: 0, y: -95 },      // Zoom nas pernas
+            "Pés": { scale: 1.75, x: 0, y: -190 },        // Zoom nos pés
+            "Estilo": { scale: 1.0, x: 0, y: 15 },        // Visão de moda
+            "Gravação": { scale: 0.8, x: 0, y: 0 }        // Visão padrão de estúdio
+        };
+
+        /* --- ZOOM COM SCROLL DO MOUSE (FOCO NO CURSOR) --- */
+        if (viewportCanvas) {
+            viewportCanvas.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                if (isCameraAnimating) return;
+
+                const rect = viewportCanvas.getBoundingClientRect();
+                // Ponto do cursor relativo ao centro do canvas
+                const mouseX = e.clientX - rect.left - rect.width / 2;
+                const mouseY = e.clientY - rect.top - rect.height / 2;
+
+                const zoomFactor = e.deltaY < 0 ? 1.14 : 0.88;
+                const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, avatarScale * zoomFactor));
+
+                if (newScale !== avatarScale) {
+                    // Mantém o ponto sob o mouse fixo no espaço da tela
+                    avatarPanX = mouseX - (mouseX - avatarPanX) * (newScale / avatarScale);
+                    avatarPanY = mouseY - (mouseY - avatarPanY) * (newScale / avatarScale);
+                    avatarScale = newScale;
+                    updateAvatarTransform(false);
+                }
+            }, { passive: false });
+        }
+
+        /* --- ARRASTAR E MOVER A MODELO COM O CLIQUE / TOUCH --- */
+        let isPanningAvatar = false;
+        let panStartX = 0;
+        let panStartY = 0;
+        let panInitialX = 0;
+        let panInitialY = 0;
+
+        // Gestos Touch (Pinch Zoom & Toque Duplo)
+        let lastTapTime = 0;
+        let initialPinchDist = 0;
+        let initialPinchScale = avatarScale;
+
+        if (viewportCanvas) {
+            viewportCanvas.addEventListener('pointerdown', (e) => {
+                // Não intercepta se o clique foi em menus, bottom sheet ou botões
+                if (e.target.closest('.side-menu') || e.target.closest('.bottom-sheet') || e.target.closest('.footer-nav')) return;
+
+                // Detecta toque duplo para zoom no mobile/desktop
+                const currentTime = new Date().getTime();
+                const tapLength = currentTime - lastTapTime;
+                if (tapLength < 280 && tapLength > 0) {
+                    e.preventDefault();
+                    if (avatarScale > 1.2) {
+                        animateAvatarCamera(DEFAULT_SCALE, 0, 0, 400);
+                    } else {
+                        const rect = viewportCanvas.getBoundingClientRect();
+                        const tapX = e.clientX - rect.left - rect.width / 2;
+                        const tapY = e.clientY - rect.top - rect.height / 2;
+                        animateAvatarCamera(2.1, -tapX * 0.8, -tapY * 0.8, 400);
+                    }
+                    lastTapTime = 0;
+                    return;
+                }
+                lastTapTime = currentTime;
+
+                isPanningAvatar = true;
+                panStartX = e.clientX;
+                panStartY = e.clientY;
+                panInitialX = avatarPanX;
+                panInitialY = avatarPanY;
+
+                try { viewportCanvas.setPointerCapture(e.pointerId); } catch(err){}
+            });
+
+            viewportCanvas.addEventListener('pointermove', (e) => {
+                if (!isPanningAvatar || isCameraAnimating) return;
+                avatarPanX = panInitialX + (e.clientX - panStartX);
+                avatarPanY = panInitialY + (e.clientY - panStartY);
+                updateAvatarTransform(false);
+            });
+
+            viewportCanvas.addEventListener('pointerup', (e) => {
+                if (!isPanningAvatar) return;
+                isPanningAvatar = false;
+                try { viewportCanvas.releasePointerCapture(e.pointerId); } catch(err){}
+            });
+
+            viewportCanvas.addEventListener('pointercancel', (e) => {
+                isPanningAvatar = false;
+            });
+
+            // Suporte a Pinch-to-Zoom multitoque no mobile
+            viewportCanvas.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) {
+                    initialPinchDist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    initialPinchScale = avatarScale;
+                }
+            }, { passive: true });
+
+            viewportCanvas.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2 && initialPinchDist > 0) {
+                    const currentDist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    const scaleFactor = currentDist / initialPinchDist;
+                    avatarScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, initialPinchScale * scaleFactor));
+                    updateAvatarTransform(false);
+                }
+            }, { passive: true });
+        }
+
+        /* --- CONTROLE DE ARRASTE DA JANELA (BOTÃO MOVER NO DESKTOP) --- */
         let isPhoneDragging = false;
         let phonePosX = 0;
         let phonePosY = 0;
@@ -718,7 +925,7 @@
                 phoneInitialY = phonePosY;
 
                 phoneMovableFrame.style.transition = 'none';
-                windowDragHandle.setPointerCapture(e.pointerId);
+                try { windowDragHandle.setPointerCapture(e.pointerId); } catch(err) {}
             });
 
             windowDragHandle.addEventListener('pointermove', (e) => {
@@ -1073,6 +1280,12 @@
 
             sheetContent.innerHTML = data.sheetHTML;
 
+            // Anima a câmera para o preset correspondente da aba
+            if (cameraPresets[tabName]) {
+                const p = cameraPresets[tabName];
+                animateAvatarCamera(p.scale, p.x, p.y, 480);
+            }
+
             setTimeout(() => {
                 enableHorizontalDrag('stylesScroll');
                 enableHorizontalDrag('colorsScroll');
@@ -1108,6 +1321,7 @@
             checkAndResetSheet();
         }
 
+        // Inicia carregando "Aparência" com foco no rosto
         loadTabContent("Aparência");
     </script>
 </body>
