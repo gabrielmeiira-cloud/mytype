@@ -167,6 +167,49 @@
                 fill: currentColor;
                 pointer-events: none;
             }
+
+            /* Botão de Depuração Circular (Desktop) */
+            .window-btn-debug {
+                position: absolute;
+                top: -14px;
+                left: 32px;
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                background: #232029;
+                border: 2px solid rgba(255, 255, 255, 0.2);
+                color: var(--text-main);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                z-index: 90;
+                box-shadow: 0 6px 18px rgba(0, 0, 0, 0.75);
+                transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            }
+
+            .window-btn-debug:hover {
+                background-color: #382c33;
+                border-color: var(--primary);
+                color: var(--primary);
+                transform: scale(1.12);
+                box-shadow: 0 8px 24px rgba(201, 107, 124, 0.45);
+            }
+
+            .window-btn-debug.active {
+                background-color: var(--primary);
+                border-color: #ffffff;
+                color: #ffffff;
+                box-shadow: 0 0 20px rgba(201, 107, 124, 0.8), 0 6px 18px rgba(0, 0, 0, 0.75);
+                transform: scale(1.08);
+            }
+
+            .window-btn-debug svg {
+                width: 16px;
+                height: 16px;
+                fill: currentColor;
+                pointer-events: none;
+            }
         }
 
         /* Celular Físico: Ocupa 100% da tela e altura do navegador */
@@ -193,6 +236,42 @@
             .window-btn-minimize,
             .floating-mini-phone {
                 display: none !important;
+            }
+
+            /* Botão de Depuração Circular (Celular) */
+            .window-btn-debug {
+                position: absolute;
+                top: 14px;
+                right: 14px;
+                width: 34px;
+                height: 34px;
+                border-radius: 50%;
+                background: rgba(20, 18, 26, 0.85);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border: 1.5px solid rgba(255, 255, 255, 0.2);
+                color: var(--text-main);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                z-index: 95;
+                box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7);
+                transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            }
+
+            .window-btn-debug.active {
+                background-color: var(--primary);
+                border-color: #ffffff;
+                color: #ffffff;
+                box-shadow: 0 0 16px rgba(201, 107, 124, 0.85);
+            }
+
+            .window-btn-debug svg {
+                width: 15px;
+                height: 15px;
+                fill: currentColor;
+                pointer-events: none;
             }
         }
 
@@ -389,7 +468,7 @@
             z-index: 3;
         }
 
-        /* HUD: Marcador de Zoom, Coordenadas e Botão de Alternar Degradê */
+        /* HUD: Marcador de Zoom, Coordenadas, Sessões e PIN de Calibração */
         .camera-hud-group {
             position: absolute;
             top: 14px;
@@ -397,19 +476,30 @@
             display: flex;
             flex-direction: column;
             gap: 6px;
-            z-index: 20;
+            z-index: 25;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-8px);
+            transition: opacity 0.25s ease, transform 0.25s ease;
+            max-width: calc(100% - 70px);
+        }
+
+        .camera-hud-group.debug-visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
         }
 
         .camera-hud-badge {
-            background: rgba(20, 18, 26, 0.85);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background: rgba(20, 18, 26, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 12px;
-            padding: 5px 10px;
+            padding: 6px 10px;
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 3px;
             cursor: pointer;
             transition: all 0.2s ease;
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
@@ -418,7 +508,7 @@
         .camera-hud-badge:hover {
             background: rgba(35, 30, 42, 0.95);
             border-color: var(--primary);
-            transform: scale(1.02);
+            transform: scale(1.01);
         }
 
         .hud-row {
@@ -444,13 +534,45 @@
             letter-spacing: -0.2px;
         }
 
-        /* Botão para alternar entre Degradê Antigo (Fixo) e Degradê Novo (Câmera) */
-        .bg-mode-btn {
-            background: rgba(20, 18, 26, 0.85);
+        /* Botões de Ação do PIN */
+        .pin-actions-row {
+            display: flex;
+            gap: 5px;
+            width: 100%;
+        }
+
+        .pin-action-btn {
+            background: rgba(26, 24, 34, 0.92);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 12px;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 8.5px;
+            font-weight: 600;
+            padding: 4px 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            white-space: nowrap;
+        }
+
+        .pin-action-btn:hover {
+            background: var(--primary);
+            border-color: #ffffff;
+            transform: scale(1.03);
+        }
+
+        /* Botão para alternar entre Degradê Antigo (Fixo) e Degradê Novo (Câmera) */
+        .bg-mode-btn {
+            background: rgba(20, 18, 26, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
             padding: 5px 9px;
             display: flex;
             align-items: center;
@@ -468,6 +590,120 @@
             background: rgba(35, 30, 42, 0.95);
             border-color: var(--primary);
             transform: scale(1.02);
+        }
+
+        .bg-mode-btn svg {
+            width: 12px;
+            height: 12px;
+            fill: var(--primary);
+            flex-shrink: 0;
+        }
+
+        /* Barra de Sessões para Navegação Rápida */
+        .debug-sessions-bar {
+            background: rgba(20, 18, 26, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 5px 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+            max-width: 280px;
+        }
+
+        .debug-session-tag {
+            font-size: 8.5px;
+            font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #d1cdd9;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.18s ease;
+            white-space: nowrap;
+        }
+
+        .debug-session-tag:hover,
+        .debug-session-tag.active {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: scale(1.04);
+        }
+
+        /* PIN de Calibração Interativo no Corpo da Modelo */
+        .debug-pin-marker {
+            position: absolute;
+            width: 34px;
+            height: 34px;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            cursor: grab;
+            pointer-events: auto;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s ease;
+            touch-action: none;
+        }
+
+        .debug-pin-marker.debug-visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .debug-pin-marker:active {
+            cursor: grabbing;
+        }
+
+        .pin-crosshair {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px dashed rgba(201, 107, 124, 0.95);
+            box-shadow: 0 0 12px rgba(201, 107, 124, 0.6);
+            animation: pinPulse 3s infinite linear;
+        }
+
+        .pin-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 10px rgba(201, 107, 124, 0.9), 0 2px 6px rgba(0,0,0,0.8);
+            z-index: 2;
+        }
+
+        .pin-label-tag {
+            position: absolute;
+            top: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(12, 11, 14, 0.92);
+            color: #ffffff;
+            font-size: 8.5px;
+            font-weight: 700;
+            font-family: monospace;
+            padding: 1px 6px;
+            border-radius: 4px;
+            border: 1px solid var(--primary);
+            white-space: nowrap;
+            pointer-events: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+        }
+
+        @keyframes pinPulse {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.15); }
+            100% { transform: rotate(360deg) scale(1); }
         }
 
         .bg-mode-btn svg {
@@ -770,19 +1006,35 @@
                 <svg viewBox="0 0 24 24"><path d="M19,13H5V11H19V13Z"/></svg>
             </button>
 
+            <!-- Botão de Depuração Circular -->
+            <button class="window-btn-debug" id="btnDebugMode" title="Alternar Modo de Depuração (HUD, PIN de Calibração e Sessões)" aria-label="Depuração" onclick="toggleDebugMode()">
+                <svg viewBox="0 0 24 24"><path d="M20 8h-2.81c-.45-.78-1.07-1.45-1.82-1.96L17 4.41 15.59 3l-2.17 2.17C12.96 5.06 12.49 5 12 5c-.49 0-.96.06-1.41.17L8.41 3 7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8zm-6 8h-4v-2h4v2zm0-4h-4v-2h4v2z"/></svg>
+            </button>
+
             <div class="app-container" id="appContainer">
                 
                 <!-- Viewport / Canvas Interativo da Modelo -->
                 <div class="viewport" id="viewportCanvas">
                     
-                    <!-- HUD: Marcador de Zoom, Coordenadas e Botão de Alternar Degradê -->
-                    <div class="camera-hud-group">
+                    <!-- HUD: Marcador de Zoom, Coordenadas, Sessões e PIN de Calibração -->
+                    <div class="camera-hud-group" id="cameraHudGroup">
                         <div class="camera-hud-badge" id="cameraHudBadge" title="Clique para copiar os valores de Zoom e Coordenadas">
                             <div class="hud-row">
                                 <svg viewBox="0 0 24 24"><path d="M15.5,14L20.5,19L19,20.5L14,15.5V14.71L13.73,14.43C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.43,13.73L14.71,14H15.5M9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14M12,10H10V12H9V10H7V9H9V7H10V9H12V10Z"/></svg>
                                 <span id="zoomLevelText">Zoom: 90%</span>
                             </div>
                             <div class="hud-sub" id="coordsText">X: 0 | Y: 0</div>
+                            <div class="hud-sub" id="pinInfoText" style="color: var(--primary); font-weight: 600;">📍 PIN Foco: Y: 50.0% | X: 50.0%</div>
+                        </div>
+
+                        <!-- Ações Rápidas do PIN -->
+                        <div class="pin-actions-row">
+                            <button class="pin-action-btn" id="btnFocusPin" onclick="focusCameraOnPin()" title="Centralizar Câmera no PIN">
+                                🎯 Focar no PIN
+                            </button>
+                            <button class="pin-action-btn" id="btnCopyPreset" onclick="copyCurrentPinPreset()" title="Copiar Preset Responsivo do PIN">
+                                📋 Copiar Código
+                            </button>
                         </div>
 
                         <!-- Botão para alternar entre degradê antigo e novo -->
@@ -790,6 +1042,17 @@
                             <svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20V4Z"/></svg>
                             <span id="bgModeLabel">Fundo: Câmera (Novo)</span>
                         </button>
+
+                        <!-- Barra de Navegação Rápida entre Todas as Sessões -->
+                        <div class="debug-sessions-bar" id="debugSessionsBar">
+                            <span class="debug-session-tag active" data-tab="Identidade" onclick="testResponsiveSession('Identidade')">Identidade</span>
+                            <span class="debug-session-tag" data-tab="Aparência" onclick="testResponsiveSession('Aparência')">Aparência</span>
+                            <span class="debug-session-tag" data-tab="Busto" onclick="testResponsiveSession('Busto')">Busto</span>
+                            <span class="debug-session-tag" data-tab="Pernas" onclick="testResponsiveSession('Pernas')">Pernas</span>
+                            <span class="debug-session-tag" data-tab="Pés" onclick="testResponsiveSession('Pés')">Pés</span>
+                            <span class="debug-session-tag" data-tab="Estilo" onclick="testResponsiveSession('Estilo')">Estilo</span>
+                            <span class="debug-session-tag" data-tab="Gravação" onclick="testResponsiveSession('Gravação')">Gravação</span>
+                        </div>
                     </div>
 
                     <div class="avatar-container" id="avatarContainer">
@@ -797,6 +1060,13 @@
                         <img src="avatar.webp" alt="Base Avatar" class="avatar-layer avatar-base" id="layerBase">
                         <img src="assets/outfit_casual.png" alt="Outfit Layer" class="avatar-layer hidden" id="layerOutfit">
                         <img src="assets/hair_curly_dark.png" alt="Hair Layer" class="avatar-layer hidden" id="layerHair">
+                        
+                        <!-- PIN de Calibração Interativo no Avatar -->
+                        <div class="debug-pin-marker" id="debugPinMarker" title="Arraste o PIN para marcar a posição exata de foco">
+                            <div class="pin-label-tag" id="pinLabelTag">Y: 50%</div>
+                            <div class="pin-crosshair"></div>
+                            <div class="pin-dot"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -871,9 +1141,31 @@
         const avatarContainer = document.getElementById('avatarContainer');
         const zoomLevelText = document.getElementById('zoomLevelText');
         const coordsText = document.getElementById('coordsText');
-        const cameraHudBadge = document.getElementById('cameraHudBadge');
-        const bgModeLabel = document.getElementById('bgModeLabel');
-        const infiniteBackdrop = document.getElementById('infiniteBackdrop');
+        const btnDebugMode = document.getElementById('btnDebugMode');
+        const cameraHudGroup = document.getElementById('cameraHudGroup');
+        const debugPinMarker = document.getElementById('debugPinMarker');
+        const pinLabelTag = document.getElementById('pinLabelTag');
+        const pinInfoText = document.getElementById('pinInfoText');
+        const debugSessionsBar = document.getElementById('debugSessionsBar');
+
+        /* --- MODO DE DEPURAÇÃO E PIN INTERATIVO --- */
+        let isDebugMode = false;
+        let pinNormX = 0.50;
+        let pinNormY = 0.50;
+
+        function toggleDebugMode() {
+            isDebugMode = !isDebugMode;
+            if (isDebugMode) {
+                if (btnDebugMode) btnDebugMode.classList.add('active');
+                if (cameraHudGroup) cameraHudGroup.classList.add('debug-visible');
+                if (debugPinMarker) debugPinMarker.classList.add('debug-visible');
+                updatePinPositionDOM();
+            } else {
+                if (btnDebugMode) btnDebugMode.classList.remove('active');
+                if (cameraHudGroup) cameraHudGroup.classList.remove('debug-visible');
+                if (debugPinMarker) debugPinMarker.classList.remove('debug-visible');
+            }
+        }
 
         /* --- CONTROLE DE MODO DE DEGRADÊ (ANTIGO FIXO VS NOVO CÂMERA) --- */
         let isCameraBg = true; // Padrão: Câmera (Novo)
@@ -897,8 +1189,8 @@
             }
         }
 
-        /* --- CONTROLE DE CÂMERA, ZOOM & PAN DO AVATAR --- */
-        const DEFAULT_SCALE = 0.9; // 90% padrão
+        /* --- MOTOR DE CÂMERA RESPONSIVO (PROPORÇÃO NORMALIZADA DE CORPO) --- */
+        const DEFAULT_SCALE = 0.90;
         const MIN_SCALE = 0.55;
         const MAX_SCALE = 3.5;
 
@@ -906,6 +1198,55 @@
         let avatarPanX = 0;
         let avatarPanY = 0;
         let isCameraAnimating = false;
+        let activeSessionName = "Identidade";
+
+        function getAvatarLayoutMetrics() {
+            const w = viewportCanvas ? viewportCanvas.clientWidth : 350;
+            const h = viewportCanvas ? viewportCanvas.clientHeight : 600;
+            const imgAspect = 9 / 16;
+            const containerAspect = w / h;
+
+            let renderedW, renderedH, offsetX, offsetY;
+
+            if (containerAspect < imgAspect) {
+                renderedW = w;
+                renderedH = w / imgAspect;
+                offsetX = 0;
+                offsetY = h - renderedH;
+            } else {
+                renderedH = h;
+                renderedW = h * imgAspect;
+                offsetX = (w - renderedW) / 2;
+                offsetY = 0;
+            }
+
+            return { w, h, renderedW, renderedH, offsetX, offsetY };
+        }
+
+        function calculatePanFromNormalizedPoint(scale, normX, normY, targetScreenYRatio = 0.45) {
+            const m = getAvatarLayoutMetrics();
+            const ptX = m.offsetX + (m.renderedW * normX);
+            const ptY = m.offsetY + (m.renderedH * normY);
+
+            const relX = ptX - (m.w / 2);
+            const relY = ptY - (m.h / 2);
+
+            const panX = -relX * scale;
+            const panY = -relY * scale + (m.h * (targetScreenYRatio - 0.5));
+
+            return clampPan(panX, panY, scale);
+        }
+
+        // Presets Responsivos Calibrados para funcionar idênticos em qualquer tela (PC e Mobile)
+        const responsiveCameraPresets = {
+            "Identidade": { scale: 0.90, focusX: 0.50, focusY: 0.50, screenYRatio: 0.50 },
+            "Aparência":  { scale: 2.45, focusX: 0.50, focusY: 0.115, screenYRatio: 0.44 },
+            "Busto":      { scale: 2.39, focusX: 0.50, focusY: 0.280, screenYRatio: 0.44 },
+            "Pernas":     { scale: 1.80, focusX: 0.50, focusY: 0.650, screenYRatio: 0.46 },
+            "Pés":        { scale: 2.10, focusX: 0.50, focusY: 0.940, screenYRatio: 0.48 },
+            "Estilo":     { scale: 1.15, focusX: 0.50, focusY: 0.450, screenYRatio: 0.50 },
+            "Gravação":   { scale: 0.90, focusX: 0.50, focusY: 0.50, screenYRatio: 0.50 }
+        };
 
         function updateAvatarTransform(smooth = false) {
             if (smooth) {
@@ -924,9 +1265,9 @@
             if (coordsText) {
                 coordsText.innerText = `X: ${Math.round(avatarPanX)} | Y: ${Math.round(avatarPanY)}`;
             }
+            updatePinPositionDOM();
         }
 
-        // Animação suave para focar em partes do corpo ditadas pelos botões
         function animateAvatarCamera(targetScale, targetX, targetY, duration = 480) {
             isCameraAnimating = true;
             avatarContainer.style.transition = `transform ${duration}ms cubic-bezier(0.22, 1, 0.36, 1)`;
@@ -942,30 +1283,114 @@
             }, duration);
         }
 
-        // Presets de Câmera configurados por Abas
-        const cameraPresets = {
-            "Aparência": { scale: 2.45, x: 0, y: 380 },   // Zoom 245% no rosto
-            "Identidade": { scale: 0.9, x: 0, y: 0 },     // Padrão 90%
-            "Busto": { scale: 2.39, x: 0, y: 100 },       // Zoom 239% no busto
-            "Pernas": { scale: 1.75, x: 0, y: -140 },     // 175%
-            "Pés": { scale: 1.9, x: 0, y: -220 },         // Foco nos pés
-            "Estilo": { scale: 1.1, x: 0, y: 20 },        // Moda
-            "Gravação": { scale: 0.9, x: 0, y: 0 }        // Visão estúdio
-        };
+        function applyResponsivePreset(presetName, duration = 480) {
+            activeSessionName = presetName;
+            const p = responsiveCameraPresets[presetName] || responsiveCameraPresets["Identidade"];
+            const target = calculatePanFromNormalizedPoint(p.scale, p.focusX, p.focusY, p.screenYRatio);
+            animateAvatarCamera(p.scale, target.x, target.y, duration);
+            updateDebugSessionTags(presetName);
+        }
+
+        function updateDebugSessionTags(activeName) {
+            document.querySelectorAll('.debug-session-tag').forEach(tag => {
+                if (tag.getAttribute('data-tab') === activeName) {
+                    tag.classList.add('active');
+                } else {
+                    tag.classList.remove('active');
+                }
+            });
+        }
+
+        function testResponsiveSession(sessionName) {
+            applyResponsivePreset(sessionName, 480);
+            const footerBtn = document.querySelector(`.nav-item[data-tab="${sessionName}"]`);
+            if (footerBtn) {
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                footerBtn.classList.add('active');
+                loadTabContent(sessionName);
+            }
+        }
+
+        /* --- PIN DE CALIBRAÇÃO INTERATIVO --- */
+        function updatePinPositionDOM() {
+            if (!debugPinMarker) return;
+            const m = getAvatarLayoutMetrics();
+            const pinPxX = m.offsetX + (m.renderedW * pinNormX);
+            const pinPxY = m.offsetY + (m.renderedH * pinNormY);
+
+            debugPinMarker.style.left = pinPxX + 'px';
+            debugPinMarker.style.top = pinPxY + 'px';
+
+            const yPercent = (pinNormY * 100).toFixed(1);
+            const xPercent = (pinNormX * 100).toFixed(1);
+
+            if (pinLabelTag) pinLabelTag.innerText = `Y: ${yPercent}%`;
+            if (pinInfoText) pinInfoText.innerText = `📍 PIN Foco: Y: ${yPercent}% | X: ${xPercent}%`;
+        }
+
+        function setPinFromCanvasCoords(clientX, clientY) {
+            const rect = viewportCanvas.getBoundingClientRect();
+            const clickCanvasX = clientX - rect.left;
+            const clickCanvasY = clientY - rect.top;
+
+            const containerX = (clickCanvasX - (rect.width / 2) - avatarPanX) / avatarScale + (rect.width / 2);
+            const containerY = (clickCanvasY - (rect.height / 2) - avatarPanY) / avatarScale + (rect.height / 2);
+
+            const m = getAvatarLayoutMetrics();
+            let nX = (containerX - m.offsetX) / m.renderedW;
+            let nY = (containerY - m.offsetY) / m.renderedH;
+
+            pinNormX = Math.max(0.0, Math.min(1.0, nX));
+            pinNormY = Math.max(0.0, Math.min(1.0, nY));
+            updatePinPositionDOM();
+        }
+
+        function focusCameraOnPin() {
+            const target = calculatePanFromNormalizedPoint(avatarScale, pinNormX, pinNormY, 0.45);
+            animateAvatarCamera(avatarScale, target.x, target.y, 420);
+        }
+
+        function copyCurrentPinPreset() {
+            const yP = pinNormY.toFixed(3);
+            const xP = pinNormX.toFixed(3);
+            const sc = avatarScale.toFixed(2);
+            const codeSnippet = `"Sessao": { scale: ${sc}, focusX: ${xP}, focusY: ${yP}, screenYRatio: 0.45 }`;
+
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(codeSnippet);
+            }
+            if (pinInfoText) {
+                const prev = pinInfoText.innerText;
+                pinInfoText.innerText = "Copiado com Sucesso! 📋";
+                setTimeout(() => { pinInfoText.innerText = prev; }, 1500);
+            }
+        }
+
+        // Arraste direto do PIN
+        let isDraggingPin = false;
+        if (debugPinMarker) {
+            debugPinMarker.addEventListener('pointerdown', (e) => {
+                e.stopPropagation();
+                isDraggingPin = true;
+                try { debugPinMarker.setPointerCapture(e.pointerId); } catch(err){}
+            });
+
+            debugPinMarker.addEventListener('pointermove', (e) => {
+                if (!isDraggingPin) return;
+                setPinFromCanvasCoords(e.clientX, e.clientY);
+            });
+
+            debugPinMarker.addEventListener('pointerup', (e) => {
+                isDraggingPin = false;
+                try { debugPinMarker.releasePointerCapture(e.pointerId); } catch(err){}
+            });
+        }
 
         // Copiar coordenadas atuais ao clicar no HUD
         if (cameraHudBadge) {
             cameraHudBadge.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const textToCopy = `Zoom: ${Math.round(avatarScale * 100)}%, X: ${Math.round(avatarPanX)}, Y: ${Math.round(avatarPanY)}`;
-                if (navigator.clipboard) {
-                    navigator.clipboard.writeText(textToCopy);
-                }
-                const originalText = coordsText.innerText;
-                coordsText.innerText = "Copiado!";
-                setTimeout(() => {
-                    coordsText.innerText = originalText;
-                }, 1000);
+                copyCurrentPinPreset();
             });
         }
 
@@ -1623,11 +2048,8 @@
 
             sheetContent.innerHTML = data.sheetHTML;
 
-            // Anima a câmera para o preset correspondente da aba
-            if (cameraPresets[tabName]) {
-                const p = cameraPresets[tabName];
-                animateAvatarCamera(p.scale, p.x, p.y, 480);
-            }
+            // Anima a câmera para o preset responsivo correspondente da aba
+            applyResponsivePreset(tabName, 480);
 
             setTimeout(() => {
                 enableHorizontalDrag('stylesScroll');
@@ -1680,6 +2102,13 @@
             const tabName = el.getAttribute('data-tab');
             loadTabContent(tabName);
         }
+
+        // Recalcula o enquadramento responsivo em rotação ou redimensionamento de janela
+        window.addEventListener('resize', () => {
+            if (activeSessionName) {
+                applyResponsivePreset(activeSessionName, 0);
+            }
+        });
 
         // Inicia carregando a aba "Identidade" e com as configurações fechadas
         loadTabContent("Identidade");
