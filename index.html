@@ -983,8 +983,8 @@
                 <button class="pin-action-btn" id="btnFocusPin" onclick="focusCameraOnPin()" title="Centralizar Câmera no PIN">
                     🎯 Focar no PIN
                 </button>
-                <button class="pin-action-btn" id="btnCopyPreset" onclick="copyCurrentPinPreset()" title="Copiar Preset Responsivo do PIN">
-                    📋 Copiar Código
+                <button class="pin-action-btn btn-register-action" id="btnRegisterPreset" onclick="registerCurrentOptionPreset()" title="Registrar Zoom, Coordenadas e Posição do PIN para a sessão atual">
+                    💾 Registrar Opção
                 </button>
             </div>
 
@@ -1217,6 +1217,15 @@
             "Gravação":   { scale: 0.90, focusX: 0.50, focusY: 0.50, screenYRatio: 0.50 }
         };
 
+        // Carrega presets registrados previamente no navegador
+        try {
+            const savedPresets = localStorage.getItem('mytype_custom_presets');
+            if (savedPresets) {
+                const parsed = JSON.parse(savedPresets);
+                Object.assign(responsiveCameraPresets, parsed);
+            }
+        } catch(e) {}
+
         function updateAvatarTransform(smooth = false) {
             if (smooth) {
                 avatarContainer.style.transition = 'transform 0.35s cubic-bezier(0.25, 1, 0.5, 1)';
@@ -1255,6 +1264,10 @@
         function applyResponsivePreset(presetName, duration = 480) {
             activeSessionName = presetName;
             const p = responsiveCameraPresets[presetName] || responsiveCameraPresets["Identidade"];
+            pinNormX = p.focusX;
+            pinNormY = p.focusY;
+            updatePinPositionDOM();
+
             const target = calculatePanFromNormalizedPoint(p.scale, p.focusX, p.focusY, p.screenYRatio);
             animateAvatarCamera(p.scale, target.x, target.y, duration);
             updateDebugSessionTags(presetName);
@@ -1294,7 +1307,7 @@
             const xPercent = (pinNormX * 100).toFixed(1);
 
             if (pinLabelTag) pinLabelTag.innerText = `Y: ${yPercent}%`;
-            if (pinInfoText) pinInfoText.innerText = `📍 PIN Foco: Y: ${yPercent}% | X: ${xPercent}%`;
+            if (pinInfoText) pinInfoText.innerText = `📍 [${activeSessionName}] PIN: Y: ${yPercent}% | X: ${xPercent}%`;
         }
 
         function setPinFromCanvasCoords(clientX, clientY) {
@@ -1319,19 +1332,41 @@
             animateAvatarCamera(avatarScale, target.x, target.y, 420);
         }
 
-        function copyCurrentPinPreset() {
-            const yP = pinNormY.toFixed(3);
-            const xP = pinNormX.toFixed(3);
-            const sc = avatarScale.toFixed(2);
-            const codeSnippet = `"Sessao": { scale: ${sc}, focusX: ${xP}, focusY: ${yP}, screenYRatio: 0.45 }`;
+        /* --- REGISTRAR OPÇÃO DE CADA SESSÃO --- */
+        function registerCurrentOptionPreset() {
+            const yP = parseFloat(pinNormY.toFixed(3));
+            const xP = parseFloat(pinNormX.toFixed(3));
+            const sc = parseFloat(avatarScale.toFixed(2));
 
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(codeSnippet);
+            responsiveCameraPresets[activeSessionName] = {
+                scale: sc,
+                focusX: xP,
+                focusY: yP,
+                screenYRatio: activeSessionName === 'Identidade' || activeSessionName === 'Gravação' ? 0.50 : 0.44
+            };
+
+            try {
+                localStorage.setItem('mytype_custom_presets', JSON.stringify(responsiveCameraPresets));
+            } catch(e) {}
+
+            const btn = document.getElementById('btnRegisterPreset');
+            if (btn) {
+                const prev = btn.innerHTML;
+                btn.innerHTML = `✅ Registrado!`;
+                btn.style.backgroundColor = '#2ecc71';
+                btn.style.borderColor = '#ffffff';
+                setTimeout(() => {
+                    btn.innerHTML = prev;
+                    btn.style.backgroundColor = '';
+                    btn.style.borderColor = '';
+                }, 1800);
             }
+
             if (pinInfoText) {
-                const prev = pinInfoText.innerText;
-                pinInfoText.innerText = "Copiado com Sucesso! 📋";
-                setTimeout(() => { pinInfoText.innerText = prev; }, 1500);
+                pinInfoText.innerText = `✅ Posição de "${activeSessionName}" salva!`;
+                setTimeout(() => {
+                    updatePinPositionDOM();
+                }, 2000);
             }
         }
 
@@ -1355,11 +1390,11 @@
             });
         }
 
-        // Copiar coordenadas atuais ao clicar no HUD
+        // Registrar coordenadas atuais ao clicar no HUD
         if (cameraHudBadge) {
             cameraHudBadge.addEventListener('click', (e) => {
                 e.stopPropagation();
-                copyCurrentPinPreset();
+                registerCurrentOptionPreset();
             });
         }
 
