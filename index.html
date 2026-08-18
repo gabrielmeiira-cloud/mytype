@@ -707,15 +707,17 @@
         .debug-viewport-box {
             position: absolute;
             border: 2px dashed #38bdf8;
-            background: rgba(56, 189, 248, 0.04);
+            background: rgba(56, 189, 248, 0.05);
             box-shadow: 0 0 20px rgba(56, 189, 248, 0.35), inset 0 0 20px rgba(56, 189, 248, 0.06);
             border-radius: 4px;
-            pointer-events: none;
+            pointer-events: auto;
+            cursor: move;
             z-index: 10;
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.25s ease;
             box-sizing: border-box;
+            touch-action: none;
         }
 
         .debug-viewport-box.debug-visible {
@@ -739,6 +741,28 @@
             pointer-events: none;
             box-shadow: 0 2px 8px rgba(0,0,0,0.6);
         }
+
+        /* Alças de Redimensionamento do Colisor Azul */
+        .vp-handle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #ffffff;
+            border: 2px solid #38bdf8;
+            border-radius: 2px;
+            box-shadow: 0 0 6px rgba(0,0,0,0.8);
+            z-index: 20;
+            box-sizing: border-box;
+        }
+
+        .vp-handle.vp-handle-nw { top: -5px; left: -5px; cursor: nwse-resize; }
+        .vp-handle.vp-handle-ne { top: -5px; right: -5px; cursor: nesw-resize; }
+        .vp-handle.vp-handle-sw { bottom: -5px; left: -5px; cursor: nesw-resize; }
+        .vp-handle.vp-handle-se { bottom: -5px; right: -5px; cursor: nwse-resize; }
+        .vp-handle.vp-handle-n  { top: -5px; left: calc(50% - 5px); cursor: ns-resize; }
+        .vp-handle.vp-handle-s  { bottom: -5px; left: calc(50% - 5px); cursor: ns-resize; }
+        .vp-handle.vp-handle-w  { left: -5px; top: calc(50% - 5px); cursor: ew-resize; }
+        .vp-handle.vp-handle-e  { right: -5px; top: calc(50% - 5px); cursor: ew-resize; }
 
         .bg-mode-btn svg {
             width: 12px;
@@ -1093,9 +1117,17 @@
                 <!-- Viewport / Canvas Interativo da Modelo -->
                 <div class="viewport" id="viewportCanvas">
                     
-                    <!-- Caixa de Colisão da Área Útil do Canvas (Colisor Azul) -->
-                    <div class="debug-viewport-box" id="debugViewportBox">
-                        <div class="viewport-box-tag">Área Útil do Canvas (Colisor de Enquadramento)</div>
+                    <!-- Caixa de Colisão da Área Útil do Canvas (Colisor Azul Interativo) -->
+                    <div class="debug-viewport-box" id="debugViewportBox" title="Arraste ou use as alças azuis para redimensionar a Área Útil do Canvas">
+                        <div class="viewport-box-tag" id="viewportBoxTag">Área Útil do Canvas (Colisor Azul)</div>
+                        <div class="vp-handle vp-handle-nw" data-vp-handle="nw"></div>
+                        <div class="vp-handle vp-handle-ne" data-vp-handle="ne"></div>
+                        <div class="vp-handle vp-handle-sw" data-vp-handle="sw"></div>
+                        <div class="vp-handle vp-handle-se" data-vp-handle="se"></div>
+                        <div class="vp-handle vp-handle-n" data-vp-handle="n"></div>
+                        <div class="vp-handle vp-handle-s" data-vp-handle="s"></div>
+                        <div class="vp-handle vp-handle-w" data-vp-handle="w"></div>
+                        <div class="vp-handle vp-handle-e" data-vp-handle="e"></div>
                     </div>
 
                     <div class="avatar-container" id="avatarContainer">
@@ -1281,17 +1313,41 @@
             }
         } catch(e) {}
 
+        // Configuração de Margens do Colisor Azul da Área Útil (em proporção 0.0 a 0.5 da tela)
+        let customViewportCollider = {
+            marginLeft: 0.025,
+            marginRight: 0.025,
+            marginTop: 0.02,
+            marginBottom: 0.02
+        };
+
+        // Carrega colisor azul customizado salvo
+        try {
+            const savedVp = localStorage.getItem('mytype_viewport_collider');
+            if (savedVp) {
+                Object.assign(customViewportCollider, JSON.parse(savedVp));
+            }
+        } catch(e) {}
+
         // Sincronização em Nuvem Global: Busca as configurações do servidor ao carregar
         async function fetchGlobalCloudPresets() {
             try {
                 const res = await fetch('/api/presets');
                 if (res.ok) {
-                    const cloudBoxes = await res.json();
-                    if (cloudBoxes && typeof cloudBoxes === 'object') {
-                        Object.assign(sessionBoundingBoxes, cloudBoxes);
+                    const data = await res.json();
+                    if (data && typeof data === 'object') {
+                        if (data.collisionBoxes) {
+                            Object.assign(sessionBoundingBoxes, data.collisionBoxes);
+                        } else if (data.Identidade) {
+                            Object.assign(sessionBoundingBoxes, data);
+                        }
+                        if (data.viewportCollider) {
+                            Object.assign(customViewportCollider, data.viewportCollider);
+                        }
                         if (sessionBoundingBoxes[activeSessionName]) {
                             currentBox = { ...sessionBoundingBoxes[activeSessionName] };
                             renderCollisionBoxDOM();
+                            renderViewportBoxDOM();
                         }
                     }
                 }
@@ -1330,14 +1386,13 @@
             const rawSheetH = customSheetH !== null ? customSheetH : ((bottomSheet && bottomSheet.offsetHeight > 0) ? bottomSheet.offsetHeight : 40);
             const effectiveSheetH = Math.min(rawSheetH, standardMenuLimit);
             
-            const marginX = 8;
-            const topY = 12;
-            const bottomY = m.h - effectiveSheetH - 8;
+            const left = m.w * customViewportCollider.marginLeft;
+            const right = m.w * (1 - customViewportCollider.marginRight);
+            const top = m.h * customViewportCollider.marginTop;
+            const bottom = m.h - effectiveSheetH - (m.h * customViewportCollider.marginBottom);
             
-            const left = marginX;
-            const width = Math.max(80, m.w - (marginX * 2));
-            const top = topY;
-            const height = Math.max(100, bottomY - topY);
+            const width = Math.max(80, right - left);
+            const height = Math.max(100, bottom - top);
             const centerY = top + (height / 2);
             const centerX = left + (width / 2);
 
@@ -1351,6 +1406,13 @@
             debugViewportBox.style.top = `${vb.top}px`;
             debugViewportBox.style.width = `${vb.width}px`;
             debugViewportBox.style.height = `${vb.height}px`;
+
+            const vpTag = document.getElementById('viewportBoxTag');
+            if (vpTag) {
+                const wP = Math.round((vb.width / (viewportCanvas ? viewportCanvas.clientWidth : 350)) * 100);
+                const hP = Math.round((vb.height / (viewportCanvas ? viewportCanvas.clientHeight : 600)) * 100);
+                vpTag.innerText = `Área Útil do Canvas (${wP}% × ${hP}%)`;
+            }
         }
 
         function calculateFramingFromBoundingBox(box, customSheetH = null) {
@@ -1507,6 +1569,7 @@
             // Salva no armazenamento local do navegador
             try {
                 localStorage.setItem('mytype_collision_boxes', JSON.stringify(sessionBoundingBoxes));
+                localStorage.setItem('mytype_viewport_collider', JSON.stringify(customViewportCollider));
             } catch(e) {}
 
             // Envia para a Nuvem Global na Vercel (muda para todo mundo automaticamente)
@@ -1514,7 +1577,10 @@
                 fetch('/api/presets', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(sessionBoundingBoxes)
+                    body: JSON.stringify({
+                        collisionBoxes: sessionBoundingBoxes,
+                        viewportCollider: customViewportCollider
+                    })
                 }).catch(() => {});
             } catch(e) {}
 
@@ -1532,7 +1598,7 @@
             }
 
             if (boxInfoText) {
-                boxInfoText.innerText = `🌐 Colisor de "${activeSessionName}" salvo globalmente!`;
+                boxInfoText.innerText = `🌐 Colisores salvos globalmente!`;
                 setTimeout(() => {
                     renderCollisionBoxDOM();
                 }, 2200);
@@ -1540,7 +1606,11 @@
         }
 
         function exportFixedBoxesConfig() {
-            const jsonText = JSON.stringify(sessionBoundingBoxes, null, 4);
+            const exportData = {
+                collisionBoxes: sessionBoundingBoxes,
+                viewportCollider: customViewportCollider
+            };
+            const jsonText = JSON.stringify(exportData, null, 4);
             if (navigator.clipboard) {
                 navigator.clipboard.writeText(jsonText);
             }
@@ -1556,6 +1626,67 @@
                 btn.innerHTML = `✅ Copiado!`;
                 setTimeout(() => { btn.innerHTML = prev; }, 2000);
             }
+        }
+
+        /* --- INTERAÇÃO DIRETA: ARRASTAR E REDIMENSIONAR O COLISOR AZUL DA ÁREA ÚTIL --- */
+        let vpDragMode = null; // 'move' ou 'nw', 'ne', 'sw', 'se', 'n', 's', 'w', 'e'
+        let vpDragStartMouseX = 0;
+        let vpDragStartMouseY = 0;
+        let vpDragStartMargins = null;
+
+        if (debugViewportBox) {
+            debugViewportBox.addEventListener('pointerdown', (e) => {
+                e.stopPropagation();
+                const handle = e.target.getAttribute('data-vp-handle');
+                vpDragMode = handle ? handle : 'move';
+
+                vpDragStartMouseX = e.clientX;
+                vpDragStartMouseY = e.clientY;
+                vpDragStartMargins = { ...customViewportCollider };
+
+                try { debugViewportBox.setPointerCapture(e.pointerId); } catch(err){}
+            });
+
+            debugViewportBox.addEventListener('pointermove', (e) => {
+                if (!vpDragMode || !vpDragStartMargins) return;
+                const m = getAvatarLayoutMetrics();
+
+                const deltaRatioX = (e.clientX - vpDragStartMouseX) / m.w;
+                const deltaRatioY = (e.clientY - vpDragStartMouseY) / m.h;
+
+                if (vpDragMode === 'move') {
+                    customViewportCollider.marginLeft = Math.max(0, Math.min(0.40, vpDragStartMargins.marginLeft + deltaRatioX));
+                    customViewportCollider.marginRight = Math.max(0, Math.min(0.40, vpDragStartMargins.marginRight - deltaRatioX));
+                    customViewportCollider.marginTop = Math.max(0, Math.min(0.40, vpDragStartMargins.marginTop + deltaRatioY));
+                    customViewportCollider.marginBottom = Math.max(0, Math.min(0.40, vpDragStartMargins.marginBottom - deltaRatioY));
+                } else {
+                    if (vpDragMode.includes('w')) {
+                        customViewportCollider.marginLeft = Math.max(0, Math.min(0.45, vpDragStartMargins.marginLeft + deltaRatioX));
+                    }
+                    if (vpDragMode.includes('e')) {
+                        customViewportCollider.marginRight = Math.max(0, Math.min(0.45, vpDragStartMargins.marginRight - deltaRatioX));
+                    }
+                    if (vpDragMode.includes('n')) {
+                        customViewportCollider.marginTop = Math.max(0, Math.min(0.45, vpDragStartMargins.marginTop + deltaRatioY));
+                    }
+                    if (vpDragMode.includes('s')) {
+                        customViewportCollider.marginBottom = Math.max(0, Math.min(0.45, vpDragStartMargins.marginBottom - deltaRatioY));
+                    }
+                }
+
+                try {
+                    localStorage.setItem('mytype_viewport_collider', JSON.stringify(customViewportCollider));
+                } catch(err){}
+
+                renderViewportBoxDOM();
+                updateCameraFramingRealtime(0);
+            });
+
+            debugViewportBox.addEventListener('pointerup', (e) => {
+                vpDragMode = null;
+                vpDragStartMargins = null;
+                try { debugViewportBox.releasePointerCapture(e.pointerId); } catch(err){}
+            });
         }
 
         /* --- INTERAÇÃO DIRETA: ARRASTAR E REDIMENSIONAR A CAIXA DE COLISÃO --- */

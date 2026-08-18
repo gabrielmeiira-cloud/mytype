@@ -9,6 +9,13 @@ let globalCollisionBoxes = {
     "Gravação":   { x: 0.05, y: 0.00, w: 0.90, h: 1.00 }
 };
 
+let globalViewportCollider = {
+    marginLeft: 0.025,
+    marginRight: 0.025,
+    marginTop: 0.02,
+    marginBottom: 0.02
+};
+
 export default function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -22,13 +29,20 @@ export default function handler(req, res) {
         try {
             const data = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
             if (data && typeof data === 'object') {
-                globalCollisionBoxes = { ...globalCollisionBoxes, ...data };
-                return res.status(200).json({ success: true, collisionBoxes: globalCollisionBoxes });
+                if (data.collisionBoxes) {
+                    globalCollisionBoxes = { ...globalCollisionBoxes, ...data.collisionBoxes };
+                } else if (data.Identidade || data["Aparência"]) {
+                    globalCollisionBoxes = { ...globalCollisionBoxes, ...data };
+                }
+                if (data.viewportCollider) {
+                    globalViewportCollider = { ...globalViewportCollider, ...data.viewportCollider };
+                }
+                return res.status(200).json({ success: true, collisionBoxes: globalCollisionBoxes, viewportCollider: globalViewportCollider });
             }
         } catch(e) {
             return res.status(400).json({ error: e.message });
         }
     }
 
-    return res.status(200).json(globalCollisionBoxes);
+    return res.status(200).json({ collisionBoxes: globalCollisionBoxes, viewportCollider: globalViewportCollider });
 }
