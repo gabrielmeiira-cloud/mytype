@@ -47,6 +47,7 @@
             align-items: center;
             width: 100%;
             height: 100%;
+            pointer-events: none;
         }
 
         .app-container {
@@ -58,9 +59,11 @@
             flex-direction: column;
             position: relative;
             overflow: hidden;
+            pointer-events: auto;
+            transform-origin: center center;
         }
 
-        /* Desktop: Moldura Fina, Esguia e aproveitando toda a altura útil */
+        /* Desktop: Moldura Fina, Esguia, Móvel com Mouse e Flutuante */
         @media (min-width: 501px) {
             body {
                 background: radial-gradient(circle at center, #1b1922 0%, #0c0b0e 100%);
@@ -77,6 +80,70 @@
                 border-radius: 34px;
                 border: 2px solid var(--border-color);
                 box-shadow: 0 20px 48px rgba(0, 0, 0, 0.7);
+                position: relative;
+                will-change: transform;
+            }
+
+            /* Barra de arraste no topo da janela do celular */
+            .window-drag-bar {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 28px;
+                z-index: 60;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: grab;
+                touch-action: none;
+            }
+
+            .window-drag-bar:active {
+                cursor: grabbing;
+            }
+
+            .window-drag-indicator {
+                width: 36px;
+                height: 4px;
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 4px;
+                transition: background 0.2s, width 0.2s;
+            }
+
+            .window-drag-bar:hover .window-drag-indicator {
+                background: rgba(255, 255, 255, 0.45);
+                width: 44px;
+            }
+
+            .window-btn-minimize {
+                position: absolute;
+                right: 12px;
+                top: 6px;
+                width: 22px;
+                height: 22px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                color: var(--text-secondary);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .window-btn-minimize:hover {
+                background: rgba(201, 107, 124, 0.25);
+                border-color: var(--primary);
+                color: var(--primary);
+                transform: scale(1.1);
+            }
+
+            .window-btn-minimize svg {
+                width: 14px;
+                height: 14px;
+                fill: currentColor;
             }
         }
 
@@ -94,7 +161,74 @@
                 border-radius: 0;
                 border: none;
                 box-shadow: none;
+                transform: none !important;
             }
+
+            .window-drag-bar,
+            .floating-bubble {
+                display: none !important;
+            }
+        }
+
+        /* Bolinha Flutuante (estilo WhatsApp) quando minimizado */
+        .floating-bubble {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            background-color: var(--bg-card);
+            border: 2px solid var(--primary);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(201, 107, 124, 0.35);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.3) rotate(-20deg);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease, box-shadow 0.2s;
+            overflow: hidden;
+        }
+
+        .floating-bubble.visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: scale(1) rotate(0deg);
+            animation: bubbleFloat 3s ease-in-out infinite alternate;
+        }
+
+        .floating-bubble:hover {
+            transform: scale(1.12) !important;
+            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.85), 0 0 26px rgba(201, 107, 124, 0.6);
+        }
+
+        .bubble-avatar {
+            width: 86%;
+            height: 86%;
+            object-fit: cover;
+            object-position: center 15%;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .bubble-badge {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #25d366;
+            border: 2px solid var(--bg-container);
+            box-shadow: 0 0 8px rgba(37, 211, 102, 0.8);
+        }
+
+        @keyframes bubbleFloat {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-6px); }
         }
 
         .viewport {
@@ -132,7 +266,7 @@
         .side-menu {
             position: absolute;
             right: 10px;
-            top: 16px;
+            top: 24px;
             display: flex;
             flex-direction: column;
             gap: 8px;
@@ -412,6 +546,13 @@
     <div class="phone-wrapper">
         <div class="app-container" id="appContainer">
             
+            <div class="window-drag-bar" id="windowDragBar" title="Clique e arraste para mover a janela">
+                <div class="window-drag-indicator"></div>
+                <button class="window-btn-minimize" id="btnMinimize" title="Minimizar (vira bolinha no canto)" aria-label="Minimizar">
+                    <svg viewBox="0 0 24 24"><path d="M19,13H5V11H19V13Z"/></svg>
+                </button>
+            </div>
+
             <div class="viewport">
                 <div class="avatar-container">
                     <img src="avatar.png" alt="Avatar Model" class="avatar-img" id="avatarImg">
@@ -462,6 +603,12 @@
         </div>
     </div>
 
+    <!-- Bolinha Flutuante (WhatsApp style) quando minimizado -->
+    <div class="floating-bubble" id="floatingBubble" title="Clique para abrir o My Type" onclick="restorePhoneWindow()">
+        <img src="avatar.png" alt="My Type" class="bubble-avatar">
+        <div class="bubble-badge"></div>
+    </div>
+
     <script>
         const bottomSheet = document.getElementById('bottomSheet');
         const sheetHeader = document.getElementById('sheetHeader');
@@ -470,7 +617,103 @@
         const sheetHandle = document.getElementById('sheetHandle');
         const appContainer = document.getElementById('appContainer');
         const sideMenu = document.getElementById('sideMenu');
+        const windowDragBar = document.getElementById('windowDragBar');
+        const btnMinimize = document.getElementById('btnMinimize');
+        const floatingBubble = document.getElementById('floatingBubble');
 
+        /* --- CONTROLE DE JANELA MÓVEL (DESKTOP) --- */
+        let isPhoneDragging = false;
+        let phonePosX = 0;
+        let phonePosY = 0;
+        let phoneDragStartX = 0;
+        let phoneDragStartY = 0;
+
+        if (windowDragBar) {
+            windowDragBar.addEventListener('mousedown', (e) => {
+                if (window.innerWidth <= 500) return;
+                if (e.target.closest('#btnMinimize')) return;
+
+                isPhoneDragging = true;
+                phoneDragStartX = e.clientX - phonePosX;
+                phoneDragStartY = e.clientY - phonePosY;
+                appContainer.style.transition = 'none';
+            });
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isPhoneDragging) return;
+            phonePosX = e.clientX - phoneDragStartX;
+            phonePosY = e.clientY - phoneDragStartY;
+            appContainer.style.transform = `translate(${phonePosX}px, ${phonePosY}px)`;
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (!isPhoneDragging) return;
+            isPhoneDragging = false;
+            snapPhoneToBoundaries();
+        });
+
+        function snapPhoneToBoundaries() {
+            if (window.innerWidth <= 500) return;
+
+            const rect = appContainer.getBoundingClientRect();
+            const pad = 16;
+            let deltaX = 0;
+            let deltaY = 0;
+
+            if (rect.left < pad) {
+                deltaX = pad - rect.left;
+            } else if (rect.right > window.innerWidth - pad) {
+                deltaX = (window.innerWidth - pad) - rect.right;
+            }
+
+            if (rect.top < pad) {
+                deltaY = pad - rect.top;
+            } else if (rect.bottom > window.innerHeight - pad) {
+                deltaY = (window.innerHeight - pad) - rect.bottom;
+            }
+
+            if (deltaX !== 0 || deltaY !== 0) {
+                phonePosX += deltaX;
+                phonePosY += deltaY;
+                appContainer.style.transition = 'transform 0.45s cubic-bezier(0.25, 1, 0.5, 1)';
+                appContainer.style.transform = `translate(${phonePosX}px, ${phonePosY}px)`;
+            }
+        }
+
+        /* --- MINIMIZAR / RESTAURAR BOLINHA (WHATSAPP STYLE) --- */
+        if (btnMinimize) {
+            btnMinimize.addEventListener('click', (e) => {
+                e.stopPropagation();
+                minimizePhoneWindow();
+            });
+        }
+
+        function minimizePhoneWindow() {
+            appContainer.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease';
+            appContainer.style.transform = `translate(${phonePosX}px, ${phonePosY + 50}px) scale(0.4)`;
+            appContainer.style.opacity = '0';
+            appContainer.style.pointerEvents = 'none';
+
+            setTimeout(() => {
+                floatingBubble.classList.add('visible');
+            }, 180);
+        }
+
+        function restorePhoneWindow() {
+            floatingBubble.classList.remove('visible');
+
+            appContainer.style.transition = 'transform 0.4s cubic-bezier(0.34, 1.4, 0.64, 1), opacity 0.3s ease';
+            appContainer.style.transform = `translate(${phonePosX}px, ${phonePosY}px) scale(1)`;
+            appContainer.style.opacity = '1';
+            appContainer.style.pointerEvents = 'auto';
+
+            setTimeout(() => {
+                snapPhoneToBoundaries();
+            }, 420);
+        }
+
+        /* --- BOTTOM SHEET DRAG & STATE --- */
         let isDragging = false;
         let startY = 0;
         let startHeight = 0;
@@ -564,7 +807,7 @@
         function checkAndResetSheet() {
             const currentH = bottomSheet.clientHeight;
             const initialH = getInitialHeight();
-            const threshold = initialH * 0.3; // 30% da altura inicial
+            const threshold = initialH * 0.3;
 
             if (currentH < threshold) {
                 bottomSheet.style.transition = 'height 0.25s ease-out';
@@ -603,6 +846,9 @@
                 if (bottomSheet.clientHeight > max) {
                     bottomSheet.style.height = max + 'px';
                 }
+            }
+            if (window.innerWidth > 500) {
+                snapPhoneToBoundaries();
             }
         });
 
