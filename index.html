@@ -604,76 +604,102 @@
             transform: scale(1.04);
         }
 
-        /* PIN de Calibração Interativo no Corpo da Modelo */
-        .debug-pin-marker {
+        /* Caixa de Colisão / Bounding Box de Enquadramento */
+        .debug-collision-box {
             position: absolute;
-            width: 34px;
-            height: 34px;
-            transform: translate(-50%, -50%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            border: 2px solid var(--primary);
+            background: rgba(201, 107, 124, 0.18);
+            box-shadow: 0 0 18px rgba(201, 107, 124, 0.45), inset 0 0 16px rgba(201, 107, 124, 0.2);
             z-index: 50;
-            cursor: grab;
+            cursor: move;
             pointer-events: auto;
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.25s ease;
+            transition: opacity 0.2s ease;
             touch-action: none;
+            box-sizing: border-box;
         }
 
-        .debug-pin-marker.debug-visible {
+        .debug-collision-box.debug-visible {
             opacity: 1;
             visibility: visible;
         }
 
-        .debug-pin-marker:active {
-            cursor: grabbing;
-        }
-
-        .pin-crosshair {
+        .box-badge-tag {
             position: absolute;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            border: 2px dashed rgba(201, 107, 124, 0.95);
-            box-shadow: 0 0 12px rgba(201, 107, 124, 0.6);
-            animation: pinPulse 3s infinite linear;
-        }
-
-        .pin-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background-color: var(--primary);
-            border: 2px solid #ffffff;
-            box-shadow: 0 0 10px rgba(201, 107, 124, 0.9), 0 2px 6px rgba(0,0,0,0.8);
-            z-index: 2;
-        }
-
-        .pin-label-tag {
-            position: absolute;
-            top: -22px;
+            top: -24px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(12, 11, 14, 0.92);
+            background: rgba(12, 11, 14, 0.94);
             color: #ffffff;
             font-size: 8.5px;
             font-weight: 700;
             font-family: monospace;
-            padding: 1px 6px;
-            border-radius: 4px;
+            padding: 2px 7px;
+            border-radius: 5px;
             border: 1px solid var(--primary);
             white-space: nowrap;
             pointer-events: none;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.6);
         }
 
-        @keyframes pinPulse {
-            0% { transform: rotate(0deg) scale(1); }
-            50% { transform: rotate(180deg) scale(1.15); }
-            100% { transform: rotate(360deg) scale(1); }
+        .box-crosshair-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 10px;
+            height: 10px;
+            transform: translate(-50%, -50%);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            pointer-events: none;
         }
+
+        .box-crosshair-center::before,
+        .box-crosshair-center::after {
+            content: '';
+            position: absolute;
+            background: var(--primary);
+        }
+
+        .box-crosshair-center::before {
+            top: 50%;
+            left: -4px;
+            right: -4px;
+            height: 1px;
+            transform: translateY(-50%);
+        }
+
+        .box-crosshair-center::after {
+            left: 50%;
+            top: -4px;
+            bottom: -4px;
+            width: 1px;
+            transform: translateX(-50%);
+        }
+
+        /* Alças de Redimensionamento dos Cantos e Bordas */
+        .box-handle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #ffffff;
+            border: 2px solid var(--primary);
+            border-radius: 2px;
+            box-shadow: 0 0 6px rgba(0,0,0,0.8);
+            z-index: 60;
+            box-sizing: border-box;
+        }
+
+        .box-handle.handle-nw { top: -5px; left: -5px; cursor: nwse-resize; }
+        .box-handle.handle-ne { top: -5px; right: -5px; cursor: nesw-resize; }
+        .box-handle.handle-sw { bottom: -5px; left: -5px; cursor: nesw-resize; }
+        .box-handle.handle-se { bottom: -5px; right: -5px; cursor: nwse-resize; }
+
+        .box-handle.handle-n  { top: -5px; left: calc(50% - 5px); cursor: ns-resize; }
+        .box-handle.handle-s  { bottom: -5px; left: calc(50% - 5px); cursor: ns-resize; }
+        .box-handle.handle-w  { left: -5px; top: calc(50% - 5px); cursor: ew-resize; }
+        .box-handle.handle-e  { right: -5px; top: calc(50% - 5px); cursor: ew-resize; }
 
         .bg-mode-btn svg {
             width: 12px;
@@ -971,22 +997,22 @@
         <div class="camera-hud-group" id="cameraHudGroup">
             <div class="camera-hud-badge" id="cameraHudBadge" title="Clique para copiar os valores de Zoom e Coordenadas">
                 <div class="hud-row">
-                    <svg viewBox="0 0 24 24"><path d="M15.5,14L20.5,19L19,20.5L14,15.5V14.71L13.73,14.43C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.43,13.73L14.71,14H15.5M9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14M12,10H10V12H9V10H7V9H9V7H10V9H12V10Z"/></svg>
+                    <svg viewBox="0 0 24 24"><path d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M19,5V19H5V5H19Z"/></svg>
                     <span id="zoomLevelText">Zoom: 90%</span>
                 </div>
                 <div class="hud-sub" id="coordsText">X: 0 | Y: 0</div>
-                <div class="hud-sub" id="pinInfoText" style="color: var(--primary); font-weight: 600;">📍 PIN Foco: Y: 50.0% | X: 50.0%</div>
+                <div class="hud-sub" id="boxInfoText" style="color: var(--primary); font-weight: 600;">📐 Caixa: L: 30% | A: 20%</div>
             </div>
 
-            <!-- Ações Rápidas do PIN -->
+            <!-- Ações Rápidas da Caixa de Colisão -->
             <div class="pin-actions-row">
-                <button class="pin-action-btn" id="btnFocusPin" onclick="focusCameraOnPin()" title="Centralizar Câmera no PIN">
-                    🎯 Focar no PIN
+                <button class="pin-action-btn" id="btnFocusBox" onclick="focusCameraOnCurrentBox()" title="Enquadrar e dar Zoom baseado na Caixa de Colisão">
+                    🎯 Enquadrar Caixa
                 </button>
-                <button class="pin-action-btn btn-register-action" id="btnRegisterPreset" onclick="registerCurrentOptionPreset()" title="Registrar Zoom, Coordenadas e Posição do PIN para a sessão atual">
-                    💾 Registrar Opção
+                <button class="pin-action-btn btn-register-action" id="btnRegisterBox" onclick="registerCurrentBoxPreset()" title="Registrar a Caixa de Colisão para a sessão atual">
+                    💾 Registrar Colisor
                 </button>
-                <button class="pin-action-btn" id="btnExportFixed" onclick="exportFixedPresetsConfig()" title="Copiar todas as posições salvas para fixar no código">
+                <button class="pin-action-btn" id="btnExportFixed" onclick="exportFixedBoxesConfig()" title="Copiar todas as caixas de colisão salvas">
                     📋 Exportar
                 </button>
             </div>
@@ -1033,11 +1059,18 @@
                         <img src="assets/outfit_casual.png" alt="Outfit Layer" class="avatar-layer hidden" id="layerOutfit">
                         <img src="assets/hair_curly_dark.png" alt="Hair Layer" class="avatar-layer hidden" id="layerHair">
                         
-                        <!-- PIN de Calibração Interativo no Avatar -->
-                        <div class="debug-pin-marker" id="debugPinMarker" title="Arraste o PIN para marcar a posição exata de foco">
-                            <div class="pin-label-tag" id="pinLabelTag">Y: 50%</div>
-                            <div class="pin-crosshair"></div>
-                            <div class="pin-dot"></div>
+                        <!-- Caixa de Colisão / Enquadramento Interativo no Avatar -->
+                        <div class="debug-collision-box" id="debugCollisionBox" title="Arraste para mover ou use as alças nos cantos para redimensionar a caixa de colisão">
+                            <div class="box-badge-tag" id="boxBadgeTag">Sessão: Aparência</div>
+                            <div class="box-crosshair-center"></div>
+                            <div class="box-handle handle-nw" data-handle="nw"></div>
+                            <div class="box-handle handle-ne" data-handle="ne"></div>
+                            <div class="box-handle handle-sw" data-handle="sw"></div>
+                            <div class="box-handle handle-se" data-handle="se"></div>
+                            <div class="box-handle handle-n" data-handle="n"></div>
+                            <div class="box-handle handle-s" data-handle="s"></div>
+                            <div class="box-handle handle-w" data-handle="w"></div>
+                            <div class="box-handle handle-e" data-handle="e"></div>
                         </div>
                     </div>
                 </div>
@@ -1195,39 +1228,112 @@
             return { w, h, renderedW, renderedH, offsetX, offsetY };
         }
 
-        function calculatePanFromNormalizedPoint(scale, normX, normY, targetScreenYRatio = 0.45) {
+        const btnDebugMode = document.getElementById('btnDebugMode');
+        const cameraHudGroup = document.getElementById('cameraHudGroup');
+        const debugCollisionBox = document.getElementById('debugCollisionBox');
+        const boxBadgeTag = document.getElementById('boxBadgeTag');
+        const boxInfoText = document.getElementById('boxInfoText');
+        const debugSessionsBar = document.getElementById('debugSessionsBar');
+
+        /* --- MODO DE DEPURAÇÃO E CAIXA DE COLISÃO INTERATIVA --- */
+        let isDebugMode = false;
+
+        // Caixas de Colisão Normalizadas (0.0 a 1.0) para cada Sessão
+        const sessionBoundingBoxes = {
+            "Identidade": { x: 0.15, y: 0.02, w: 0.70, h: 0.96 }, // Corpo Inteiro
+            "Aparência":  { x: 0.32, y: 0.02, w: 0.36, h: 0.22 }, // Cabeça e Rosto
+            "Busto":      { x: 0.22, y: 0.17, w: 0.56, h: 0.28 }, // Busto e Cintura
+            "Pernas":     { x: 0.24, y: 0.44, w: 0.52, h: 0.46 }, // Pernas e Joelhos
+            "Pés":        { x: 0.28, y: 0.80, w: 0.44, h: 0.19 }, // Tornozelos e Pés
+            "Estilo":     { x: 0.18, y: 0.10, w: 0.64, h: 0.80 }, // Moda Geral
+            "Gravação":   { x: 0.15, y: 0.02, w: 0.70, h: 0.96 }  // Estúdio
+        };
+
+        // Carrega caixas de colisão registradas previamente no navegador
+        try {
+            const savedBoxes = localStorage.getItem('mytype_collision_boxes');
+            if (savedBoxes) {
+                const parsed = JSON.parse(savedBoxes);
+                Object.assign(sessionBoundingBoxes, parsed);
+            }
+        } catch(e) {}
+
+        // Caixa de Colisão Atualmente Editada
+        let currentBox = { ...sessionBoundingBoxes["Identidade"] };
+
+        function toggleDebugMode() {
+            isDebugMode = !isDebugMode;
+            if (isDebugMode) {
+                if (btnDebugMode) btnDebugMode.classList.add('active');
+                if (cameraHudGroup) cameraHudGroup.classList.add('debug-visible');
+                if (debugCollisionBox) debugCollisionBox.classList.add('debug-visible');
+                renderCollisionBoxDOM();
+            } else {
+                if (btnDebugMode) btnDebugMode.classList.remove('active');
+                if (cameraHudGroup) cameraHudGroup.classList.remove('debug-visible');
+                if (debugCollisionBox) debugCollisionBox.classList.remove('debug-visible');
+            }
+        }
+
+        /* --- MOTOR DE ENQUADRAMENTO DA CÂMERA BASEADO NA CAIXA DE COLISÃO --- */
+        function calculateFramingFromBoundingBox(box) {
             const m = getAvatarLayoutMetrics();
-            const ptX = m.offsetX + (m.renderedW * normX);
-            const ptY = m.offsetY + (m.renderedH * normY);
+            
+            // Largura e altura da caixa em pixels reais da modelo quando scale = 1.0
+            const boxPixelW = Math.max(20, m.renderedW * box.w);
+            const boxPixelH = Math.max(20, m.renderedH * box.h);
+
+            // Espaço visível disponível no viewport com margem de respiro
+            const availW = m.w * 0.82;
+            const availH = m.h * 0.70; // deixa respiro pro bottom-sheet
+
+            // Escala ideal para preencher confortavelmente a tela
+            const scaleX = availW / boxPixelW;
+            const scaleY = availH / boxPixelH;
+            const targetScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, Math.min(scaleX, scaleY)));
+
+            // Ponto central da caixa no espaço do avatar
+            const centerNormX = box.x + (box.w / 2);
+            const centerNormY = box.y + (box.h / 2);
+
+            const ptX = m.offsetX + (m.renderedW * centerNormX);
+            const ptY = m.offsetY + (m.renderedH * centerNormY);
 
             const relX = ptX - (m.w / 2);
             const relY = ptY - (m.h / 2);
 
-            const panX = -relX * scale;
-            const panY = -relY * scale + (m.h * (targetScreenYRatio - 0.5));
+            // Centraliza o ponto na tela (com leve ajuste vertical acima do rodapé)
+            const targetPanX = -relX * targetScale;
+            const targetPanY = -relY * targetScale - (m.h * 0.04);
 
-            return clampPan(panX, panY, scale);
+            return {
+                scale: targetScale,
+                ...clampPan(targetPanX, targetPanY, targetScale)
+            };
         }
 
-        // Presets Responsivos Calibrados para funcionar idênticos em qualquer tela (PC e Mobile)
-        const responsiveCameraPresets = {
-            "Identidade": { scale: 0.90, focusX: 0.50, focusY: 0.50, screenYRatio: 0.50 },
-            "Aparência":  { scale: 2.45, focusX: 0.50, focusY: 0.115, screenYRatio: 0.44 },
-            "Busto":      { scale: 2.39, focusX: 0.50, focusY: 0.280, screenYRatio: 0.44 },
-            "Pernas":     { scale: 1.80, focusX: 0.50, focusY: 0.650, screenYRatio: 0.46 },
-            "Pés":        { scale: 2.10, focusX: 0.50, focusY: 0.940, screenYRatio: 0.48 },
-            "Estilo":     { scale: 1.15, focusX: 0.50, focusY: 0.450, screenYRatio: 0.50 },
-            "Gravação":   { scale: 0.90, focusX: 0.50, focusY: 0.50, screenYRatio: 0.50 }
-        };
+        function renderCollisionBoxDOM() {
+            if (!debugCollisionBox) return;
+            const m = getAvatarLayoutMetrics();
 
-        // Carrega presets registrados previamente no navegador
-        try {
-            const savedPresets = localStorage.getItem('mytype_custom_presets');
-            if (savedPresets) {
-                const parsed = JSON.parse(savedPresets);
-                Object.assign(responsiveCameraPresets, parsed);
-            }
-        } catch(e) {}
+            const leftPx = m.offsetX + (m.renderedW * currentBox.x);
+            const topPx = m.offsetY + (m.renderedH * currentBox.y);
+            const widthPx = m.renderedW * currentBox.w;
+            const heightPx = m.renderedH * currentBox.h;
+
+            debugCollisionBox.style.left = `${leftPx}px`;
+            debugCollisionBox.style.top = `${topPx}px`;
+            debugCollisionBox.style.width = `${widthPx}px`;
+            debugCollisionBox.style.height = `${heightPx}px`;
+
+            const wPercent = (currentBox.w * 100).toFixed(0);
+            const hPercent = (currentBox.h * 100).toFixed(0);
+            const xPercent = (currentBox.x * 100).toFixed(0);
+            const yPercent = (currentBox.y * 100).toFixed(0);
+
+            if (boxBadgeTag) boxBadgeTag.innerText = `Sessão: ${activeSessionName} (${wPercent}% × ${hPercent}%)`;
+            if (boxInfoText) boxInfoText.innerText = `📐 [${activeSessionName}] X:${xPercent}% Y:${yPercent}% | L:${wPercent}% A:${hPercent}%`;
+        }
 
         function updateAvatarTransform(smooth = false) {
             if (smooth) {
@@ -1246,7 +1352,7 @@
             if (coordsText) {
                 coordsText.innerText = `X: ${Math.round(avatarPanX)} | Y: ${Math.round(avatarPanY)}`;
             }
-            updatePinPositionDOM();
+            renderCollisionBoxDOM();
         }
 
         function animateAvatarCamera(targetScale, targetX, targetY, duration = 480) {
@@ -1264,16 +1370,15 @@
             }, duration);
         }
 
-        function applyResponsivePreset(presetName, duration = 480) {
-            activeSessionName = presetName;
-            const p = responsiveCameraPresets[presetName] || responsiveCameraPresets["Identidade"];
-            pinNormX = p.focusX;
-            pinNormY = p.focusY;
-            updatePinPositionDOM();
+        function applyResponsivePreset(sessionName, duration = 480) {
+            activeSessionName = sessionName;
+            const box = sessionBoundingBoxes[sessionName] || sessionBoundingBoxes["Identidade"];
+            currentBox = { ...box };
+            renderCollisionBoxDOM();
 
-            const target = calculatePanFromNormalizedPoint(p.scale, p.focusX, p.focusY, p.screenYRatio);
-            animateAvatarCamera(p.scale, target.x, target.y, duration);
-            updateDebugSessionTags(presetName);
+            const framing = calculateFramingFromBoundingBox(currentBox);
+            animateAvatarCamera(framing.scale, framing.x, framing.y, duration);
+            updateDebugSessionTags(sessionName);
         }
 
         function updateDebugSessionTags(activeName) {
@@ -1296,66 +1401,28 @@
             }
         }
 
-        /* --- PIN DE CALIBRAÇÃO INTERATIVO --- */
-        function updatePinPositionDOM() {
-            if (!debugPinMarker) return;
-            const m = getAvatarLayoutMetrics();
-            const pinPxX = m.offsetX + (m.renderedW * pinNormX);
-            const pinPxY = m.offsetY + (m.renderedH * pinNormY);
-
-            debugPinMarker.style.left = pinPxX + 'px';
-            debugPinMarker.style.top = pinPxY + 'px';
-
-            const yPercent = (pinNormY * 100).toFixed(1);
-            const xPercent = (pinNormX * 100).toFixed(1);
-
-            if (pinLabelTag) pinLabelTag.innerText = `Y: ${yPercent}%`;
-            if (pinInfoText) pinInfoText.innerText = `📍 [${activeSessionName}] PIN: Y: ${yPercent}% | X: ${xPercent}%`;
+        function focusCameraOnCurrentBox() {
+            const framing = calculateFramingFromBoundingBox(currentBox);
+            animateAvatarCamera(framing.scale, framing.x, framing.y, 450);
         }
 
-        function setPinFromCanvasCoords(clientX, clientY) {
-            const rect = viewportCanvas.getBoundingClientRect();
-            const clickCanvasX = clientX - rect.left;
-            const clickCanvasY = clientY - rect.top;
-
-            const containerX = (clickCanvasX - (rect.width / 2) - avatarPanX) / avatarScale + (rect.width / 2);
-            const containerY = (clickCanvasY - (rect.height / 2) - avatarPanY) / avatarScale + (rect.height / 2);
-
-            const m = getAvatarLayoutMetrics();
-            let nX = (containerX - m.offsetX) / m.renderedW;
-            let nY = (containerY - m.offsetY) / m.renderedH;
-
-            pinNormX = Math.max(0.0, Math.min(1.0, nX));
-            pinNormY = Math.max(0.0, Math.min(1.0, nY));
-            updatePinPositionDOM();
-        }
-
-        function focusCameraOnPin() {
-            const target = calculatePanFromNormalizedPoint(avatarScale, pinNormX, pinNormY, 0.45);
-            animateAvatarCamera(avatarScale, target.x, target.y, 420);
-        }
-
-        /* --- REGISTRAR OPÇÃO DE CADA SESSÃO --- */
-        function registerCurrentOptionPreset() {
-            const yP = parseFloat(pinNormY.toFixed(3));
-            const xP = parseFloat(pinNormX.toFixed(3));
-            const sc = parseFloat(avatarScale.toFixed(2));
-
-            responsiveCameraPresets[activeSessionName] = {
-                scale: sc,
-                focusX: xP,
-                focusY: yP,
-                screenYRatio: activeSessionName === 'Identidade' || activeSessionName === 'Gravação' ? 0.50 : 0.44
+        /* --- REGISTRAR CAIXA DE COLISÃO DA SESSÃO --- */
+        function registerCurrentBoxPreset() {
+            sessionBoundingBoxes[activeSessionName] = {
+                x: parseFloat(currentBox.x.toFixed(3)),
+                y: parseFloat(currentBox.y.toFixed(3)),
+                w: parseFloat(currentBox.w.toFixed(3)),
+                h: parseFloat(currentBox.h.toFixed(3))
             };
 
             try {
-                localStorage.setItem('mytype_custom_presets', JSON.stringify(responsiveCameraPresets));
+                localStorage.setItem('mytype_collision_boxes', JSON.stringify(sessionBoundingBoxes));
             } catch(e) {}
 
-            const btn = document.getElementById('btnRegisterPreset');
+            const btn = document.getElementById('btnRegisterBox');
             if (btn) {
                 const prev = btn.innerHTML;
-                btn.innerHTML = `✅ Registrado!`;
+                btn.innerHTML = `✅ Colisor Salvo!`;
                 btn.style.backgroundColor = '#2ecc71';
                 btn.style.borderColor = '#ffffff';
                 setTimeout(() => {
@@ -1365,23 +1432,23 @@
                 }, 1800);
             }
 
-            if (pinInfoText) {
-                pinInfoText.innerText = `✅ Posição de "${activeSessionName}" salva!`;
+            if (boxInfoText) {
+                boxInfoText.innerText = `✅ Colisor de "${activeSessionName}" registrado!`;
                 setTimeout(() => {
-                    updatePinPositionDOM();
+                    renderCollisionBoxDOM();
                 }, 2000);
             }
         }
 
-        function exportFixedPresetsConfig() {
-            const jsonText = JSON.stringify(responsiveCameraPresets, null, 4);
+        function exportFixedBoxesConfig() {
+            const jsonText = JSON.stringify(sessionBoundingBoxes, null, 4);
             if (navigator.clipboard) {
                 navigator.clipboard.writeText(jsonText);
             }
-            if (pinInfoText) {
-                pinInfoText.innerText = "📋 Código copiado! Só colar aqui no chat!";
+            if (boxInfoText) {
+                boxInfoText.innerText = "📋 Colisores copiados! Cole aqui no chat!";
                 setTimeout(() => {
-                    updatePinPositionDOM();
+                    renderCollisionBoxDOM();
                 }, 3000);
             }
             const btn = document.getElementById('btnExportFixed');
@@ -1392,31 +1459,76 @@
             }
         }
 
-        // Arraste direto do PIN
-        let isDraggingPin = false;
-        if (debugPinMarker) {
-            debugPinMarker.addEventListener('pointerdown', (e) => {
+        /* --- INTERAÇÃO DIRETA: ARRASTAR E REDIMENSIONAR A CAIXA DE COLISÃO --- */
+        let boxDragMode = null; // 'move' ou 'nw', 'ne', 'sw', 'se', 'n', 's', 'w', 'e'
+        let dragStartMouseX = 0;
+        let dragStartMouseY = 0;
+        let dragStartBox = null;
+
+        if (debugCollisionBox) {
+            debugCollisionBox.addEventListener('pointerdown', (e) => {
                 e.stopPropagation();
-                isDraggingPin = true;
-                try { debugPinMarker.setPointerCapture(e.pointerId); } catch(err){}
+                const handle = e.target.getAttribute('data-handle');
+                boxDragMode = handle ? handle : 'move';
+
+                dragStartMouseX = e.clientX;
+                dragStartMouseY = e.clientY;
+                dragStartBox = { ...currentBox };
+
+                try { debugCollisionBox.setPointerCapture(e.pointerId); } catch(err){}
             });
 
-            debugPinMarker.addEventListener('pointermove', (e) => {
-                if (!isDraggingPin) return;
-                setPinFromCanvasCoords(e.clientX, e.clientY);
+            debugCollisionBox.addEventListener('pointermove', (e) => {
+                if (!boxDragMode || !dragStartBox) return;
+                const m = getAvatarLayoutMetrics();
+
+                const deltaNormX = (e.clientX - dragStartMouseX) / (m.renderedW * avatarScale);
+                const deltaNormY = (e.clientY - dragStartMouseY) / (m.renderedH * avatarScale);
+
+                if (boxDragMode === 'move') {
+                    currentBox.x = Math.max(0, Math.min(1 - dragStartBox.w, dragStartBox.x + deltaNormX));
+                    currentBox.y = Math.max(0, Math.min(1 - dragStartBox.h, dragStartBox.y + deltaNormY));
+                } else {
+                    let newX = dragStartBox.x;
+                    let newY = dragStartBox.y;
+                    let newW = dragStartBox.w;
+                    let newH = dragStartBox.h;
+
+                    if (boxDragMode.includes('e')) {
+                        newW = Math.max(0.06, Math.min(1 - dragStartBox.x, dragStartBox.w + deltaNormX));
+                    }
+                    if (boxDragMode.includes('s')) {
+                        newH = Math.max(0.06, Math.min(1 - dragStartBox.y, dragStartBox.h + deltaNormY));
+                    }
+                    if (boxDragMode.includes('w')) {
+                        const right = dragStartBox.x + dragStartBox.w;
+                        newX = Math.max(0, Math.min(right - 0.06, dragStartBox.x + deltaNormX));
+                        newW = right - newX;
+                    }
+                    if (boxDragMode.includes('n')) {
+                        const bottom = dragStartBox.y + dragStartBox.h;
+                        newY = Math.max(0, Math.min(bottom - 0.06, dragStartBox.y + deltaNormY));
+                        newH = bottom - newY;
+                    }
+
+                    currentBox = { x: newX, y: newY, w: newW, h: newH };
+                }
+
+                renderCollisionBoxDOM();
             });
 
-            debugPinMarker.addEventListener('pointerup', (e) => {
-                isDraggingPin = false;
-                try { debugPinMarker.releasePointerCapture(e.pointerId); } catch(err){}
+            debugCollisionBox.addEventListener('pointerup', (e) => {
+                boxDragMode = null;
+                dragStartBox = null;
+                try { debugCollisionBox.releasePointerCapture(e.pointerId); } catch(err){}
             });
         }
 
-        // Registrar coordenadas atuais ao clicar no HUD
+        // Registrar ao clicar no badge HUD
         if (cameraHudBadge) {
             cameraHudBadge.addEventListener('click', (e) => {
                 e.stopPropagation();
-                registerCurrentOptionPreset();
+                registerCurrentBoxPreset();
             });
         }
 
