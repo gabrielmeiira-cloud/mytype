@@ -39,7 +39,6 @@
             overflow: hidden;
         }
 
-        /* Moldura de Smartphone para visualização no Navegador Desktop */
         .phone-wrapper {
             position: relative;
             display: flex;
@@ -48,6 +47,16 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
+        }
+
+        .phone-movable-frame {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: auto;
+            transform-origin: center center;
+            will-change: transform;
         }
 
         .app-container {
@@ -59,18 +68,16 @@
             flex-direction: column;
             position: relative;
             overflow: hidden;
-            pointer-events: auto;
-            transform-origin: center center;
         }
 
-        /* Desktop: Moldura Fina, Esguia, Móvel com Mouse e Flutuante */
+        /* Desktop: Janela Móvel, Alça de Arraste Externa e Botão de Minimizar na Quina */
         @media (min-width: 501px) {
             body {
                 background: radial-gradient(circle at center, #1b1922 0%, #0c0b0e 100%);
             }
 
             .phone-wrapper {
-                padding: 12px;
+                padding: 16px;
             }
 
             .app-container {
@@ -79,65 +86,96 @@
                 max-height: 94vh;
                 border-radius: 34px;
                 border: 2px solid var(--border-color);
-                box-shadow: 0 20px 48px rgba(0, 0, 0, 0.7);
+                box-shadow: 0 20px 48px rgba(0, 0, 0, 0.75);
                 position: relative;
-                will-change: transform;
             }
 
-            /* Barra de arraste no topo da janela do celular */
-            .window-drag-bar {
+            /* Botão/Alça de Arrastar FORA do card (Canto Superior Esquerdo) */
+            .window-drag-handle {
                 position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                height: 28px;
-                z-index: 60;
+                top: 14px;
+                left: -48px;
+                width: 38px;
+                height: 44px;
+                background-color: var(--bg-card);
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                border-radius: 12px;
                 display: flex;
+                flex-direction: column;
                 align-items: center;
                 justify-content: center;
+                gap: 3px;
                 cursor: grab;
+                z-index: 70;
+                color: var(--text-secondary);
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+                transition: all 0.2s ease;
                 touch-action: none;
             }
 
-            .window-drag-bar:active {
+            .window-drag-handle:hover {
+                background-color: #332f3b;
+                border-color: var(--primary);
+                color: var(--primary);
+                transform: scale(1.08) translateX(-2px);
+            }
+
+            .window-drag-handle:active {
                 cursor: grabbing;
+                transform: scale(0.96) translateX(-2px);
+                background-color: rgba(201, 107, 124, 0.15);
             }
 
-            .window-drag-indicator {
-                width: 36px;
-                height: 4px;
-                background: rgba(255, 255, 255, 0.2);
-                border-radius: 4px;
-                transition: background 0.2s, width 0.2s;
+            .window-drag-handle svg {
+                width: 18px;
+                height: 18px;
+                fill: currentColor;
             }
 
-            .window-drag-bar:hover .window-drag-indicator {
-                background: rgba(255, 255, 255, 0.45);
-                width: 44px;
+            .drag-handle-dots {
+                display: flex;
+                gap: 2px;
             }
 
+            .drag-handle-dot {
+                width: 3px;
+                height: 3px;
+                background-color: currentColor;
+                border-radius: 50%;
+                opacity: 0.6;
+            }
+
+            /* Botão de Minimizar na quina superior direita EM CIMA do card */
             .window-btn-minimize {
                 position: absolute;
-                right: 12px;
-                top: 6px;
-                width: 22px;
-                height: 22px;
+                top: 10px;
+                right: 10px;
+                width: 28px;
+                height: 28px;
                 border-radius: 50%;
-                background: rgba(255, 255, 255, 0.08);
-                border: 1px solid rgba(255, 255, 255, 0.12);
+                background: rgba(26, 24, 31, 0.85);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.15);
                 color: var(--text-secondary);
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 cursor: pointer;
+                z-index: 60;
                 transition: all 0.2s ease;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
             }
 
             .window-btn-minimize:hover {
                 background: rgba(201, 107, 124, 0.25);
                 border-color: var(--primary);
                 color: var(--primary);
-                transform: scale(1.1);
+                transform: scale(1.12);
+            }
+
+            .window-btn-minimize:active {
+                transform: scale(0.92);
             }
 
             .window-btn-minimize svg {
@@ -149,8 +187,12 @@
 
         /* Celular Físico: Ocupa 100% da tela e altura do navegador */
         @media (max-width: 500px) {
-            .phone-wrapper {
+            .phone-wrapper,
+            .phone-movable-frame {
+                width: 100%;
+                height: 100%;
                 padding: 0;
+                transform: none !important;
             }
 
             .app-container {
@@ -161,26 +203,26 @@
                 border-radius: 0;
                 border: none;
                 box-shadow: none;
-                transform: none !important;
             }
 
-            .window-drag-bar,
+            .window-drag-handle,
+            .window-btn-minimize,
             .floating-bubble {
                 display: none !important;
             }
         }
 
-        /* Bolinha Flutuante (estilo WhatsApp) quando minimizado */
+        /* Bolinha Flutuante Aumentada (WhatsApp style) quando minimizado */
         .floating-bubble {
             position: fixed;
-            bottom: 24px;
-            right: 24px;
-            width: 58px;
-            height: 58px;
+            bottom: 28px;
+            right: 28px;
+            width: 76px;
+            height: 76px;
             border-radius: 50%;
             background-color: var(--bg-card);
-            border: 2px solid var(--primary);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(201, 107, 124, 0.35);
+            border: 2.5px solid var(--primary);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.75), 0 0 24px rgba(201, 107, 124, 0.4);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -202,12 +244,12 @@
 
         .floating-bubble:hover {
             transform: scale(1.12) !important;
-            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.85), 0 0 26px rgba(201, 107, 124, 0.6);
+            box-shadow: 0 16px 42px rgba(0, 0, 0, 0.85), 0 0 32px rgba(201, 107, 124, 0.65);
         }
 
         .bubble-avatar {
-            width: 86%;
-            height: 86%;
+            width: 88%;
+            height: 88%;
             object-fit: cover;
             object-position: center 15%;
             border-radius: 50%;
@@ -216,14 +258,14 @@
 
         .bubble-badge {
             position: absolute;
-            top: 2px;
-            right: 2px;
-            width: 12px;
-            height: 12px;
+            top: 4px;
+            right: 4px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
             background-color: #25d366;
-            border: 2px solid var(--bg-container);
-            box-shadow: 0 0 8px rgba(37, 211, 102, 0.8);
+            border: 2.5px solid var(--bg-container);
+            box-shadow: 0 0 10px rgba(37, 211, 102, 0.9);
         }
 
         @keyframes bubbleFloat {
@@ -266,12 +308,12 @@
         .side-menu {
             position: absolute;
             right: 10px;
-            top: 24px;
+            top: 42px;
             display: flex;
             flex-direction: column;
             gap: 8px;
             z-index: 10;
-            max-height: calc(100% - 100px);
+            max-height: calc(100% - 120px);
             overflow-y: auto;
             scrollbar-width: none;
             padding: 2px 0;
@@ -544,66 +586,77 @@
 <body>
 
     <div class="phone-wrapper">
-        <div class="app-container" id="appContainer">
+        <div class="phone-movable-frame" id="phoneMovableFrame">
             
-            <div class="window-drag-bar" id="windowDragBar" title="Clique e arraste para mover a janela">
-                <div class="window-drag-indicator"></div>
+            <!-- Botão de Arrastar (Canto Superior Esquerdo FORA do card) -->
+            <div class="window-drag-handle" id="windowDragHandle" title="Clique e segure para arrastar a janela">
+                <svg viewBox="0 0 24 24"><path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"/></svg>
+                <div class="drag-handle-dots">
+                    <div class="drag-handle-dot"></div>
+                    <div class="drag-handle-dot"></div>
+                    <div class="drag-handle-dot"></div>
+                </div>
+            </div>
+
+            <div class="app-container" id="appContainer">
+                
+                <!-- Botão de Minimizar (Canto Superior Direito na quina em cima do card) -->
                 <button class="window-btn-minimize" id="btnMinimize" title="Minimizar (vira bolinha no canto)" aria-label="Minimizar">
                     <svg viewBox="0 0 24 24"><path d="M19,13H5V11H19V13Z"/></svg>
                 </button>
-            </div>
 
-            <div class="viewport">
-                <div class="avatar-container">
-                    <img src="avatar.png" alt="Avatar Model" class="avatar-img" id="avatarImg">
+                <div class="viewport">
+                    <div class="avatar-container">
+                        <img src="avatar.png" alt="Avatar Model" class="avatar-img" id="avatarImg">
+                    </div>
                 </div>
-            </div>
 
-            <div class="side-menu" id="sideMenu"></div>
+                <div class="side-menu" id="sideMenu"></div>
 
-            <div class="bottom-sheet" id="bottomSheet">
-                <div class="sheet-header-area" id="sheetHeader">
-                    <div class="sheet-handle" id="sheetHandle"></div>
-                    <div class="sheet-title" id="sheetTitle">Configurações</div>
+                <div class="bottom-sheet" id="bottomSheet">
+                    <div class="sheet-header-area" id="sheetHeader">
+                        <div class="sheet-handle" id="sheetHandle"></div>
+                        <div class="sheet-title" id="sheetTitle">Configurações</div>
+                    </div>
+                    
+                    <div class="sheet-content" id="sheetContent"></div>
                 </div>
-                
-                <div class="sheet-content" id="sheetContent"></div>
-            </div>
 
-            <div class="footer-nav" id="footerNav">
-                <button class="nav-item" data-tab="Identidade" onclick="selectFooterTab(this)">
-                    <div class="nav-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/></svg></div>
-                    Identidade
-                </button>
-                <button class="nav-item active" data-tab="Aparência" onclick="selectFooterTab(this)">
-                    <div class="nav-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M12,2C9.24,2 7,4.24 7,7C7,8.87 8.03,10.5 9.58,11.36C6.61,12.43 4.5,15.28 4.5,18.5C4.5,18.78 4.72,19 5,19H19C19.28,19 19.5,18.78 19.5,18.5C19.5,15.28 17.39,12.43 14.42,11.36C15.97,10.5 17,8.87 17,7C17,4.24 14.76,2 12,2M12,4C13.66,4 15,5.34 15,7C15,8.66 13.66,10 12,10C10.34,10 9,8.66 9,7C9,5.34 10.34,4 12,4M12,13C15.03,13 17.5,15.47 17.5,18.5H6.5C6.5,15.47 8.97,13 12,13Z"/></svg></div>
-                    Aparência
-                </button>
-                <button class="nav-item" data-tab="Busto" onclick="selectFooterTab(this)">
-                    <div class="nav-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M12,2A3,3 0 0,1 15,5A3,3 0 0,1 12,8A3,3 0 0,1 9,5A3,3 0 0,1 12,2M12,10C14.67,10 20,11.34 20,14V16H4V14C4,11.34 9.33,10 12,10Z"/></svg></div>
-                    Busto
-                </button>
-                <button class="nav-item" data-tab="Pernas" onclick="selectFooterTab(this)">
-                    <div class="nav-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M9,2H15V6H9V2M11,8H13V13H11V8M10,14H14V22H12V17H10V14Z"/></svg></div>
-                    Pernas
-                </button>
-                <button class="nav-item" data-tab="Pés" onclick="selectFooterTab(this)">
-                    <div class="nav-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M19,19H5V5H19M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3Z"/></svg></div>
-                    Pés
-                </button>
-                <button class="nav-item" data-tab="Estilo" onclick="selectFooterTab(this)">
-                    <div class="nav-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M12,3L2,12H5V20H19V12H22L12,3M12,7.7C14.1,7.7 15.8,9.4 15.8,11.5C15.8,13.6 14.1,15.3 12,15.3C9.9,15.3 8.2,13.6 8.2,11.5C8.2,9.4 9.9,7.7 12,7.7Z"/></svg></div>
-                    Estilo
-                </button>
-                <button class="nav-item" data-tab="Gravação" onclick="selectFooterTab(this)">
-                    <div class="nav-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M17,10.5V7A1,1 0 0,0 16,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16A1,1 0 0,0 17,17V13.5L21,17.5V6.5L17,10.5Z"/></svg></div>
-                    Gravação
-                </button>
+                <div class="footer-nav" id="footerNav">
+                    <button class="nav-item" data-tab="Identidade" onclick="selectFooterTab(this)">
+                        <div class="nav-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/></svg></div>
+                        Identidade
+                    </button>
+                    <button class="nav-item active" data-tab="Aparência" onclick="selectFooterTab(this)">
+                        <div class="nav-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M12,2C9.24,2 7,4.24 7,7C7,8.87 8.03,10.5 9.58,11.36C6.61,12.43 4.5,15.28 4.5,18.5C4.5,18.78 4.72,19 5,19H19C19.28,19 19.5,18.78 19.5,18.5C19.5,15.28 17.39,12.43 14.42,11.36C15.97,10.5 17,8.87 17,7C17,4.24 14.76,2 12,2M12,4C13.66,4 15,5.34 15,7C15,8.66 13.66,10 12,10C10.34,10 9,8.66 9,7C9,5.34 10.34,4 12,4M12,13C15.03,13 17.5,15.47 17.5,18.5H6.5C6.5,15.47 8.97,13 12,13Z"/></svg></div>
+                        Aparência
+                    </button>
+                    <button class="nav-item" data-tab="Busto" onclick="selectFooterTab(this)">
+                        <div class="nav-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M12,2A3,3 0 0,1 15,5A3,3 0 0,1 12,8A3,3 0 0,1 9,5A3,3 0 0,1 12,2M12,10C14.67,10 20,11.34 20,14V16H4V14C4,11.34 9.33,10 12,10Z"/></svg></div>
+                        Busto
+                    </button>
+                    <button class="nav-item" data-tab="Pernas" onclick="selectFooterTab(this)">
+                        <div class="nav-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M9,2H15V6H9V2M11,8H13V13H11V8M10,14H14V22H12V17H10V14Z"/></svg></div>
+                        Pernas
+                    </button>
+                    <button class="nav-item" data-tab="Pés" onclick="selectFooterTab(this)">
+                        <div class="nav-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M19,19H5V5H19M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3Z"/></svg></div>
+                        Pés
+                    </button>
+                    <button class="nav-item" data-tab="Estilo" onclick="selectFooterTab(this)">
+                        <div class="nav-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M12,3L2,12H5V20H19V12H22L12,3M12,7.7C14.1,7.7 15.8,9.4 15.8,11.5C15.8,13.6 14.1,15.3 12,15.3C9.9,15.3 8.2,13.6 8.2,11.5C8.2,9.4 9.9,7.7 12,7.7Z"/></svg></div>
+                        Estilo
+                    </button>
+                    <button class="nav-item" data-tab="Gravação" onclick="selectFooterTab(this)">
+                        <div class="nav-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M17,10.5V7A1,1 0 0,0 16,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16A1,1 0 0,0 17,17V13.5L21,17.5V6.5L17,10.5Z"/></svg></div>
+                        Gravação
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Bolinha Flutuante (WhatsApp style) quando minimizado -->
+    <!-- Bolinha Flutuante Aumentada (WhatsApp style) quando minimizado -->
     <div class="floating-bubble" id="floatingBubble" title="Clique para abrir o My Type" onclick="restorePhoneWindow()">
         <img src="avatar.png" alt="My Type" class="bubble-avatar">
         <div class="bubble-badge"></div>
@@ -616,35 +669,38 @@
         const sheetTitle = document.getElementById('sheetTitle');
         const sheetHandle = document.getElementById('sheetHandle');
         const appContainer = document.getElementById('appContainer');
+        const phoneMovableFrame = document.getElementById('phoneMovableFrame');
         const sideMenu = document.getElementById('sideMenu');
-        const windowDragBar = document.getElementById('windowDragBar');
+        const windowDragHandle = document.getElementById('windowDragHandle');
         const btnMinimize = document.getElementById('btnMinimize');
         const floatingBubble = document.getElementById('floatingBubble');
 
-        /* --- CONTROLE DE JANELA MÓVEL (DESKTOP) --- */
+        /* --- CONTROLE DE ARRASTE DA JANELA (DESKTOP) --- */
         let isPhoneDragging = false;
         let phonePosX = 0;
         let phonePosY = 0;
         let phoneDragStartX = 0;
         let phoneDragStartY = 0;
 
-        if (windowDragBar) {
-            windowDragBar.addEventListener('mousedown', (e) => {
-                if (window.innerWidth <= 500) return;
-                if (e.target.closest('#btnMinimize')) return;
+        if (windowDragHandle) {
+            windowDragHandle.addEventListener('mousedown', startPhoneDrag);
+        }
 
-                isPhoneDragging = true;
-                phoneDragStartX = e.clientX - phonePosX;
-                phoneDragStartY = e.clientY - phonePosY;
-                appContainer.style.transition = 'none';
-            });
+        function startPhoneDrag(e) {
+            if (window.innerWidth <= 500) return;
+            if (e.target.closest('#btnMinimize')) return;
+
+            isPhoneDragging = true;
+            phoneDragStartX = e.clientX - phonePosX;
+            phoneDragStartY = e.clientY - phonePosY;
+            phoneMovableFrame.style.transition = 'none';
         }
 
         window.addEventListener('mousemove', (e) => {
             if (!isPhoneDragging) return;
             phonePosX = e.clientX - phoneDragStartX;
             phonePosY = e.clientY - phoneDragStartY;
-            appContainer.style.transform = `translate(${phonePosX}px, ${phonePosY}px)`;
+            phoneMovableFrame.style.transform = `translate(${phonePosX}px, ${phonePosY}px)`;
         });
 
         window.addEventListener('mouseup', () => {
@@ -661,8 +717,8 @@
             let deltaX = 0;
             let deltaY = 0;
 
-            if (rect.left < pad) {
-                deltaX = pad - rect.left;
+            if (rect.left < pad + 40) { // considerando a alça externa
+                deltaX = (pad + 40) - rect.left;
             } else if (rect.right > window.innerWidth - pad) {
                 deltaX = (window.innerWidth - pad) - rect.right;
             }
@@ -676,8 +732,8 @@
             if (deltaX !== 0 || deltaY !== 0) {
                 phonePosX += deltaX;
                 phonePosY += deltaY;
-                appContainer.style.transition = 'transform 0.45s cubic-bezier(0.25, 1, 0.5, 1)';
-                appContainer.style.transform = `translate(${phonePosX}px, ${phonePosY}px)`;
+                phoneMovableFrame.style.transition = 'transform 0.45s cubic-bezier(0.25, 1, 0.5, 1)';
+                phoneMovableFrame.style.transform = `translate(${phonePosX}px, ${phonePosY}px)`;
             }
         }
 
@@ -690,10 +746,10 @@
         }
 
         function minimizePhoneWindow() {
-            appContainer.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease';
-            appContainer.style.transform = `translate(${phonePosX}px, ${phonePosY + 50}px) scale(0.4)`;
-            appContainer.style.opacity = '0';
-            appContainer.style.pointerEvents = 'none';
+            phoneMovableFrame.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease';
+            phoneMovableFrame.style.transform = `translate(${phonePosX}px, ${phonePosY + 60}px) scale(0.35)`;
+            phoneMovableFrame.style.opacity = '0';
+            phoneMovableFrame.style.pointerEvents = 'none';
 
             setTimeout(() => {
                 floatingBubble.classList.add('visible');
@@ -703,10 +759,10 @@
         function restorePhoneWindow() {
             floatingBubble.classList.remove('visible');
 
-            appContainer.style.transition = 'transform 0.4s cubic-bezier(0.34, 1.4, 0.64, 1), opacity 0.3s ease';
-            appContainer.style.transform = `translate(${phonePosX}px, ${phonePosY}px) scale(1)`;
-            appContainer.style.opacity = '1';
-            appContainer.style.pointerEvents = 'auto';
+            phoneMovableFrame.style.transition = 'transform 0.4s cubic-bezier(0.34, 1.4, 0.64, 1), opacity 0.3s ease';
+            phoneMovableFrame.style.transform = `translate(${phonePosX}px, ${phonePosY}px) scale(1)`;
+            phoneMovableFrame.style.opacity = '1';
+            phoneMovableFrame.style.pointerEvents = 'auto';
 
             setTimeout(() => {
                 snapPhoneToBoundaries();
