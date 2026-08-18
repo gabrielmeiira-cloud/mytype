@@ -1217,13 +1217,13 @@
 
         // Caixas de Colisão Normalizadas (0.0 a 1.0) para cada Sessão
         const sessionBoundingBoxes = {
-            "Identidade": { x: 0.15, y: 0.02, w: 0.70, h: 0.96 }, // Corpo Inteiro
-            "Aparência":  { x: 0.32, y: 0.02, w: 0.36, h: 0.22 }, // Cabeça e Rosto
-            "Busto":      { x: 0.22, y: 0.17, w: 0.56, h: 0.28 }, // Busto e Cintura
-            "Pernas":     { x: 0.24, y: 0.44, w: 0.52, h: 0.46 }, // Pernas e Joelhos
-            "Pés":        { x: 0.28, y: 0.80, w: 0.44, h: 0.19 }, // Tornozelos e Pés
-            "Estilo":     { x: 0.18, y: 0.10, w: 0.64, h: 0.80 }, // Moda Geral
-            "Gravação":   { x: 0.15, y: 0.02, w: 0.70, h: 0.96 }  // Estúdio
+            "Identidade": { x: 0.10, y: 0.00, w: 0.80, h: 1.00 }, // Corpo Inteiro
+            "Aparência":  { x: 0.30, y: 0.00, w: 0.40, h: 0.18 }, // Cabeça e Rosto
+            "Busto":      { x: 0.20, y: 0.16, w: 0.60, h: 0.25 }, // Busto e Cintura
+            "Pernas":     { x: 0.22, y: 0.40, w: 0.56, h: 0.46 }, // Pernas e Joelhos
+            "Pés":        { x: 0.25, y: 0.80, w: 0.50, h: 0.20 }, // Tornozelos e Pés
+            "Estilo":     { x: 0.12, y: 0.05, w: 0.76, h: 0.88 }, // Moda Geral
+            "Gravação":   { x: 0.10, y: 0.00, w: 0.80, h: 1.00 }  // Estúdio
         };
 
         // Carrega caixas de colisão registradas previamente no navegador
@@ -1262,7 +1262,7 @@
 
             // Espaço visível disponível no viewport com margem de respiro
             const availW = m.w * 0.82;
-            const availH = m.h * 0.70; // deixa respiro pro bottom-sheet
+            const availH = m.h * 0.65; // deixa respiro pro cabeçalho e bottom-sheet
 
             // Escala ideal para preencher confortavelmente a tela
             const scaleX = availW / boxPixelW;
@@ -1279,13 +1279,16 @@
             const relX = ptX - (m.w / 2);
             const relY = ptY - (m.h / 2);
 
-            // Centraliza o ponto na tela (com leve ajuste vertical acima do rodapé)
+            // Centraliza o ponto focal na tela
             const targetPanX = -relX * targetScale;
-            const targetPanY = -relY * targetScale - (m.h * 0.04);
+            const targetPanY = -relY * targetScale + (m.h * 0.04);
+
+            const clamped = clampPan(targetPanX, targetPanY, targetScale);
 
             return {
                 scale: targetScale,
-                ...clampPan(targetPanX, targetPanY, targetScale)
+                x: clamped.x,
+                y: clamped.y
             };
         }
 
@@ -1510,36 +1513,24 @@
         }
 
         /* --- LIMITES RÍGIDOS DE COLISÃO DA AVATAR (BRAÇOS, CABEÇA E PÉS NUNCA PASSAM DA BORDA) --- */
-        function getStrictPanBounds() {
+        function getStrictPanBounds(scale = avatarScale) {
             const w = viewportCanvas ? viewportCanvas.clientWidth : 350;
             const h = viewportCanvas ? viewportCanvas.clientHeight : 600;
 
-            // A silhueta da modelo: braço a braço ocupa ~68% da largura, cabeça ~44% do centro ao topo, pés ~48% do centro à base
-            const avatarHalfWidth = (w * 0.34) * avatarScale;
-            const avatarHeadTop = (h * 0.44) * avatarScale; 
-            const avatarFeetBottom = (h * 0.48) * avatarScale;
+            const avatarHalfWidth = (w * 0.40) * scale;
 
-            // Limites laterais (Braço esquerdo na borda esquerda / Braço direito na borda direita)
-            let maxX, minX;
-            if (avatarHalfWidth * 2 > w) {
-                // Em zoom, não deixa o braço passar para dentro além da borda
-                maxX = avatarHalfWidth - (w / 2);
-                minX = -maxX;
-            } else {
-                // Afastada (zoom menor), não deixa nenhum braço sair da tela
-                maxX = (w / 2) - avatarHalfWidth;
-                minX = -maxX;
-            }
+            // Limites laterais
+            let maxX = Math.max(0, avatarHalfWidth - (w * 0.15));
+            let minX = -maxX;
 
             // Limites verticais (Cabeça no topo / Pés na base)
             let maxY, minY;
-            if (avatarScale > 1.05) {
-                maxY = avatarHeadTop - (h * 0.36); // Cabeça atinge o topo da moldura
-                minY = (h * 0.46) - avatarFeetBottom; // Pés atingem a base da moldura
+            if (scale > 1.05) {
+                maxY = (h * (scale - 1) * 0.5) + (h * 0.45); // Permite subir para focar no topo da cabeça
+                minY = -((h * (scale - 1) * 0.5) + (h * 0.45)); // Permite descer para focar nos pés
             } else {
-                // Zoom 90% ou menor
-                maxY = (h * (1 - avatarScale)) * 0.5 + 20;
-                minY = -(h * (1 - avatarScale)) * 0.5 - 20;
+                maxY = (h * (1 - scale)) * 0.5 + 40;
+                minY = -(h * (1 - scale)) * 0.5 - 40;
             }
 
             if (minX > maxX) [minX, maxX] = [maxX, minX];
@@ -1548,8 +1539,8 @@
             return { minX, maxX, minY, maxY };
         }
 
-        function clampPan(x, y) {
-            const bounds = getStrictPanBounds();
+        function clampPan(x, y, scale = avatarScale) {
+            const bounds = getStrictPanBounds(scale);
             return {
                 x: Math.min(bounds.maxX, Math.max(bounds.minX, x)),
                 y: Math.min(bounds.maxY, Math.max(bounds.minY, y))
