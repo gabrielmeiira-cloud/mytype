@@ -305,7 +305,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background: radial-gradient(circle, #382e3f 0%, #17151b 75%);
+            background-color: #17151b;
             overflow: hidden;
             z-index: 1;
             cursor: grab;
@@ -328,6 +328,19 @@
             pointer-events: none;
         }
 
+        /* Degradê que se move junto com o enquadramento e a modelo */
+        .avatar-bg-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300%;
+            height: 300%;
+            background: radial-gradient(circle at center, #3d3146 0%, rgba(45, 36, 52, 0.6) 35%, rgba(23, 21, 27, 0.95) 65%, #17151b 100%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
         .avatar-img {
             width: 100%;
             height: 100%;
@@ -336,6 +349,7 @@
             position: absolute;
             bottom: 0;
             pointer-events: none;
+            z-index: 1;
         }
 
         /* Marcador de Zoom e Coordenadas da Câmera em Tempo Real (HUD) */
@@ -695,6 +709,7 @@
                     </div>
 
                     <div class="avatar-container" id="avatarContainer">
+                        <div class="avatar-bg-glow"></div>
                         <img src="avatar.png" alt="Avatar Model" class="avatar-img" id="avatarImg">
                     </div>
                 </div>
@@ -782,14 +797,14 @@
         let cameraY = 0;
         let isCameraAnimating = false;
 
-        /* --- LIMITE DE 35% NA HORIZONTAL E 20% NA VERTICAL --- */
+        /* --- LIMITE DE 20% NO GERAL --- */
         function getCameraBounds(zoom) {
             const vW = (viewportCanvas && viewportCanvas.clientWidth) ? viewportCanvas.clientWidth : 350;
             const vH = (viewportCanvas && viewportCanvas.clientHeight) ? viewportCanvas.clientHeight : 500;
 
-            // Limite de 35% na horizontal e 20% na vertical
-            const maxX = Math.max(70, (vW * 0.5) * zoom * 0.35);
-            const maxY = Math.max(100, (vH * 0.5) * zoom * 0.20);
+            // Limite de 20% no geral
+            const maxX = Math.max(50, (vW * 0.5) * zoom * 0.20);
+            const maxY = Math.max(80, (vH * 0.5) * zoom * 0.20);
 
             return {
                 minX: -maxX,
