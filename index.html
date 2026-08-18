@@ -70,7 +70,7 @@
             overflow: hidden;
         }
 
-        /* Desktop: Janela Móvel, Alça de Arraste Externa e Botão de Minimizar na Quina */
+        /* Desktop: Janela Móvel, Alça de Arraste Externa e Botão de Minimizar Externo */
         @media (min-width: 501px) {
             body {
                 background: radial-gradient(circle at center, #1b1922 0%, #0c0b0e 100%);
@@ -145,42 +145,42 @@
                 opacity: 0.6;
             }
 
-            /* Botão de Minimizar na quina superior direita EM CIMA do card */
+            /* Botão de Minimizar FORA do card (Canto Superior Direito) */
             .window-btn-minimize {
                 position: absolute;
-                top: 10px;
-                right: 10px;
-                width: 28px;
-                height: 28px;
-                border-radius: 50%;
-                background: rgba(26, 24, 31, 0.85);
-                backdrop-filter: blur(10px);
-                -webkit-backdrop-filter: blur(10px);
-                border: 1px solid rgba(255, 255, 255, 0.15);
-                color: var(--text-secondary);
+                top: 14px;
+                right: -48px;
+                width: 38px;
+                height: 44px;
+                background-color: var(--bg-card);
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                border-radius: 12px;
                 display: flex;
+                flex-direction: column;
                 align-items: center;
                 justify-content: center;
                 cursor: pointer;
-                z-index: 60;
+                z-index: 70;
+                color: var(--text-secondary);
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
                 transition: all 0.2s ease;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
             }
 
             .window-btn-minimize:hover {
-                background: rgba(201, 107, 124, 0.25);
+                background-color: #332f3b;
                 border-color: var(--primary);
                 color: var(--primary);
-                transform: scale(1.12);
+                transform: scale(1.08) translateX(2px);
             }
 
             .window-btn-minimize:active {
-                transform: scale(0.92);
+                transform: scale(0.96) translateX(2px);
+                background-color: rgba(201, 107, 124, 0.15);
             }
 
             .window-btn-minimize svg {
-                width: 14px;
-                height: 14px;
+                width: 16px;
+                height: 16px;
                 fill: currentColor;
             }
         }
@@ -207,22 +207,22 @@
 
             .window-drag-handle,
             .window-btn-minimize,
-            .floating-bubble {
+            .floating-mini-phone {
                 display: none !important;
             }
         }
 
-        /* Bolinha Flutuante Aumentada (WhatsApp style) quando minimizado */
-        .floating-bubble {
+        /* Celularzinho em miniatura suspenso quando minimizado */
+        .floating-mini-phone {
             position: fixed;
             bottom: 28px;
             right: 28px;
-            width: 76px;
-            height: 76px;
-            border-radius: 50%;
-            background-color: var(--bg-card);
-            border: 2.5px solid var(--primary);
-            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.75), 0 0 24px rgba(201, 107, 124, 0.4);
+            width: 52px;
+            height: 94px;
+            border-radius: 16px;
+            background-color: #121118;
+            border: 2px solid var(--primary);
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.85), 0 0 24px rgba(201, 107, 124, 0.45);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -230,47 +230,85 @@
             z-index: 9999;
             opacity: 0;
             pointer-events: none;
-            transform: scale(0.3) rotate(-20deg);
-            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease, box-shadow 0.2s;
-            overflow: hidden;
+            transform: scale(0.3) rotate(-15deg);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease, box-shadow 0.2s;
+            padding: 3px;
         }
 
-        .floating-bubble.visible {
+        .floating-mini-phone.visible {
             opacity: 1;
             pointer-events: auto;
             transform: scale(1) rotate(0deg);
-            animation: bubbleFloat 3s ease-in-out infinite alternate;
+            animation: miniPhoneFloat 3.5s ease-in-out infinite alternate;
         }
 
-        .floating-bubble:hover {
-            transform: scale(1.12) !important;
-            box-shadow: 0 16px 42px rgba(0, 0, 0, 0.85), 0 0 32px rgba(201, 107, 124, 0.65);
+        .floating-mini-phone:hover {
+            transform: scale(1.15) rotate(4deg) !important;
+            box-shadow: 0 20px 48px rgba(0, 0, 0, 0.9), 0 0 35px rgba(201, 107, 124, 0.7);
+            border-color: #ffffff;
         }
 
-        .bubble-avatar {
-            width: 88%;
-            height: 88%;
+        .mini-phone-screen {
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-container);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .mini-phone-notch {
+            position: absolute;
+            top: 3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 3px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 4px;
+            z-index: 5;
+        }
+
+        .mini-phone-avatar {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
-            object-position: center 15%;
-            border-radius: 50%;
+            object-position: center 20%;
             pointer-events: none;
         }
 
-        .bubble-badge {
+        .mini-phone-badge {
             position: absolute;
-            top: 4px;
-            right: 4px;
-            width: 14px;
-            height: 14px;
+            top: 3px;
+            right: 3px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background-color: #25d366;
-            border: 2.5px solid var(--bg-container);
-            box-shadow: 0 0 10px rgba(37, 211, 102, 0.9);
+            border: 1.5px solid var(--bg-container);
+            box-shadow: 0 0 6px rgba(37, 211, 102, 0.9);
+            z-index: 6;
         }
 
-        @keyframes bubbleFloat {
-            0% { transform: translateY(0px); }
-            100% { transform: translateY(-6px); }
+        .mini-phone-bar {
+            position: absolute;
+            bottom: 3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 14px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 2px;
+            z-index: 5;
+        }
+
+        @keyframes miniPhoneFloat {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(2deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
         }
 
         .viewport {
@@ -308,12 +346,12 @@
         .side-menu {
             position: absolute;
             right: 10px;
-            top: 42px;
+            top: 20px;
             display: flex;
             flex-direction: column;
             gap: 8px;
             z-index: 10;
-            max-height: calc(100% - 120px);
+            max-height: calc(100% - 100px);
             overflow-y: auto;
             scrollbar-width: none;
             padding: 2px 0;
@@ -598,13 +636,13 @@
                 </div>
             </div>
 
+            <!-- Botão de Minimizar (Canto Superior Direito FORA do card) -->
+            <button class="window-btn-minimize" id="btnMinimize" title="Minimizar (vira celularzinho no canto)" aria-label="Minimizar">
+                <svg viewBox="0 0 24 24"><path d="M19,13H5V11H19V13Z"/></svg>
+            </button>
+
             <div class="app-container" id="appContainer">
                 
-                <!-- Botão de Minimizar (Canto Superior Direito na quina em cima do card) -->
-                <button class="window-btn-minimize" id="btnMinimize" title="Minimizar (vira bolinha no canto)" aria-label="Minimizar">
-                    <svg viewBox="0 0 24 24"><path d="M19,13H5V11H19V13Z"/></svg>
-                </button>
-
                 <div class="viewport">
                     <div class="avatar-container">
                         <img src="avatar.png" alt="Avatar Model" class="avatar-img" id="avatarImg">
@@ -656,10 +694,14 @@
         </div>
     </div>
 
-    <!-- Bolinha Flutuante Aumentada (WhatsApp style) quando minimizado -->
-    <div class="floating-bubble" id="floatingBubble" title="Clique para abrir o My Type" onclick="restorePhoneWindow()">
-        <img src="avatar.png" alt="My Type" class="bubble-avatar">
-        <div class="bubble-badge"></div>
+    <!-- Celularzinho em miniatura suspenso quando minimizado -->
+    <div class="floating-mini-phone" id="floatingBubble" title="Clique para abrir o My Type" onclick="restorePhoneWindow()">
+        <div class="mini-phone-screen">
+            <div class="mini-phone-notch"></div>
+            <img src="avatar.png" alt="My Type" class="mini-phone-avatar">
+            <div class="mini-phone-badge"></div>
+            <div class="mini-phone-bar"></div>
+        </div>
     </div>
 
     <script>
@@ -717,10 +759,10 @@
             let deltaX = 0;
             let deltaY = 0;
 
-            if (rect.left < pad + 40) { // considerando a alça externa
-                deltaX = (pad + 40) - rect.left;
-            } else if (rect.right > window.innerWidth - pad) {
-                deltaX = (window.innerWidth - pad) - rect.right;
+            if (rect.left < pad + 48) { // margem para a aba esquerda
+                deltaX = (pad + 48) - rect.left;
+            } else if (rect.right > window.innerWidth - pad - 48) { // margem para a aba direita
+                deltaX = (window.innerWidth - pad - 48) - rect.right;
             }
 
             if (rect.top < pad) {
@@ -737,7 +779,7 @@
             }
         }
 
-        /* --- MINIMIZAR / RESTAURAR BOLINHA (WHATSAPP STYLE) --- */
+        /* --- MINIMIZAR / RESTAURAR MINI CELULAR --- */
         if (btnMinimize) {
             btnMinimize.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -747,7 +789,7 @@
 
         function minimizePhoneWindow() {
             phoneMovableFrame.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease';
-            phoneMovableFrame.style.transform = `translate(${phonePosX}px, ${phonePosY + 60}px) scale(0.35)`;
+            phoneMovableFrame.style.transform = `translate(${phonePosX}px, ${phonePosY + 60}px) scale(0.25)`;
             phoneMovableFrame.style.opacity = '0';
             phoneMovableFrame.style.pointerEvents = 'none';
 
