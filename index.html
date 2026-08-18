@@ -319,7 +319,13 @@
 
         /* Modo Fundo Antigo / Fixo */
         .viewport.mode-static-bg {
-            background: radial-gradient(circle, #382e3f 0%, #17151b 75%) !important;
+            background: radial-gradient(circle at center, #382e3f 0%, #17151b 75%) !important;
+        }
+
+        .viewport.mode-static-bg .infinite-gradient-backdrop {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
         }
 
         .avatar-container {
@@ -867,6 +873,7 @@
         const coordsText = document.getElementById('coordsText');
         const cameraHudBadge = document.getElementById('cameraHudBadge');
         const bgModeLabel = document.getElementById('bgModeLabel');
+        const infiniteBackdrop = document.getElementById('infiniteBackdrop');
 
         /* --- CONTROLE DE MODO DE DEGRADÊ (ANTIGO FIXO VS NOVO CÂMERA) --- */
         let isCameraBg = true; // Padrão: Câmera (Novo)
@@ -875,9 +882,17 @@
             isCameraBg = !isCameraBg;
             if (isCameraBg) {
                 viewportCanvas.classList.remove('mode-static-bg');
+                if (infiniteBackdrop) {
+                    infiniteBackdrop.style.opacity = '1';
+                    infiniteBackdrop.style.visibility = 'visible';
+                }
                 bgModeLabel.innerText = "Fundo: Câmera (Novo)";
             } else {
                 viewportCanvas.classList.add('mode-static-bg');
+                if (infiniteBackdrop) {
+                    infiniteBackdrop.style.opacity = '0';
+                    infiniteBackdrop.style.visibility = 'hidden';
+                }
                 bgModeLabel.innerText = "Fundo: Fixo (Antigo)";
             }
         }
