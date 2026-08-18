@@ -1146,31 +1146,8 @@
         const avatarContainer = document.getElementById('avatarContainer');
         const zoomLevelText = document.getElementById('zoomLevelText');
         const coordsText = document.getElementById('coordsText');
-        const btnDebugMode = document.getElementById('btnDebugMode');
-        const cameraHudGroup = document.getElementById('cameraHudGroup');
-        const debugPinMarker = document.getElementById('debugPinMarker');
-        const pinLabelTag = document.getElementById('pinLabelTag');
-        const pinInfoText = document.getElementById('pinInfoText');
-        const debugSessionsBar = document.getElementById('debugSessionsBar');
-
-        /* --- MODO DE DEPURAÇÃO E PIN INTERATIVO --- */
-        let isDebugMode = false;
-        let pinNormX = 0.50;
-        let pinNormY = 0.50;
-
-        function toggleDebugMode() {
-            isDebugMode = !isDebugMode;
-            if (isDebugMode) {
-                if (btnDebugMode) btnDebugMode.classList.add('active');
-                if (cameraHudGroup) cameraHudGroup.classList.add('debug-visible');
-                if (debugPinMarker) debugPinMarker.classList.add('debug-visible');
-                updatePinPositionDOM();
-            } else {
-                if (btnDebugMode) btnDebugMode.classList.remove('active');
-                if (cameraHudGroup) cameraHudGroup.classList.remove('debug-visible');
-                if (debugPinMarker) debugPinMarker.classList.remove('debug-visible');
-            }
-        }
+        const bgModeLabel = document.getElementById('bgModeLabel');
+        const infiniteBackdrop = document.getElementById('infiniteBackdrop');
 
         /* --- CONTROLE DE MODO DE DEGRADÊ (ANTIGO FIXO VS NOVO CÂMERA) --- */
         let isCameraBg = true; // Padrão: Câmera (Novo)
