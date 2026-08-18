@@ -1899,11 +1899,15 @@
             }, 420);
         }
 
-        /* --- BOTTOM SHEET DRAG & STATE (AJUSTE EM TEMPO REAL E GESTOS RÁPIDOS) --- */
+        /* --- BOTTOM SHEET DRAG & STATE (AJUSTE MANUAL SUAVE + GESTO RÁPIDO/FLICK) --- */
         let isDraggingSheet = false;
         let sheetStartY = 0;
         let sheetStartHeight = 0;
         let sheetHasMoved = false; 
+        let sheetStartTime = 0;
+        let lastMoveY = 0;
+        let lastMoveTime = 0;
+        let sheetVelocityY = 0; // px / ms (positivo = subindo rápido, negativo = descendo rápido)
         const minHeight = 40; 
 
         function getMaxHeight() { 
@@ -1922,6 +1926,10 @@
             sheetHasMoved = false;
             sheetHandle.classList.add('active-pink'); 
             sheetStartY = e.clientY;
+            lastMoveY = e.clientY;
+            sheetStartTime = performance.now();
+            lastMoveTime = sheetStartTime;
+            sheetVelocityY = 0;
             sheetStartHeight = bottomSheet.clientHeight;
             bottomSheet.style.transition = 'none';
             try { sheetHeader.setPointerCapture(e.pointerId); } catch(err){}
@@ -1930,7 +1938,17 @@
         sheetHeader.addEventListener('pointermove', (e) => {
             if (!isDraggingSheet) return;
             const diff = sheetStartY - e.clientY;
-            if (Math.abs(diff) > 4) sheetHasMoved = true;
+            if (Math.abs(diff) > 3) sheetHasMoved = true;
+            
+            const now = performance.now();
+            const dt = now - lastMoveTime;
+            if (dt > 8) {
+                // Velocidade instantânea do movimento (positivo = subindo, negativo = descendo)
+                sheetVelocityY = (lastMoveY - e.clientY) / dt;
+                lastMoveY = e.clientY;
+                lastMoveTime = now;
+            }
+
             let newHeight = sheetStartHeight + diff;
             const max = getMaxHeight();
             if (newHeight < minHeight) newHeight = minHeight;
@@ -1949,21 +1967,25 @@
             sheetHandle.classList.remove('active-pink'); 
             try { sheetHeader.releasePointerCapture(e.pointerId); } catch(err){}
 
-            const diff = sheetStartY - e.clientY;
+            const totalTime = performance.now() - sheetStartTime;
+            const totalDiff = sheetStartY - e.clientY;
             let targetH;
 
-            if (sheetHasMoved) {
-                // Arrastar para cima abre todo o menu!
-                // Arrastar para baixo fecha todo o menu!
-                if (diff > 15) {
-                    targetH = getMaxHeight();
-                } else if (diff < -15) {
-                    targetH = minHeight;
-                } else {
-                    targetH = bottomSheet.clientHeight > (getMaxHeight() * 0.5) ? getMaxHeight() : minHeight;
-                }
+            // Detecção de Swipe Rápido / Flick (arrastar bem rápido com o dedo ou mouse)
+            const isFastFlickUp = sheetVelocityY > 0.45 || (totalDiff > 45 && totalTime < 240);
+            const isFastFlickDown = sheetVelocityY < -0.45 || (totalDiff < -45 && totalTime < 240);
+
+            if (isFastFlickUp) {
+                // Arraste RÁPIDO pra cima: abre todo!
+                targetH = getMaxHeight();
+            } else if (isFastFlickDown) {
+                // Arraste RÁPIDO pra baixo: fecha todo!
+                targetH = minHeight;
+            } else if (sheetHasMoved) {
+                // Arraste NORMAL / AJUSTE MANUAL: mantém exatamente na altura onde o usuário soltou!
+                targetH = Math.max(minHeight, Math.min(getMaxHeight(), bottomSheet.clientHeight));
             } else {
-                // Clique/Toque simples: alterna entre aberto e fechado
+                // Clique/Toque simples: alterna entre aberto inicial e fechado
                 if (bottomSheet.clientHeight <= minHeight + 15) {
                     targetH = getInitialHeight();
                 } else {
@@ -1971,17 +1993,17 @@
                 }
             }
 
-            bottomSheet.style.transition = 'height 0.32s cubic-bezier(0.22, 1, 0.36, 1)';
+            bottomSheet.style.transition = 'height 0.28s cubic-bezier(0.22, 1, 0.36, 1)';
             bottomSheet.style.height = targetH + 'px';
             updateSheetState(targetH);
-            updateCameraFramingRealtime(320, targetH);
+            updateCameraFramingRealtime(280, targetH);
         });
 
         sheetHeader.addEventListener('pointercancel', (e) => {
             if (!isDraggingSheet) return;
             isDraggingSheet = false;
             sheetHandle.classList.remove('active-pink'); 
-            bottomSheet.style.transition = 'height 0.32s cubic-bezier(0.22, 1, 0.36, 1)';
+            bottomSheet.style.transition = 'height 0.28s cubic-bezier(0.22, 1, 0.36, 1)';
         });
 
         function updateSheetState(height) {
