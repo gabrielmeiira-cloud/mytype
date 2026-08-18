@@ -55,7 +55,6 @@
             align-items: center;
             transform-origin: center center;
             will-change: transform;
-            touch-action: none;
         }
 
         .app-container {
@@ -87,28 +86,6 @@
                 border: 2px solid var(--border-color);
                 box-shadow: 0 20px 48px rgba(0, 0, 0, 0.75);
                 position: relative;
-            }
-
-            /* Barra superior do celular com entalhe/alto-falante também arrastável */
-            .phone-top-bar {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 32px;
-                z-index: 50;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                cursor: grab;
-                touch-action: none;
-            }
-
-            .phone-speaker {
-                width: 46px;
-                height: 4px;
-                background-color: rgba(255, 255, 255, 0.22);
-                border-radius: 4px;
             }
 
             /* Botão de Mover Circular Sobreposto na Quina Superior Esquerda */
@@ -212,7 +189,6 @@
                 box-shadow: none;
             }
 
-            .phone-top-bar,
             .window-btn-drag,
             .window-btn-minimize,
             .floating-mini-phone {
@@ -354,7 +330,7 @@
         .side-menu {
             position: absolute;
             right: 10px;
-            top: 28px;
+            top: 20px;
             display: flex;
             flex-direction: column;
             gap: 8px;
@@ -646,11 +622,6 @@
 
             <div class="app-container" id="appContainer">
                 
-                <!-- Barra superior do celular também arrastável no desktop -->
-                <div class="phone-top-bar" id="phoneTopBar" title="Segure para arrastar">
-                    <div class="phone-speaker"></div>
-                </div>
-
                 <div class="viewport">
                     <div class="avatar-container">
                         <img src="avatar.png" alt="Avatar Model" class="avatar-img" id="avatarImg">
@@ -674,7 +645,7 @@
                         Identidade
                     </button>
                     <button class="nav-item active" data-tab="Aparência" onclick="selectFooterTab(this)">
-                        <div class="nav-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M12,2C9.24,2 7,4.24 7,7C7,8.87 8.03,10.5 9.58,11.36C6.61,12.43 4.5,15.28 4.5,18.5C4.5,18.78 4.72,19 5,19H19C19.28,19 19.5,18.78 19.5,18.5C19.5,15.28 17.39,12.43 14.42,11.36C15.97,10.5 17,8.87 17,7C17,4.24 14.76,2 12,2M12,4C10.34,4 9,5.34 9,7C9,8.66 10.34,10 12,10C10.34,10 9,8.66 9,7C9,5.34 10.34,4 12,4M12,13C15.03,13 17.5,15.47 17.5,18.5H6.5C6.5,15.47 8.97,13 12,13Z"/></svg></div>
+                        <div class="nav-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M12,2C9.24,2 7,4.24 7,7C7,8.87 8.03,10.5 9.58,11.36C6.61,12.43 4.5,15.28 4.5,18.5C4.5,18.78 4.72,19 5,19H19C19.28,19 19.5,18.78 19.5,18.5C19.5,15.28 17.39,12.43 14.42,11.36C15.97,10.5 17,8.87 17,7C17,4.24 14.76,2 12,2M12,4C13.66,4 15,5.34 15,7C15,8.66 13.66,10 12,10C10.34,10 9,8.66 9,7C9,5.34 10.34,4 12,4M12,13C15.03,13 17.5,15.47 17.5,18.5H6.5C6.5,15.47 8.97,13 12,13Z"/></svg></div>
                         Aparência
                     </button>
                     <button class="nav-item" data-tab="Busto" onclick="selectFooterTab(this)">
@@ -694,7 +665,7 @@
                         Estilo
                     </button>
                     <button class="nav-item" data-tab="Gravação" onclick="selectFooterTab(this)">
-                        <div class="nav-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M17,10.5V7A1,1 0 0,0 16,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16A1,1 0 0,0 17,17V13.5L21,17.5V6.5L17,10.5Z"/></svg></div>
+                        <div class="nav-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M17,10.5V7A1,1 0 0,0 16,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16A1,1 0 0,0 17,17V13.5L21,17.5V6.5L17,10.5Z"/>' }
                         Gravação
                     </button>
                 </div>
@@ -722,90 +693,54 @@
         const phoneMovableFrame = document.getElementById('phoneMovableFrame');
         const sideMenu = document.getElementById('sideMenu');
         const windowDragHandle = document.getElementById('windowDragHandle');
-        const phoneTopBar = document.getElementById('phoneTopBar');
         const btnMinimize = document.getElementById('btnMinimize');
         const floatingBubble = document.getElementById('floatingBubble');
 
-        /* --- CONTROLE DE ARRASTE DA JANELA (DESKTOP) --- */
+        /* --- CONTROLE DE ARRASTE DA JANELA (APENAS PELO BOTÃO DE MOVER) --- */
         let isPhoneDragging = false;
         let phonePosX = 0;
         let phonePosY = 0;
         let phoneDragStartX = 0;
         let phoneDragStartY = 0;
-
-        function startDraggingWindow(e) {
-            if (window.innerWidth <= 500) return;
-            if (e.target.closest('#btnMinimize') || e.target.closest('#floatingBubble')) return;
-
-            isPhoneDragging = true;
-            const clientX = e.clientX ?? (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
-            const clientY = e.clientY ?? (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
-
-            phoneDragStartX = clientX - phonePosX;
-            phoneDragStartY = clientY - phonePosY;
-
-            phoneMovableFrame.style.transition = 'none';
-            document.body.style.userSelect = 'none';
-            document.body.style.cursor = 'grabbing';
-            if (windowDragHandle) windowDragHandle.style.cursor = 'grabbing';
-        }
+        let phoneInitialX = 0;
+        let phoneInitialY = 0;
 
         if (windowDragHandle) {
             windowDragHandle.addEventListener('pointerdown', (e) => {
+                if (window.innerWidth <= 500) return;
                 e.preventDefault();
-                startDraggingWindow(e);
+                e.stopPropagation();
+
+                isPhoneDragging = true;
+                phoneDragStartX = e.clientX;
+                phoneDragStartY = e.clientY;
+                phoneInitialX = phonePosX;
+                phoneInitialY = phonePosY;
+
+                phoneMovableFrame.style.transition = 'none';
+                windowDragHandle.setPointerCapture(e.pointerId);
             });
-            windowDragHandle.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                startDraggingWindow(e);
+
+            windowDragHandle.addEventListener('pointermove', (e) => {
+                if (!isPhoneDragging) return;
+                phonePosX = phoneInitialX + (e.clientX - phoneDragStartX);
+                phonePosY = phoneInitialY + (e.clientY - phoneDragStartY);
+                phoneMovableFrame.style.transform = `translate(${phonePosX}px, ${phonePosY}px)`;
             });
-            windowDragHandle.addEventListener('touchstart', (e) => {
-                startDraggingWindow(e);
-            }, {passive: true});
-        }
 
-        if (phoneTopBar) {
-            phoneTopBar.addEventListener('pointerdown', (e) => {
-                e.preventDefault();
-                startDraggingWindow(e);
+            windowDragHandle.addEventListener('pointerup', (e) => {
+                if (!isPhoneDragging) return;
+                isPhoneDragging = false;
+                try { windowDragHandle.releasePointerCapture(e.pointerId); } catch(err) {}
+                snapPhoneToBoundaries();
             });
-            phoneTopBar.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                startDraggingWindow(e);
+
+            windowDragHandle.addEventListener('pointercancel', (e) => {
+                if (!isPhoneDragging) return;
+                isPhoneDragging = false;
+                snapPhoneToBoundaries();
             });
-            phoneTopBar.addEventListener('touchstart', (e) => {
-                startDraggingWindow(e);
-            }, {passive: true});
         }
-
-        function handleDragMove(e) {
-            if (!isPhoneDragging) return;
-            const clientX = e.clientX ?? (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
-            const clientY = e.clientY ?? (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
-
-            phonePosX = clientX - phoneDragStartX;
-            phonePosY = clientY - phoneDragStartY;
-
-            phoneMovableFrame.style.transform = `translate(${phonePosX}px, ${phonePosY}px)`;
-        }
-
-        function handleDragEnd() {
-            if (!isPhoneDragging) return;
-            isPhoneDragging = false;
-            document.body.style.userSelect = '';
-            document.body.style.cursor = '';
-            if (windowDragHandle) windowDragHandle.style.cursor = 'grab';
-            snapPhoneToBoundaries();
-        }
-
-        window.addEventListener('pointermove', handleDragMove);
-        window.addEventListener('mousemove', handleDragMove);
-        window.addEventListener('touchmove', handleDragMove, {passive: true});
-
-        window.addEventListener('pointerup', handleDragEnd);
-        window.addEventListener('mouseup', handleDragEnd);
-        window.addEventListener('touchend', handleDragEnd);
-        window.addEventListener('pointercancel', handleDragEnd);
 
         function snapPhoneToBoundaries() {
             if (window.innerWidth <= 500) return;
@@ -868,10 +803,10 @@
         }
 
         /* --- BOTTOM SHEET DRAG & STATE --- */
-        let isDragging = false;
-        let startY = 0;
-        let startHeight = 0;
-        let hasMoved = false; 
+        let isDraggingSheet = false;
+        let sheetStartY = 0;
+        let sheetStartHeight = 0;
+        let sheetHasMoved = false; 
         const minHeight = 40; 
 
         function getMaxHeight() { 
@@ -885,62 +820,54 @@
         bottomSheet.style.height = currentHeight + 'px';
         updateSheetState(currentHeight);
 
-        sheetHeader.addEventListener('mousedown', startDrag);
-        window.addEventListener('mousemove', onDrag);
-        window.addEventListener('mouseup', stopDrag);
-
-        sheetHeader.addEventListener('touchstart', startDrag, {passive: false});
-        window.addEventListener('touchmove', onDrag, {passive: false});
-        window.addEventListener('touchend', stopDrag);
-
-        sheetHeader.addEventListener('click', (e) => {
-            if (hasMoved) return;
-
-            bottomSheet.style.transition = 'height 0.25s ease-out';
-            if (bottomSheet.clientHeight <= minHeight + 15) {
-                let targetH = getInitialHeight();
-                bottomSheet.style.height = targetH + 'px';
-                updateSheetState(targetH);
-            } else {
-                bottomSheet.style.height = minHeight + 'px';
-                updateSheetState(minHeight);
-            }
+        sheetHeader.addEventListener('pointerdown', (e) => {
+            isDraggingSheet = true;
+            sheetHasMoved = false;
+            sheetHandle.classList.add('active-pink'); 
+            sheetStartY = e.clientY;
+            sheetStartHeight = bottomSheet.clientHeight;
+            bottomSheet.style.transition = 'none';
+            try { sheetHeader.setPointerCapture(e.pointerId); } catch(err){}
         });
 
-        function getClientY(e) {
-            return (e.touches && e.touches.length > 0) ? e.touches[0].clientY : e.clientY;
-        }
-
-        function startDrag(e) {
-            isDragging = true;
-            hasMoved = false;
-            sheetHandle.classList.add('active-pink'); 
-            startY = getClientY(e);
-            startHeight = bottomSheet.clientHeight;
-            bottomSheet.style.transition = 'none';
-        }
-
-        function onDrag(e) {
-            if (!isDragging) return;
-            if (e.cancelable) e.preventDefault();
-            hasMoved = true; 
-            const currentY = getClientY(e);
-            const diff = startY - currentY; 
-            let newHeight = startHeight + diff;
+        sheetHeader.addEventListener('pointermove', (e) => {
+            if (!isDraggingSheet) return;
+            const diff = sheetStartY - e.clientY;
+            if (Math.abs(diff) > 4) sheetHasMoved = true;
+            let newHeight = sheetStartHeight + diff;
             const max = getMaxHeight();
             if (newHeight < minHeight) newHeight = minHeight;
             if (newHeight > max) newHeight = max;
 
             bottomSheet.style.height = newHeight + 'px';
             updateSheetState(newHeight);
-        }
+        });
 
-        function stopDrag() {
-            if (!isDragging) return;
-            isDragging = false;
+        sheetHeader.addEventListener('pointerup', (e) => {
+            if (!isDraggingSheet) return;
+            isDraggingSheet = false;
             sheetHandle.classList.remove('active-pink'); 
             bottomSheet.style.transition = 'height 0.2s ease-out';
-        }
+            try { sheetHeader.releasePointerCapture(e.pointerId); } catch(err){}
+
+            if (!sheetHasMoved) {
+                if (bottomSheet.clientHeight <= minHeight + 15) {
+                    let targetH = getInitialHeight();
+                    bottomSheet.style.height = targetH + 'px';
+                    updateSheetState(targetH);
+                } else {
+                    bottomSheet.style.height = minHeight + 'px';
+                    updateSheetState(minHeight);
+                }
+            }
+        });
+
+        sheetHeader.addEventListener('pointercancel', (e) => {
+            if (!isDraggingSheet) return;
+            isDraggingSheet = false;
+            sheetHandle.classList.remove('active-pink'); 
+            bottomSheet.style.transition = 'height 0.2s ease-out';
+        });
 
         function updateSheetState(height) {
             const max = getMaxHeight();
@@ -1030,7 +957,7 @@
                 sideButtons: [
                     { label: "Cabelo", active: true, icon: '<path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12C4,13.85 4.63,15.55 5.68,16.91C6.7,15.5 8.5,14.5 12,14.5C15.5,14.5 17.3,15.5 18.32,16.91C19.37,15.55 20,13.85 20,12A8,8 0 0,0 12,4M12,6A3,3 0 0,1 15,9A3,3 0 0,1 12,12A3,3 0 0,1 9,9A3,3 0 0,1 12,6Z"/>' },
                     { label: "Olhos", active: false, icon: '<path d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17C10.34,17 9,15.66 9,14C9,12.34 10.34,11 12,11C13.66,11 15,12.34 15,14C15,15.66 13.66,17 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z"/>' },
-                    { label: "Boca", active: false, icon: '<path d="M12,2C14.76,2 17,4.24 17,7C17,8.65 16.18,10.11 14.9,11C16.18,11.89 17,13.35 17,15C17,17.76 14.76,20 12,20C9.24,20 7,17.76 7,15C7,13.35 7.82,11.89 9.1,11C7.82,10.11 7,8.65 7,7C7,4.24 9.24,2 12,2M12,4C10.34,4 9,5.34 9,7C9,8.66 10.34,10 12,10C10.34,10 9,8.66 9,7C9,5.34 10.34,4 12,4M12,13C15.03,13 17.5,15.47 17.5,18.5H6.5C6.5,15.47 8.97,13 12,13Z"/></svg></div>
+                    { label: "Boca", active: false, icon: '<path d="M12,2C14.76,2 17,4.24 17,7C17,8.65 16.18,10.11 14.9,11C16.18,11.89 17,13.35 17,15C17,17.76 14.76,20 12,20C9.24,20 7,17.76 7,15C7,13.35 7.82,11.89 9.1,11C7.82,10.11 7,8.65 7,7C7,4.24 9.24,2 12,2M12,4C10.34,4 9,5.34 9,7C9,8.66 10.34,10 12,10C10.34,10 15,8.66 15,7C15,5.34 13.66,4 12,4M12,12C10.34,12 9,13.34 9,15C9,16.66 10.34,18 12,18C13.66,18 15,16.66 15,15C15,13.34 13.66,12 12,12Z"/>' }
                 ],
                 sheetHTML: `
                     <div class="section-title">Tipo de Cabelo</div>
