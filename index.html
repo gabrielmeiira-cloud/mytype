@@ -330,8 +330,9 @@
             justify-content: center;
             align-items: center;
             transform-origin: center center;
-            will-change: transform;
             pointer-events: none;
+            -webkit-transform-style: preserve-3d;
+            transform-style: preserve-3d;
         }
 
         /* Clone exato do degradê 10x maior que se move junto com o avatar (Modo Câmera) */
@@ -357,6 +358,11 @@
             bottom: 0;
             left: 0;
             pointer-events: none;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: high-quality;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            transform: translateZ(0);
             transition: opacity 0.25s ease, filter 0.3s ease;
         }
 
