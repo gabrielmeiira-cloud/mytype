@@ -339,8 +339,7 @@
             align-items: center;
             transform-origin: center center;
             pointer-events: none;
-            -webkit-transform-style: preserve-3d;
-            transform-style: preserve-3d;
+            will-change: transform;
         }
 
         /* Clone exato do degradê 10x maior que se move junto com o avatar (Modo Câmera) */
@@ -1629,7 +1628,7 @@
             } else {
                 avatarContainer.style.transition = 'none';
             }
-            avatarContainer.style.transform = `translate(${avatarPanX}px, ${avatarPanY}px) scale(${avatarScale})`;
+            avatarContainer.style.transform = `translate3d(${avatarPanX}px, ${avatarPanY}px, 0px) scale(${avatarScale})`;
             updateHudDisplay();
         }
 
