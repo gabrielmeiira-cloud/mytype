@@ -981,7 +981,6 @@
             transition: background-color 0.2s ease, transform 0.2s ease;
         }
 
-        .sheet-header-area:hover .sheet-handle,
         .sheet-header-area:active .sheet-handle,
         .sheet-handle.active-pink {
             background-color: var(--primary);
@@ -1011,10 +1010,11 @@
             scrollbar-width: none;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 14px;
             flex: 1;
+            margin-top: -6px;
             margin-bottom: 64px;
-            padding-bottom: 12px;
+            padding-bottom: 14px;
             opacity: 1;
             transition: opacity 0.15s ease;
             -webkit-overflow-scrolling: touch;
@@ -1029,7 +1029,8 @@
         }
 
         .section-title {
-            font-size: 12px;
+            font-size: 14px;
+            font-weight: 600;
             color: var(--text-secondary);
         }
 
@@ -1042,7 +1043,7 @@
 
         .styles-scroll-container {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             overflow-x: auto;
             overflow-y: hidden;
             padding-bottom: 4px;
@@ -1059,19 +1060,19 @@
         .style-card {
             background-color: var(--bg-card); 
             border: 2px solid transparent;
-            border-radius: 14px;
-            min-width: 68px;
-            height: 76px;
+            border-radius: 16px;
+            min-width: 82px;
+            height: 92px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: flex-end;
-            padding-bottom: 6px;
+            padding-bottom: 8px;
             cursor: pointer;
             position: relative;
             overflow: hidden;
             flex-shrink: 0;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, transform 0.2s;
         }
 
         .style-card.active {
@@ -1079,7 +1080,8 @@
         }
 
         .style-card span {
-            font-size: 9.5px;
+            font-size: 11.5px;
+            font-weight: 500;
             color: var(--text-muted);
             white-space: nowrap;
             pointer-events: none;
@@ -1087,7 +1089,7 @@
 
         .colors-scroll-container {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             overflow-x: auto;
             overflow-y: hidden;
             padding-bottom: 4px;
@@ -1102,8 +1104,8 @@
         }
 
         .color-dot {
-            min-width: 32px;
-            height: 32px;
+            min-width: 38px;
+            height: 38px;
             border-radius: 50%;
             border: 2px solid transparent;
             cursor: pointer;
@@ -1188,8 +1190,29 @@
 
             /* Linha de corte da visualização exatamente na parte de cima do retângulo */
             .sheet-content {
+                margin-top: -6px !important;
                 margin-bottom: calc(max(16px, env(safe-area-inset-bottom, 16px)) + 58px) !important;
-                padding-bottom: 12px !important;
+                padding-bottom: 14px !important;
+                gap: 14px !important;
+            }
+
+            .style-card {
+                min-width: 86px !important;
+                height: 96px !important;
+                border-radius: 18px !important;
+            }
+
+            .style-card span {
+                font-size: 12px !important;
+            }
+
+            .color-dot {
+                min-width: 40px !important;
+                height: 40px !important;
+            }
+
+            .section-title {
+                font-size: 15px !important;
             }
 
             /* Menu e ícones laterais +15% maiores no celular */
@@ -2753,6 +2776,13 @@
             el.classList.add('active');
             const tabName = el.getAttribute('data-tab');
             loadTabContent(tabName);
+
+            // Aumenta o menu para 40% de abertura ao clicar nas opções
+            const targetH = getInitialHeight();
+            bottomSheet.style.transition = 'height 0.32s cubic-bezier(0.22, 1, 0.36, 1)';
+            bottomSheet.style.height = targetH + 'px';
+            updateSheetState(targetH);
+            updateCameraFramingRealtime(320, targetH);
         }
 
         // Recalcula o enquadramento responsivo em rotação ou redimensionamento de janela
