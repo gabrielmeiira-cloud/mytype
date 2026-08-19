@@ -961,13 +961,14 @@
         .sheet-header-area {
             width: 100%;
             cursor: pointer;
-            padding: 8px 0 14px 0;
+            padding: 6px 0 8px 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             flex-shrink: 0;
             touch-action: none;
+            position: relative;
         }
 
         .sheet-handle {
@@ -975,6 +976,7 @@
             height: 6px;
             background-color: #5c5765;
             border-radius: 12px;
+            margin-top: 2px;
             transition: background-color 0.2s ease, transform 0.2s ease;
         }
 
@@ -986,17 +988,15 @@
         }
 
         .sheet-title {
-            font-size: 12.5px;
+            font-size: 12px;
             font-weight: 600;
             color: var(--text-secondary);
             letter-spacing: 0.3px;
-            position: absolute;
-            top: 22px;
-            left: 50%;
-            transform: translateX(-50%);
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.15s ease;
+            position: static;
+            transform: none;
+            margin: 0;
+            opacity: 1;
+            transition: opacity 0.2s ease;
         }
 
         .sheet-content {
@@ -1161,19 +1161,22 @@
                 height: 23px !important;
             }
 
-            /* Puxador da aba de configurações mais gordinho e com respiro */
+            /* Puxador da aba de configurações no topo e com respiro */
             .sheet-handle {
-                width: 52px !important;
-                height: 7.5px !important;
+                width: 50px !important;
+                height: 7px !important;
                 border-radius: 14px !important;
+                margin-top: 2px !important;
             }
 
             .sheet-header-area {
-                padding: 10px 0 16px 0 !important;
+                padding: 8px 0 8px 0 !important;
+                gap: 6px !important;
             }
 
             .sheet-title {
-                font-size: 14px !important;
+                font-size: 12.5px !important;
+                margin: 0 !important;
             }
 
             /* Linha de corte da visualização exatamente na parte de cima do retângulo */
@@ -2290,7 +2293,7 @@
 
         function getMinHeight() {
             const isMobile = window.innerWidth <= 500;
-            return isMobile ? 146 : 118;
+            return isMobile ? 120 : 96;
         }
 
         function getMaxHeight() { 
@@ -2298,7 +2301,7 @@
         }
         function getInitialHeight() { 
             const isMobile = window.innerWidth <= 500;
-            return isMobile ? Math.max(260, Math.min(appContainer.clientHeight * 0.52, 380)) : Math.max(200, Math.min(appContainer.clientHeight * 0.45, 320)); 
+            return isMobile ? Math.max(280, Math.min(appContainer.clientHeight * 0.52, 400)) : Math.max(220, Math.min(appContainer.clientHeight * 0.45, 340)); 
         }
 
         let currentHeight = getMinHeight();
@@ -2317,10 +2320,10 @@
                 line.style.top = `${topPos}px`;
             }
 
-            // Limita o canvas (.viewport) para iniciar na linha divisória e terminar na linha de corte superior da aba fechada
+            // O canvas (.viewport) se estende até a base para que a transparência dos cantos arredondados mostre o degradê do fundo naturalmente
             if (viewportCanvas) {
                 viewportCanvas.style.top = `${topPos}px`;
-                viewportCanvas.style.bottom = `${minH}px`;
+                viewportCanvas.style.bottom = `0px`;
             }
 
             // Mantém os ícones laterais sempre abaixo da linha divisória
