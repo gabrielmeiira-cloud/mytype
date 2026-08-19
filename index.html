@@ -160,7 +160,7 @@
             }
 
             .window-btn-minimize:active {
-                transform: scale(0.95);
+                transform: scale(0.92);
             }
 
             .window-btn-minimize svg {
@@ -170,6 +170,21 @@
                 pointer-events: none;
             }
 
+            /* Alças Interativas de Redimensionamento da Janela (Estilo Windows OS no Computador) */
+            .win-resize-handle {
+                position: absolute;
+                z-index: 99;
+                touch-action: none;
+            }
+
+            .win-resize-n  { top: -8px; left: 24px; right: 24px; height: 16px; cursor: ns-resize; }
+            .win-resize-s  { bottom: -8px; left: 24px; right: 24px; height: 16px; cursor: ns-resize; }
+            .win-resize-w  { left: -8px; top: 24px; bottom: 24px; width: 16px; cursor: ew-resize; }
+            .win-resize-e  { right: -8px; top: 24px; bottom: 24px; width: 16px; cursor: ew-resize; }
+            .win-resize-nw { top: -8px; left: -8px; width: 28px; height: 28px; cursor: nwse-resize; }
+            .win-resize-ne { top: -8px; right: -8px; width: 28px; height: 28px; cursor: nesw-resize; }
+            .win-resize-sw { bottom: -8px; left: -8px; width: 28px; height: 28px; cursor: nesw-resize; }
+            .win-resize-se { bottom: -8px; right: -8px; width: 28px; height: 28px; cursor: nwse-resize; }
         }
 
 
@@ -1312,6 +1327,16 @@
                 <svg viewBox="0 0 24 24"><path d="M19,13H5V11H19V13Z"/></svg>
             </button>
 
+            <!-- Alças Interativas de Redimensionamento Livre da Janela (Estilo Windows OS no Computador) -->
+            <div class="win-resize-handle win-resize-n" data-resize="n" title="Arraste para redimensionar verticalmente"></div>
+            <div class="win-resize-handle win-resize-s" data-resize="s" title="Arraste para redimensionar verticalmente"></div>
+            <div class="win-resize-handle win-resize-w" data-resize="w" title="Arraste para redimensionar horizontalmente"></div>
+            <div class="win-resize-handle win-resize-e" data-resize="e" title="Arraste para redimensionar horizontalmente"></div>
+            <div class="win-resize-handle win-resize-nw" data-resize="nw" title="Arraste para redimensionar"></div>
+            <div class="win-resize-handle win-resize-ne" data-resize="ne" title="Arraste para redimensionar"></div>
+            <div class="win-resize-handle win-resize-sw" data-resize="sw" title="Arraste para redimensionar"></div>
+            <div class="win-resize-handle win-resize-se" data-resize="se" title="Arraste para redimensionar"></div>
+
             <div class="app-container" id="appContainer">
                 
                 <!-- Viewport / Canvas Interativo da Modelo -->
@@ -2251,6 +2276,103 @@
             });
         }
 
+        /* --- REDIMENSIONAMENTO LIVRE DE JANELA ESTILO WINDOWS (DESKTOP) --- */
+        let isResizingWindow = false;
+        let resizeDir = '';
+        let resizeStartX = 0;
+        let resizeStartY = 0;
+        let resizeStartWidth = 0;
+        let resizeStartHeight = 0;
+        let resizeStartPosX = 0;
+        let resizeStartPosY = 0;
+
+        document.querySelectorAll('.win-resize-handle').forEach(handle => {
+            handle.addEventListener('pointerdown', (e) => {
+                if (window.innerWidth <= 500) return;
+                e.preventDefault();
+                e.stopPropagation();
+
+                isResizingWindow = true;
+                resizeDir = handle.getAttribute('data-resize');
+                resizeStartX = e.clientX;
+                resizeStartY = e.clientY;
+
+                const rect = appContainer.getBoundingClientRect();
+                resizeStartWidth = rect.width;
+                resizeStartHeight = rect.height;
+                resizeStartPosX = phonePosX;
+                resizeStartPosY = phonePosY;
+
+                document.body.style.userSelect = 'none';
+                phoneMovableFrame.style.transition = 'none';
+                try { handle.setPointerCapture(e.pointerId); } catch(err){}
+            });
+
+            handle.addEventListener('pointermove', (e) => {
+                if (!isResizingWindow) return;
+                const dx = e.clientX - resizeStartX;
+                const dy = e.clientY - resizeStartY;
+
+                let newW = resizeStartWidth;
+                let newH = resizeStartHeight;
+                let newX = resizeStartPosX;
+                let newY = resizeStartPosY;
+
+                if (resizeDir.includes('e')) {
+                    newW = Math.max(260, Math.min(window.innerWidth * 0.95, resizeStartWidth + dx));
+                }
+                if (resizeDir.includes('w')) {
+                    const candidateW = resizeStartWidth - dx;
+                    if (candidateW >= 260 && candidateW <= window.innerWidth * 0.95) {
+                        newW = candidateW;
+                        newX = resizeStartPosX + dx;
+                    }
+                }
+                if (resizeDir.includes('s')) {
+                    newH = Math.max(420, Math.min(window.innerHeight * 0.96, resizeStartHeight + dy));
+                }
+                if (resizeDir.includes('n')) {
+                    const candidateH = resizeStartHeight - dy;
+                    if (candidateH >= 420 && candidateH <= window.innerHeight * 0.96) {
+                        newH = candidateH;
+                        newY = resizeStartPosY + dy;
+                    }
+                }
+
+                appContainer.style.width = `${newW}px`;
+                appContainer.style.maxWidth = `${newW}px`;
+                appContainer.style.height = `${newH}px`;
+                appContainer.style.maxHeight = `${newH}px`;
+                appContainer.style.aspectRatio = 'unset';
+
+                phonePosX = newX;
+                phonePosY = newY;
+                phoneMovableFrame.style.transform = `translate(${phonePosX}px, ${phonePosY}px)`;
+
+                renderSheetLimitLine();
+                syncSheetLayout();
+                if (activeSessionName) {
+                    applyResponsivePreset(activeSessionName, 0);
+                }
+            });
+
+            const stopWindowResize = (e) => {
+                if (!isResizingWindow) return;
+                isResizingWindow = false;
+                document.body.style.userSelect = '';
+                try { handle.releasePointerCapture(e.pointerId); } catch(err){}
+                snapPhoneToBoundaries();
+                renderSheetLimitLine();
+                syncSheetLayout();
+                if (activeSessionName) {
+                    applyResponsivePreset(activeSessionName, 0);
+                }
+            };
+
+            handle.addEventListener('pointerup', stopWindowResize);
+            handle.addEventListener('pointercancel', stopWindowResize);
+        });
+
         function snapPhoneToBoundaries() {
             if (window.innerWidth <= 500) return;
 
@@ -2344,9 +2466,9 @@
         }
 
         function getInitialHeight() { 
-            // Altura padrão ampliada em +8% ao alterar as abas (48% da altura disponível)
+            // Altura padrão de 45% (-3%) da altura da tela disponível ao alterar as abas
             const availableH = appContainer ? appContainer.clientHeight : window.innerHeight;
-            return Math.round(availableH * 0.48);
+            return Math.round(availableH * 0.45);
         }
 
         function syncSheetLayout() {
