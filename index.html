@@ -2300,17 +2300,18 @@
 
         function getFooterNavTopDistance() {
             const nav = document.querySelector('.footer-nav');
-            if (!nav || !appContainer) return (window.innerWidth <= 500 ? 76 : 64);
+            if (!nav || !appContainer) return (window.innerWidth <= 500 ? 70 : 58);
             const navRect = nav.getBoundingClientRect();
             const containerRect = appContainer.getBoundingClientRect();
-            return Math.max(0, containerRect.bottom - navRect.top);
+            const dist = containerRect.bottom - navRect.top;
+            return dist > 10 ? dist : (window.innerWidth <= 500 ? 70 : 58);
         }
 
         function getMinHeight() {
             const isMobile = window.innerWidth <= 500;
             const navTopDist = getFooterNavTopDistance();
-            // Espaço proporcional calculado estritamente a partir da barra de opções
-            const headerSpaceAboveNav = isMobile ? 54 : 44;
+            // Espaço proporcional reduzido em 8px acima da barra de opções
+            const headerSpaceAboveNav = isMobile ? 46 : 36;
             return Math.round(navTopDist + headerSpaceAboveNav);
         }
 
@@ -2318,9 +2319,19 @@
             const isMobile = window.innerWidth <= 500;
             return appContainer.clientHeight - (isMobile ? 32 : 28); 
         }
+
         function getInitialHeight() { 
-            const isMobile = window.innerWidth <= 500;
-            return isMobile ? Math.max(220, Math.min(appContainer.clientHeight * 0.40, 300)) : Math.max(180, Math.min(appContainer.clientHeight * 0.35, 260)); 
+            // Abre sempre exatamente 40% da altura da tela disponível
+            const availableH = appContainer ? appContainer.clientHeight : window.innerHeight;
+            return Math.round(availableH * 0.40);
+        }
+
+        function syncSheetLayout() {
+            if (isDraggingSheet) return;
+            const minH = getMinHeight();
+            bottomSheet.style.height = minH + 'px';
+            updateSheetState(minH);
+            renderSheetLimitLine();
         }
 
         let currentHeight = getMinHeight();
@@ -2752,9 +2763,17 @@
             renderSheetLimitLine();
         });
 
-        // Inicia carregando a aba "Identidade" e com as configurações fechadas
+        // Inicia carregando a aba "Identidade" e com as configurações fechadas perfeitamente sincronizadas
         loadTabContent("Identidade");
-        renderSheetLimitLine();
+        syncSheetLayout();
+
+        // Garante sincronização perfeita no iPhone após pintura do layout e Safe-Area
+        window.addEventListener('load', syncSheetLayout);
+        window.addEventListener('pageshow', syncSheetLayout);
+        window.addEventListener('orientationchange', () => setTimeout(syncSheetLayout, 120));
+        setTimeout(syncSheetLayout, 60);
+        setTimeout(syncSheetLayout, 200);
+        setTimeout(syncSheetLayout, 500);
     </script>
 </body>
 </html>
