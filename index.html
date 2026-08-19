@@ -1566,19 +1566,6 @@
                         <div class="vp-handle vp-handle-e" data-vp-handle="e"></div>
                     </div>
 
-                    <!-- Caixa de Colisão Universal Verde (Anatomia do Canvas - Imune a Zoom) -->
-                    <div class="debug-green-box" id="debugGreenBox" title="Use os 4 cantos e as 4 arestas para redimensionar">
-                        <div class="green-badge-tag" id="greenBadgeTag">Verde Universal: Identidade</div>
-                        <div class="green-handle handle-nw" data-handle="nw"></div>
-                        <div class="green-handle handle-ne" data-handle="ne"></div>
-                        <div class="green-handle handle-sw" data-handle="sw"></div>
-                        <div class="green-handle handle-se" data-handle="se"></div>
-                        <div class="green-handle handle-n" data-handle="n"></div>
-                        <div class="green-handle handle-s" data-handle="s"></div>
-                        <div class="green-handle handle-w" data-handle="w"></div>
-                        <div class="green-handle handle-e" data-handle="e"></div>
-                    </div>
-
                     <div class="avatar-container" id="avatarContainer">
                         <div class="infinite-gradient-backdrop" id="infiniteBackdrop"></div>
                         <img src="avatar.webp" alt="Base Avatar" class="avatar-layer avatar-base" id="layerBase">
@@ -1598,6 +1585,20 @@
                             <div class="box-handle handle-w" data-handle="w"></div>
                             <div class="box-handle handle-e" data-handle="e"></div>
                         </div>
+
+                        <!-- Caixa de Colisão Universal Verde (Acompanha o Zoom do Avatar e Trava nas Bordas da Tela) -->
+                        <div class="debug-green-box" id="debugGreenBox" title="Use os 4 cantos e as 4 arestas para redimensionar">
+                            <div class="green-badge-tag" id="greenBadgeTag">Verde Universal: Identidade</div>
+                            <div class="green-handle handle-nw" data-handle="nw"></div>
+                            <div class="green-handle handle-ne" data-handle="ne"></div>
+                            <div class="green-handle handle-sw" data-handle="sw"></div>
+                            <div class="green-handle handle-se" data-handle="se"></div>
+                            <div class="green-handle handle-n" data-handle="n"></div>
+                            <div class="green-handle handle-s" data-handle="s"></div>
+                            <div class="green-handle handle-w" data-handle="w"></div>
+                            <div class="green-handle handle-e" data-handle="e"></div>
+                        </div>
+                    </div>
                     </div>
                 </div>
 
@@ -1982,25 +1983,22 @@
             const m = getAvatarLayoutMetrics();
             const vb = getSafeViewportBounds(customSheetH);
 
-            // Tamanho em pixels da caixa verde marcada na tela padrão:
-            const boxWidthPx = Math.max(20, m.w * box.w);
-            const boxHeightPx = Math.max(20, m.h * box.h);
+            // Largura e altura da caixa verde na escala natural da modelo (escala 1.0)
+            const boxPixelW = Math.max(15, m.renderedW * box.w);
+            const boxPixelH = Math.max(15, m.renderedH * box.h);
 
-            // Ponto central da região marcada pelo usuário:
-            const centerPxX = m.w * (box.x + box.w / 2);
-            const centerPxY = m.h * (box.y + box.h / 2);
+            // Estica ao máximo para travar nas bordas da tela (topo, baixo, laterais):
+            const scaleX = vb.width / boxPixelW;
+            const scaleY = vb.height / boxPixelH;
+            const targetScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, Math.min(scaleX, scaleY)));
 
-            // Fator de escala para que a parte marcada cresça e preencha a área útil livre (vb):
-            const scaleX = vb.width / boxWidthPx;
-            const scaleY = vb.height / boxHeightPx;
-            
-            // Mantém a proporção natural da modelo (máximo zoom até encostar na primeira borda livre):
-            const zoomRatio = Math.min(scaleX, scaleY);
-            const targetScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, DEFAULT_SCALE * zoomRatio));
+            // Centro anatômico da caixa verde na modelo
+            const centerPtX = m.offsetX + (m.renderedW * (box.x + box.w / 2));
+            const centerPtY = m.offsetY + (m.renderedH * (box.y + box.h / 2));
 
-            // Pan para alinhar o centro da parte marcada com o centro da área livre (vb.centerX, vb.centerY):
-            const targetPanX = (vb.centerX - (m.w / 2)) - (centerPxX - (m.w / 2)) * (targetScale / DEFAULT_SCALE);
-            const targetPanY = (vb.centerY - (m.h / 2)) - (centerPxY - (m.h / 2)) * (targetScale / DEFAULT_SCALE);
+            // Centraliza o ponto focal exatamente no centro da área útil livre da tela
+            const targetPanX = (vb.centerX - (m.w / 2)) - (centerPtX - (m.w / 2)) * targetScale;
+            const targetPanY = (vb.centerY - (m.h / 2)) - (centerPtY - (m.h / 2)) * targetScale;
 
             const clamped = clampPan(targetPanX, targetPanY, targetScale);
 
@@ -2322,20 +2320,19 @@
             });
         }
 
-        /* --- CAIXA DE COLISÃO UNIVERSAL VERDE (ANATOMIA DO CANVAS - IMUNE A ZOOM) --- */
+        /* --- CAIXA DE COLISÃO UNIVERSAL VERDE (ACOPLADA AO AVATAR - SEGUE O ZOOM E TRAVA NAS BORDAS) --- */
         const debugGreenBox = document.getElementById('debugGreenBox');
         const greenBadgeTag = document.getElementById('greenBadgeTag');
         const greenCoordsText = document.getElementById('greenCoordsText');
 
-        // Por padrão: um quadrado compacto no centro (30% x 30%) para cada sessão
         const universalGreenBoxes = {
-            "Identidade": { x: 0.35, y: 0.30, w: 0.30, h: 0.30 },
-            "Aparência":  { x: 0.35, y: 0.12, w: 0.30, h: 0.25 },
-            "Busto":      { x: 0.35, y: 0.28, w: 0.30, h: 0.25 },
-            "Pernas":     { x: 0.30, y: 0.48, w: 0.40, h: 0.35 },
-            "Pés":        { x: 0.32, y: 0.72, w: 0.36, h: 0.22 },
-            "Estilo":     { x: 0.30, y: 0.20, w: 0.40, h: 0.40 },
-            "Gravação":   { x: 0.30, y: 0.20, w: 0.40, h: 0.40 }
+            "Identidade": { x: 0.10, y: 0.05, w: 0.80, h: 0.90 },
+            "Aparência":  { x: 0.35, y: 0.00, w: 0.30, h: 0.27 },
+            "Busto":      { x: 0.35, y: 0.18, w: 0.30, h: 0.22 },
+            "Pernas":     { x: 0.25, y: 0.40, w: 0.50, h: 0.42 },
+            "Pés":        { x: 0.28, y: 0.78, w: 0.44, h: 0.22 },
+            "Estilo":     { x: 0.15, y: 0.08, w: 0.70, h: 0.84 },
+            "Gravação":   { x: 0.10, y: 0.05, w: 0.80, h: 0.90 }
         };
 
         try {
@@ -2346,7 +2343,7 @@
         } catch(e) {}
 
         let selectedGreenTab = "Identidade";
-        let currentGreenBox = { ...(universalGreenBoxes["Identidade"] || { x: 0.35, y: 0.30, w: 0.30, h: 0.30 }) };
+        let currentGreenBox = { ...(universalGreenBoxes["Identidade"] || { x: 0.10, y: 0.05, w: 0.80, h: 0.90 }) };
         let isGreenBoxLocked = false;
 
         function toggleLockGreenBox() {
@@ -2358,11 +2355,11 @@
             if (!debugGreenBox) return;
             const m = getAvatarLayoutMetrics();
 
-            // Mapeado sobre a área total do Canvas (permite ir até o topo y=0 e bordas totais)
-            const leftPx = m.w * currentGreenBox.x;
-            const topPx = m.h * currentGreenBox.y;
-            const widthPx = m.w * currentGreenBox.w;
-            const heightPx = m.h * currentGreenBox.h;
+            // Mapeado diretamente sobre a imagem do Avatar (acompanha zoom e pan perfeitamente)
+            const leftPx = m.offsetX + (m.renderedW * currentGreenBox.x);
+            const topPx = m.offsetY + (m.renderedH * currentGreenBox.y);
+            const widthPx = m.renderedW * currentGreenBox.w;
+            const heightPx = m.renderedH * currentGreenBox.h;
 
             debugGreenBox.style.left = `${leftPx}px`;
             debugGreenBox.style.top = `${topPx}px`;
@@ -2380,7 +2377,7 @@
 
         function selectGreenSession(sessionName) {
             selectedGreenTab = sessionName;
-            currentGreenBox = { ...(universalGreenBoxes[sessionName] || { x: 0.35, y: 0.30, w: 0.30, h: 0.30 }) };
+            currentGreenBox = { ...(universalGreenBoxes[sessionName] || { x: 0.10, y: 0.05, w: 0.80, h: 0.90 }) };
             renderGreenBoxDOM();
 
             document.querySelectorAll('.green-tag').forEach(tag => {
@@ -2390,6 +2387,9 @@
                     tag.classList.remove('active');
                 }
             });
+
+            // Enquadra automaticamente travando nas bordas da tela
+            focusCameraOnGreenBox();
         }
 
         function focusCameraOnGreenBox() {
@@ -2456,20 +2456,6 @@
             }
         }
 
-        function getMaxGreenBounds() {
-            const m = getAvatarLayoutMetrics();
-            const vpRect = viewportCanvas ? viewportCanvas.getBoundingClientRect() : null;
-            const sheetEl = document.getElementById('bottomSheet');
-            const sheetRect = sheetEl ? sheetEl.getBoundingClientRect() : null;
-
-            let bottomPx = m.h - 100;
-            if (vpRect && sheetRect && sheetRect.top > vpRect.top) {
-                bottomPx = sheetRect.top - vpRect.top;
-            }
-            const maxNormY = Math.max(0.15, Math.min(1.0, bottomPx / m.h));
-            return { minX: 0.0, maxX: 1.0, minY: 0.0, maxY: maxNormY };
-        }
-
         /* --- INTERAÇÃO DIRETA: REDIMENSIONAR A CAIXA VERDE PELOS CANTOS E ARESTAS --- */
         let greenDragMode = null;
         let greenStartMouseX = 0;
@@ -2493,11 +2479,11 @@
             window.addEventListener('pointermove', (e) => {
                 if (!greenDragMode || !greenStartBox) return;
                 const m = getAvatarLayoutMetrics();
-                const bounds = getMaxGreenBounds();
 
-                // Totalmente imune ao zoom da câmera - mapeado no Canvas
-                const deltaNormX = (e.clientX - greenStartMouseX) / m.w;
-                const deltaNormY = (e.clientY - greenStartMouseY) / m.h;
+                // Normalizado pela escala atual do avatar para redimensionar perfeitamente em qualquer nível de zoom
+                const effScale = Math.max(0.1, avatarScale);
+                const deltaNormX = (e.clientX - greenStartMouseX) / (m.renderedW * effScale);
+                const deltaNormY = (e.clientY - greenStartMouseY) / (m.renderedH * effScale);
 
                 let newX = greenStartBox.x;
                 let newY = greenStartBox.y;
@@ -2505,25 +2491,24 @@
                 let newH = greenStartBox.h;
 
                 if (greenDragMode.includes('e')) {
-                    newW = Math.max(0.04, Math.min(bounds.maxX - greenStartBox.x, greenStartBox.w + deltaNormX));
+                    newW = Math.max(0.04, Math.min(1.0 - greenStartBox.x, greenStartBox.w + deltaNormX));
                 }
                 if (greenDragMode.includes('s')) {
-                    newH = Math.max(0.04, Math.min(bounds.maxY - greenStartBox.y, greenStartBox.h + deltaNormY));
+                    newH = Math.max(0.04, Math.min(1.0 - greenStartBox.y, greenStartBox.h + deltaNormY));
                 }
                 if (greenDragMode.includes('w')) {
                     const right = greenStartBox.x + greenStartBox.w;
-                    newX = Math.max(bounds.minX, Math.min(right - 0.04, greenStartBox.x + deltaNormX));
+                    newX = Math.max(0.0, Math.min(right - 0.04, greenStartBox.x + deltaNormX));
                     newW = right - newX;
                 }
                 if (greenDragMode.includes('n')) {
                     const bottom = greenStartBox.y + greenStartBox.h;
-                    newY = Math.max(bounds.minY, Math.min(bottom - 0.04, greenStartBox.y + deltaNormY));
+                    newY = Math.max(0.0, Math.min(bottom - 0.04, greenStartBox.y + deltaNormY));
                     newH = bottom - newY;
                 }
 
-                // Respeita estritamente as linhas vermelhas do usuário (topo: y=0, baixo: topo da aba de configurações)
-                newX = Math.max(bounds.minX, Math.min(bounds.maxX - newW, newX));
-                newY = Math.max(bounds.minY, Math.min(bounds.maxY - newH, newY));
+                newX = Math.max(0.0, Math.min(1.0 - newW, newX));
+                newY = Math.max(0.0, Math.min(1.0 - newH, newY));
 
                 currentGreenBox = { x: newX, y: newY, w: newW, h: newH };
                 renderGreenBoxDOM();
