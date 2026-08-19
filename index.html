@@ -87,6 +87,9 @@
                 border-radius: 38px;
                 border: 2px solid var(--border-color);
                 box-shadow: 0 20px 48px rgba(0, 0, 0, 0.75);
+                position: relative;
+            }
+
             /* Barra de Título Superior Estilo Janela OS (Apenas Computador) */
             .desktop-titlebar {
                 width: 100%;
@@ -194,18 +197,18 @@
             /* Alças Interativas de Redimensionamento da Janela (Estilo Windows OS no Computador) */
             .win-resize-handle {
                 position: absolute;
-                z-index: 99;
+                z-index: 120;
                 touch-action: none;
             }
 
-            .win-resize-n  { top: -8px; left: 24px; right: 24px; height: 16px; cursor: ns-resize; }
-            .win-resize-s  { bottom: -8px; left: 24px; right: 24px; height: 16px; cursor: ns-resize; }
-            .win-resize-w  { left: -8px; top: 24px; bottom: 24px; width: 16px; cursor: ew-resize; }
-            .win-resize-e  { right: -8px; top: 24px; bottom: 24px; width: 16px; cursor: ew-resize; }
-            .win-resize-nw { top: -8px; left: -8px; width: 28px; height: 28px; cursor: nwse-resize; }
-            .win-resize-ne { top: -8px; right: -8px; width: 28px; height: 28px; cursor: nesw-resize; }
-            .win-resize-sw { bottom: -8px; left: -8px; width: 28px; height: 28px; cursor: nesw-resize; }
-            .win-resize-se { bottom: -8px; right: -8px; width: 28px; height: 28px; cursor: nwse-resize; }
+            .win-resize-n  { top: -12px; left: 32px; right: 32px; height: 24px; cursor: ns-resize; }
+            .win-resize-s  { bottom: -12px; left: 32px; right: 32px; height: 24px; cursor: ns-resize; }
+            .win-resize-w  { left: -12px; top: 32px; bottom: 32px; width: 24px; cursor: ew-resize; }
+            .win-resize-e  { right: -12px; top: 32px; bottom: 32px; width: 24px; cursor: ew-resize; }
+            .win-resize-nw { top: -12px; left: -12px; width: 44px; height: 44px; cursor: nwse-resize; z-index: 130; }
+            .win-resize-ne { top: -12px; right: -12px; width: 44px; height: 44px; cursor: nesw-resize; z-index: 130; }
+            .win-resize-sw { bottom: -12px; left: -12px; width: 44px; height: 44px; cursor: nesw-resize; z-index: 130; }
+            .win-resize-se { bottom: -12px; right: -12px; width: 44px; height: 44px; cursor: nwse-resize; z-index: 130; }
         }
 
         @media (max-width: 500px) {
