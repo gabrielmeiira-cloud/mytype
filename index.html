@@ -172,66 +172,7 @@
 
         }
 
-        /* Celular Físico: Ocupa 100% da tela e proporção touch perfeita */
-        @media (max-width: 500px) {
-            .phone-wrapper,
-            .phone-movable-frame {
-                width: 100%;
-                height: 100%;
-                padding: 0;
-                transform: none !important;
-            }
 
-            .app-container {
-                width: 100vw;
-                height: 100dvh;
-                max-width: none;
-                max-height: none;
-                border-radius: 0;
-                border: none;
-                box-shadow: none;
-            }
-
-            .window-btn-drag,
-            .window-btn-minimize,
-            .floating-mini-phone,
-            .desktop-debug-wrapper {
-                display: none !important;
-            }
-
-            /* Barra inferior e botões ampliados e calibrados para o polegar no celular */
-            .footer-nav {
-                bottom: max(24px, env(safe-area-inset-bottom, 24px));
-                padding: 13px 12px;
-                border-radius: 20px;
-                gap: 6px;
-            }
-
-            .nav-item {
-                font-size: 11.5px;
-                gap: 5px;
-                min-width: 58px;
-                font-weight: 600;
-            }
-
-            .nav-icon-wrapper {
-                width: 28px;
-                height: 28px;
-            }
-
-            .nav-icon-wrapper svg {
-                width: 23px;
-                height: 23px;
-            }
-
-            .bottom-sheet {
-                bottom: calc(max(24px, env(safe-area-inset-bottom, 24px)) + 76px);
-            }
-
-            .viewport {
-                bottom: calc(max(24px, env(safe-area-inset-bottom, 24px)) + 76px);
-            }
-        }
 
         /* Celularzinho em miniatura suspenso quando minimizado */
         .floating-mini-phone {
@@ -1162,6 +1103,67 @@
         .color-dot.active {
             border-color: var(--primary);
             padding: 2px;
+        }
+
+        /* --- REGRAS DEDICADAS PARA DISPOSITIVOS MÓVEIS (CELULAR REAL TOUCH) --- */
+        @media (max-width: 500px) {
+            .phone-wrapper,
+            .phone-movable-frame {
+                width: 100%;
+                height: 100%;
+                padding: 0;
+                transform: none !important;
+            }
+
+            .app-container {
+                width: 100vw;
+                height: 100dvh;
+                max-width: none;
+                max-height: none;
+                border-radius: 0;
+                border: none;
+                box-shadow: none;
+            }
+
+            .window-btn-drag,
+            .window-btn-minimize,
+            .floating-mini-phone,
+            .desktop-debug-wrapper {
+                display: none !important;
+            }
+
+            /* Barra inferior ampla, elevada e com botões 'gordinhos' para o polegar */
+            .footer-nav {
+                bottom: max(26px, env(safe-area-inset-bottom, 26px)) !important;
+                padding: 14px 12px !important;
+                border-radius: 22px !important;
+                gap: 6px !important;
+            }
+
+            .nav-item {
+                font-size: 12px !important;
+                gap: 5px !important;
+                min-width: 60px !important;
+                font-weight: 600 !important;
+            }
+
+            .nav-icon-wrapper {
+                width: 32px !important;
+                height: 32px !important;
+            }
+
+            .nav-icon-wrapper svg {
+                width: 26px !important;
+                height: 26px !important;
+            }
+
+            .bottom-sheet {
+                bottom: calc(max(26px, env(safe-area-inset-bottom, 26px)) + 84px) !important;
+            }
+
+            .viewport {
+                bottom: calc(max(26px, env(safe-area-inset-bottom, 26px)) + 84px) !important;
+            }
         }
     </style>
 </head>
@@ -2250,7 +2252,7 @@
 
         function getMaxHeight() { 
             const isMobile = window.innerWidth <= 500;
-            return isMobile ? (appContainer.clientHeight - 130) : (appContainer.clientHeight - 116); 
+            return isMobile ? (appContainer.clientHeight - 138) : (appContainer.clientHeight - 116); 
         }
         function getInitialHeight() { 
             return Math.max(140, Math.min(appContainer.clientHeight * 0.32, 260)); 
@@ -2261,7 +2263,7 @@
             if (!appContainer) return;
             
             const isMobile = window.innerWidth <= 500;
-            const bottomNavOffset = isMobile ? 108 : 84;
+            const bottomNavOffset = isMobile ? 116 : 84;
             const maxH = getMaxHeight();
             const topPos = appContainer.clientHeight - maxH - bottomNavOffset;
             
