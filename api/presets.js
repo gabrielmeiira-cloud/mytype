@@ -1,19 +1,19 @@
 // Vercel Serverless Function: Global Presets Realtime Sync
 let globalCollisionBoxes = {
-    "Identidade": { x: 0.05, y: 0.00, w: 0.90, h: 1.00 },
-    "Aparência":  { x: 0.28, y: 0.00, w: 0.44, h: 0.16 },
-    "Busto":      { x: 0.18, y: 0.14, w: 0.64, h: 0.24 },
-    "Pernas":     { x: 0.20, y: 0.38, w: 0.60, h: 0.44 },
-    "Pés":        { x: 0.24, y: 0.80, w: 0.52, h: 0.20 },
-    "Estilo":     { x: 0.10, y: 0.04, w: 0.80, h: 0.90 },
-    "Gravação":   { x: 0.05, y: 0.00, w: 0.90, h: 1.00 }
+    "Identidade": { x: 0.05, y: 0.011, w: 0.90, h: 0.989 },
+    "Aparência":  { x: 0.35, y: 0.000, w: 0.297, h: 0.270 },
+    "Busto":      { x: 0.375, y: 0.175, w: 0.248, h: 0.164 },
+    "Pernas":     { x: 0.20, y: 0.380, w: 0.600, h: 0.440 },
+    "Pés":        { x: 0.24, y: 0.800, w: 0.520, h: 0.200 },
+    "Estilo":     { x: 0.10, y: 0.040, w: 0.800, h: 0.900 },
+    "Gravação":   { x: 0.05, y: 0.000, w: 0.900, h: 1.000 }
 };
 
 let globalViewportCollider = {
-    marginLeft: 0.025,
-    marginRight: 0.025,
-    marginTop: 0.02,
-    marginBottom: 0.02
+    marginLeft: 0.02210982658959538,
+    marginRight: 0.027890173410404624,
+    marginTop: 0.015910020449897755,
+    marginBottom: 0.005685071574642124
 };
 
 export default function handler(req, res) {
