@@ -2344,9 +2344,9 @@
         }
 
         function getInitialHeight() { 
-            // Abre sempre exatamente 40% da altura da tela disponível
+            // Altura padrão ampliada em +8% ao alterar as abas (48% da altura disponível)
             const availableH = appContainer ? appContainer.clientHeight : window.innerHeight;
-            return Math.round(availableH * 0.40);
+            return Math.round(availableH * 0.48);
         }
 
         function syncSheetLayout() {
@@ -2707,6 +2707,10 @@
             const data = tabData[tabName];
             if (!data) return;
 
+            if (sheetContent) {
+                sheetContent.scrollTop = 0;
+            }
+
             sideMenu.innerHTML = '';
             data.sideButtons.forEach((btnData, index) => {
                 const button = document.createElement('button');
@@ -2722,6 +2726,9 @@
             });
 
             sheetContent.innerHTML = data.sheetHTML;
+            if (sheetContent) {
+                sheetContent.scrollTop = 0;
+            }
 
             // Anima a câmera para o preset responsivo correspondente da aba
             applyResponsivePreset(tabName, 480);
