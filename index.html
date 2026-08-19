@@ -305,7 +305,7 @@
             top: 28px;
             left: 0;
             width: 100%;
-            bottom: 86px; 
+            bottom: 92px; 
             display: flex;
             justify-content: center;
             align-items: center;
@@ -897,8 +897,8 @@
             gap: 6px;
             align-items: center;
             background-color: var(--bg-pill);
-            padding: 8px 10px;
-            border-radius: 14px;
+            padding: 10px 10px;
+            border-radius: 16px;
             border: 1px solid var(--border-color);
             z-index: 40;
             box-shadow: 0 8px 20px rgba(0,0,0,0.4);
@@ -917,19 +917,20 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 3px;
+            gap: 4px;
             color: var(--text-secondary);
-            font-size: 9px;
+            font-size: 10.5px;
+            font-weight: 500;
             cursor: pointer;
-            transition: color 0.2s;
+            transition: color 0.2s, transform 0.2s;
             flex: 0 0 calc((100% - (4 * 6px)) / 5);
-            min-width: 50px;
+            min-width: 54px;
             white-space: nowrap;
         }
 
         @media (max-width: 360px) {
             .nav-item {
-                flex: 0 0 54px;
+                flex: 0 0 58px;
             }
         }
 
@@ -938,22 +939,22 @@
         }
 
         .nav-icon-wrapper {
-            width: 22px;
-            height: 22px;
+            width: 25px;
+            height: 25px;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
         .nav-icon-wrapper svg {
-            width: 18px;
-            height: 18px;
+            width: 21px;
+            height: 21px;
             fill: currentColor;
         }
 
         .bottom-sheet {
             position: absolute;
-            bottom: 86px;
+            bottom: 92px;
             left: 0;
             width: 100%;
             background-color: var(--bg-sheet);
@@ -2214,7 +2215,7 @@
         const minHeight = 40; 
 
         function getMaxHeight() { 
-            return appContainer.clientHeight - 114; 
+            return appContainer.clientHeight - 120; 
         }
         function getInitialHeight() { 
             return Math.max(140, Math.min(appContainer.clientHeight * 0.32, 260)); 
@@ -2224,7 +2225,7 @@
             const line = document.getElementById('sheetDragLimitLine');
             if (!appContainer) return;
             const maxH = getMaxHeight();
-            const topPos = appContainer.clientHeight - maxH - 86;
+            const topPos = appContainer.clientHeight - maxH - 92;
             
             if (line) {
                 line.style.top = `${topPos}px`;
