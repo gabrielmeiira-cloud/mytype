@@ -1927,19 +1927,20 @@
             }
         }
 
-        /* --- MOTOR DE ENQUADRAMENTO BASEADO NA COLISÃO BORDA-A-BORDA COM AS LINHAS VERMELHAS --- */
+        /* --- MOTOR DE ENQUADRAMENTO: ÁREA AZUL FIXA (CANVAS TOTAL ATÉ O TOPO DA ABA DE CONFIGURAÇÕES) --- */
         function getSafeViewportBounds(customSheetH = null) {
             const m = getAvatarLayoutMetrics();
             
-            // Limite Superior (Linha Vermelha do Topo - logo abaixo da barra de título):
+            // Área Azul Fixa (Canvas Útil):
             const top = 0;
+            const left = 0;
+            const right = m.w;
             
-            // Limite Inferior (Linha Vermelha de Baixo - exatamente no topo da barra de configurações):
             const vpRect = viewportCanvas ? viewportCanvas.getBoundingClientRect() : null;
             const sheetEl = document.getElementById('bottomSheet');
             const sheetRect = sheetEl ? sheetEl.getBoundingClientRect() : null;
             
-            let bottomLimitPx = m.h - 120;
+            let bottomLimitPx = m.h - 100;
             if (customSheetH !== null) {
                 bottomLimitPx = m.h - Math.max(0, customSheetH - 84);
             } else if (vpRect && sheetRect && sheetRect.top > vpRect.top) {
@@ -1947,12 +1948,6 @@
             }
             
             const bottom = Math.max(80, Math.min(m.h, bottomLimitPx));
-            
-            // Limites Laterais (Menu de Botões à direita e Margem à esquerda):
-            const sideMenuEl = document.getElementById('sideMenu');
-            const sideMenuW = (sideMenuEl && sideMenuEl.offsetWidth > 0) ? (sideMenuEl.offsetWidth + 18) : 56;
-            const left = 14;
-            const right = Math.min(m.w - sideMenuW, m.w - 14);
             
             const width = Math.max(80, right - left);
             const height = Math.max(80, bottom - top);
@@ -2353,7 +2348,6 @@
         function renderGreenBoxDOM() {
             if (!debugGreenBox) return;
             const m = getAvatarLayoutMetrics();
-            const vb = getSafeViewportBounds();
 
             // Posição base na anatomia da modelo (escala 1.0):
             const ptLeft = m.offsetX + (m.renderedW * currentGreenBox.x);
@@ -2361,30 +2355,16 @@
             const ptW = m.renderedW * currentGreenBox.w;
             const ptH = m.renderedH * currentGreenBox.h;
 
-            // Projeção na tela acompanhando o zoom e pan da modelo:
-            let screenLeft = (ptLeft - m.w / 2) * avatarScale + (m.w / 2) + avatarPanX;
-            let screenTop = (ptTop - m.h / 2) * avatarScale + (m.h / 2) + avatarPanY;
-            let screenW = ptW * avatarScale;
-            let screenH = ptH * avatarScale;
+            // Projeção na tela acompanhando o zoom e pan da modelo em tempo real:
+            const screenLeft = (ptLeft - m.w / 2) * avatarScale + (m.w / 2) + avatarPanX;
+            const screenTop = (ptTop - m.h / 2) * avatarScale + (m.h / 2) + avatarPanY;
+            const screenW = ptW * avatarScale;
+            const screenH = ptH * avatarScale;
 
-            // A tela sempre bloqueia e é o limite da colisão verde (independente do zoom):
-            const minLeft = vb.left;
-            const minTop = vb.top;
-            const maxRight = vb.right;
-            const maxBottom = vb.bottom;
-
-            let clampedLeft = Math.max(minLeft, screenLeft);
-            let clampedTop = Math.max(minTop, screenTop);
-            let clampedRight = Math.min(maxRight, screenLeft + screenW);
-            let clampedBottom = Math.min(maxBottom, screenTop + screenH);
-
-            let clampedW = Math.max(20, clampedRight - clampedLeft);
-            let clampedH = Math.max(20, clampedBottom - clampedTop);
-
-            debugGreenBox.style.left = `${clampedLeft}px`;
-            debugGreenBox.style.top = `${clampedTop}px`;
-            debugGreenBox.style.width = `${clampedW}px`;
-            debugGreenBox.style.height = `${clampedH}px`;
+            debugGreenBox.style.left = `${screenLeft}px`;
+            debugGreenBox.style.top = `${screenTop}px`;
+            debugGreenBox.style.width = `${screenW}px`;
+            debugGreenBox.style.height = `${screenH}px`;
 
             const wPercent = (currentGreenBox.w * 100).toFixed(0);
             const hPercent = (currentGreenBox.h * 100).toFixed(0);
@@ -2548,7 +2528,7 @@
             });
         }
 
-        /* --- LIMITES RÍGIDOS DE COLISÃO DA AVATAR (TRAVA NAS BORDAS DA TELA) --- */
+        /* --- LIMITES RÍGIDOS DE COLISÃO: A ÁREA VERDE COLIDE FISICAMENTE COM A ÁREA AZUL FIXA --- */
         function getStrictPanBounds(scale = avatarScale) {
             const m = getAvatarLayoutMetrics();
             const vb = getSafeViewportBounds();
@@ -2558,27 +2538,35 @@
             const ptW = m.renderedW * currentGreenBox.w;
             const ptH = m.renderedH * currentGreenBox.h;
 
-            const boxCenterPxX = ptLeft + (ptW / 2);
-            const boxCenterPxY = ptTop + (ptH / 2);
+            const baseScreenLeft = (ptLeft - m.w / 2) * scale + (m.w / 2);
+            const baseScreenTop = (ptTop - m.h / 2) * scale + (m.h / 2);
+            const screenW = ptW * scale;
+            const screenH = ptH * scale;
 
-            const scaledBoxW = ptW * scale;
-            const scaledBoxH = ptH * scale;
+            let minPanX, maxPanX, minPanY, maxPanY;
 
-            const maxDeltaX = Math.max(0, (scaledBoxW - vb.width) / 2) + (m.w * 0.25);
-            const maxDeltaY = Math.max(0, (scaledBoxH - vb.height) / 2) + (m.h * 0.25);
+            // Colisão Horizontal com a Área Azul:
+            if (screenW <= vb.width) {
+                minPanX = vb.left - baseScreenLeft;
+                maxPanX = (vb.right - screenW) - baseScreenLeft;
+            } else {
+                minPanX = (vb.right - screenW) - baseScreenLeft;
+                maxPanX = vb.left - baseScreenLeft;
+            }
 
-            const centerPanX = (vb.centerX - (m.w / 2)) - (boxCenterPxX - (m.w / 2)) * scale;
-            const centerPanY = (vb.centerY - (m.h / 2)) - (boxCenterPxY - (m.h / 2)) * scale;
+            // Colisão Vertical com a Área Azul:
+            if (screenH <= vb.height) {
+                minPanY = vb.top - baseScreenTop;
+                maxPanY = (vb.bottom - screenH) - baseScreenTop;
+            } else {
+                minPanY = (vb.bottom - screenH) - baseScreenTop;
+                maxPanY = vb.top - baseScreenTop;
+            }
 
-            let minX = centerPanX - maxDeltaX;
-            let maxX = centerPanX + maxDeltaX;
-            let minY = centerPanY - maxDeltaY;
-            let maxY = centerPanY + maxDeltaY;
+            if (minPanX > maxPanX) [minPanX, maxPanX] = [maxPanX, minPanX];
+            if (minPanY > maxPanY) [minPanY, maxPanY] = [maxPanY, minPanY];
 
-            if (minX > maxX) [minX, maxX] = [maxX, minX];
-            if (minY > maxY) [minY, maxY] = [maxY, minY];
-
-            return { minX, maxX, minY, maxY };
+            return { minX: minPanX, maxX: maxPanX, minY: minPanY, maxY: maxPanY };
         }
 
         function clampPan(x, y, scale = avatarScale) {
