@@ -961,11 +961,11 @@
         .sheet-header-area {
             width: 100%;
             cursor: pointer;
-            padding: 4px 0 12px 0;
+            padding: 4px 0 6px 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
+            gap: 7px;
             flex-shrink: 0;
             touch-action: none;
             position: relative;
@@ -973,10 +973,11 @@
         }
 
         .sheet-handle {
-            width: 42px;
+            width: 45px;
             height: 6px;
             background-color: #5c5765;
-            border-radius: 10px;
+            border-radius: 12px;
+            margin-top: 4px;
             transition: background-color 0.2s ease, transform 0.2s ease;
         }
 
@@ -988,7 +989,7 @@
         }
 
         .sheet-title {
-            font-size: 13px;
+            font-size: 11.5px;
             font-weight: 600;
             color: var(--text-secondary);
             letter-spacing: 0.3px;
@@ -996,7 +997,7 @@
             transform: translateY(0);
             margin: 0;
             opacity: 1;
-            transition: opacity 0.2s ease, transform 0.2s ease;
+            transition: opacity 0.25s ease, transform 0.25s ease;
         }
 
         .sheet-title.is-hidden {
@@ -1167,21 +1168,21 @@
                 height: 23px !important;
             }
 
-            /* Puxador e título de configurações padronizados conforme referência */
+            /* Puxador colado no topo do limite da aba com nome no meio */
             .sheet-handle {
-                width: 42px !important;
-                height: 6px !important;
-                border-radius: 10px !important;
-                margin-top: 0 !important;
+                width: 52px !important;
+                height: 7px !important;
+                border-radius: 14px !important;
+                margin-top: 5px !important;
             }
 
             .sheet-header-area {
-                padding: 4px 0 12px 0 !important;
+                padding: 3px 0 10px 0 !important;
                 gap: 8px !important;
             }
 
             .sheet-title {
-                font-size: 13px !important;
+                font-size: 12px !important;
                 margin: 0 !important;
             }
 
@@ -2307,9 +2308,10 @@
         }
 
         function getMinHeight() {
+            const isMobile = window.innerWidth <= 500;
             const navTopDist = getFooterNavTopDistance();
-            // Altura do cabeçalho da aba (44px da referência)
-            const headerSpaceAboveNav = 44;
+            // Espaço proporcional reduzido em 8px acima da barra de opções
+            const headerSpaceAboveNav = isMobile ? 46 : 36;
             return Math.round(navTopDist + headerSpaceAboveNav);
         }
 
