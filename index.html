@@ -1535,18 +1535,25 @@
         function getSafeViewportBounds(customSheetH = null) {
             const m = getAvatarLayoutMetrics();
             
-            // Limite padrão do menu para enquadramento da câmera (~32% da altura da tela)
-            const standardMenuLimit = Math.max(120, Math.min(m.h * 0.32, 240));
+            // A linha delimitadora marca a altura máxima até onde as configurações sobem
+            const maxH = getMaxHeight();
+            const limitTopPos = (appContainer ? appContainer.clientHeight : m.h) - maxH - 74;
+            
             const rawSheetH = customSheetH !== null ? customSheetH : ((bottomSheet && bottomSheet.offsetHeight > 0) ? bottomSheet.offsetHeight : 40);
-            const effectiveSheetH = Math.min(rawSheetH, standardMenuLimit);
+            
+            // O canvas fica limitado por padrão exatamente até a linha divisória superior
+            const effectiveSheetH = Math.min(rawSheetH, maxH);
             
             const left = m.w * customViewportCollider.marginLeft;
             const right = m.w * (1 - customViewportCollider.marginRight);
             const top = m.h * customViewportCollider.marginTop;
-            const bottom = m.h - effectiveSheetH - (m.h * customViewportCollider.marginBottom);
+            
+            // O limite inferior do canvas útil respeita rigorosamente a posição da linha divisória
+            const bottomLineY = Math.max(top + 80, limitTopPos - (m.h * customViewportCollider.marginBottom));
+            const bottom = bottomLineY;
             
             const width = Math.max(80, right - left);
-            const height = Math.max(100, bottom - top);
+            const height = Math.max(80, bottom - top);
             const centerY = top + (height / 2);
             const centerX = left + (width / 2);
 
