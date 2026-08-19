@@ -964,6 +964,20 @@
             overflow: hidden;
         }
 
+        /* Linha Fina Delicada do Limite Máximo de Arraste das Configurações */
+        .sheet-drag-limit-line {
+            position: absolute;
+            left: 16px;
+            right: 16px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15) 15%, rgba(201, 107, 124, 0.5) 50%, rgba(255, 255, 255, 0.15) 85%, transparent);
+            pointer-events: none;
+            z-index: 29;
+            box-shadow: 0 0 10px rgba(201, 107, 124, 0.25);
+            opacity: 0.85;
+            transition: opacity 0.3s ease;
+        }
+
         .sheet-header-area {
             width: 100%;
             cursor: pointer;
@@ -1227,6 +1241,9 @@
                 </div>
 
                 <div class="side-menu" id="sideMenu"></div>
+
+                <!-- Linha Fina Indicadora do Limite Superior das Configurações -->
+                <div class="sheet-drag-limit-line" id="sheetDragLimitLine"></div>
 
                 <div class="bottom-sheet" id="bottomSheet">
                     <div class="sheet-header-area" id="sheetHeader">
@@ -2200,6 +2217,14 @@
             return Math.max(140, Math.min(appContainer.clientHeight * 0.32, 260)); 
         }
 
+        function renderSheetLimitLine() {
+            const line = document.getElementById('sheetDragLimitLine');
+            if (!line || !appContainer) return;
+            const maxH = getMaxHeight();
+            const topPos = appContainer.clientHeight - maxH - 74;
+            line.style.top = `${topPos}px`;
+        }
+
         let currentHeight = minHeight;
         bottomSheet.style.height = currentHeight + 'px';
         updateSheetState(currentHeight);
@@ -2592,10 +2617,12 @@
             if (activeSessionName) {
                 applyResponsivePreset(activeSessionName, 0);
             }
+            renderSheetLimitLine();
         });
 
         // Inicia carregando a aba "Identidade" e com as configurações fechadas
         loadTabContent("Identidade");
+        renderSheetLimitLine();
     </script>
 </body>
 </html>
