@@ -302,10 +302,10 @@
         /* Viewport / Canvas Interativo */
         .viewport {
             position: absolute;
-            top: 36px;
+            top: 28px;
             left: 0;
             width: 100%;
-            bottom: 74px; 
+            bottom: 86px; 
             display: flex;
             justify-content: center;
             align-items: center;
@@ -890,7 +890,7 @@
 
         .footer-nav {
             position: absolute;
-            bottom: 12px;
+            bottom: 22px;
             left: 12px;
             right: 12px;
             display: flex;
@@ -953,7 +953,7 @@
 
         .bottom-sheet {
             position: absolute;
-            bottom: 74px;
+            bottom: 86px;
             left: 0;
             width: 100%;
             background-color: var(--bg-sheet);
@@ -2214,7 +2214,7 @@
         const minHeight = 40; 
 
         function getMaxHeight() { 
-            return appContainer.clientHeight - 110; 
+            return appContainer.clientHeight - 114; 
         }
         function getInitialHeight() { 
             return Math.max(140, Math.min(appContainer.clientHeight * 0.32, 260)); 
@@ -2224,7 +2224,7 @@
             const line = document.getElementById('sheetDragLimitLine');
             if (!appContainer) return;
             const maxH = getMaxHeight();
-            const topPos = appContainer.clientHeight - maxH - 74;
+            const topPos = appContainer.clientHeight - maxH - 86;
             
             if (line) {
                 line.style.top = `${topPos}px`;
