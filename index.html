@@ -1900,24 +1900,20 @@
 
         /* --- LIMITES RÍGIDOS DE COLISÃO DA AVATAR (BRAÇOS, CABEÇA E PÉS NUNCA PASSAM DA BORDA) --- */
         function getStrictPanBounds(scale = avatarScale) {
-            const w = viewportCanvas ? viewportCanvas.clientWidth : 350;
-            const h = viewportCanvas ? viewportCanvas.clientHeight : 600;
+            const m = getAvatarLayoutMetrics();
+            const w = m.w;
+            const h = m.h;
 
-            const avatarHalfWidth = (w * 0.40) * scale;
+            const scaledW = m.renderedW * scale;
+            const scaledH = m.renderedH * scale;
 
-            // Limites laterais
-            let maxX = Math.max(0, avatarHalfWidth - (w * 0.15));
+            // Limites laterais permitidos com margem confortável
+            let maxX = Math.max(w * 0.40, (scaledW - w) * 0.60 + (w * 0.25));
             let minX = -maxX;
 
-            // Limites verticais (Cabeça no topo / Pés na base)
-            let maxY, minY;
-            if (scale > 1.05) {
-                maxY = (h * (scale - 1) * 0.5) + (h * 0.45); // Permite subir para focar no topo da cabeça
-                minY = -((h * (scale - 1) * 0.5) + (h * 0.45)); // Permite descer para focar nos pés
-            } else {
-                maxY = (h * (1 - scale)) * 0.5 + 40;
-                minY = -(h * (1 - scale)) * 0.5 - 40;
-            }
+            // Limites verticais (topo da cabeça e pés perfeitamente alcançáveis em qualquer nível de zoom)
+            let maxY = Math.max(h * 0.50, (scaledH - h) * 0.70 + (h * 0.45)); // Traz a cabeça para o centro da tela
+            let minY = -Math.max(h * 0.50, (scaledH - h) * 0.70 + (h * 0.45)); // Traz os pés para o centro da tela
 
             if (minX > maxX) [minX, maxX] = [maxX, minX];
             if (minY > maxY) [minY, maxY] = [maxY, minY];
@@ -1969,15 +1965,12 @@
         let activePointerId = null;
 
         let lastTapTime = 0;
-        let initialPinchDist = 0;
-        let initialPinchScale = avatarScale;
-        let initialPinchMidX = 0;
-        let initialPinchMidY = 0;
-        let initialPinchPanX = 0;
-        let initialPinchPanY = 0;
+        let lastPinchDist = 0;
+        let lastPinchMidX = 0;
+        let lastPinchMidY = 0;
 
         if (viewportCanvas) {
-            // Touchstart para detectar pinch (2 dedos) e cancelar imediatamente o modo de arraste
+            // Touchstart para detectar gesto de 2 dedos (Pinch-to-zoom + Arraste simultâneo)
             viewportCanvas.addEventListener('touchstart', (e) => {
                 if (e.touches.length >= 2) {
                     isPanningAvatar = false;
@@ -1989,50 +1982,55 @@
 
                     const t1 = e.touches[0];
                     const t2 = e.touches[1];
-                    initialPinchDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
-                    initialPinchScale = avatarScale;
+                    lastPinchDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
 
                     const rect = viewportCanvas.getBoundingClientRect();
-                    initialPinchMidX = ((t1.clientX + t2.clientX) / 2) - rect.left - rect.width / 2;
-                    initialPinchMidY = ((t1.clientY + t2.clientY) / 2) - rect.top - rect.height / 2;
-                    initialPinchPanX = avatarPanX;
-                    initialPinchPanY = avatarPanY;
+                    lastPinchMidX = ((t1.clientX + t2.clientX) / 2) - rect.left - rect.width / 2;
+                    lastPinchMidY = ((t1.clientY + t2.clientY) / 2) - rect.top - rect.height / 2;
                 }
             }, { passive: true });
 
             viewportCanvas.addEventListener('touchmove', (e) => {
-                if (e.touches.length >= 2 && initialPinchDist > 0) {
+                if (e.touches.length >= 2 && lastPinchDist > 0) {
                     isPanningAvatar = false;
                     isPinching = true;
+                    
                     const t1 = e.touches[0];
                     const t2 = e.touches[1];
                     const currentDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
-                    const scaleFactor = currentDist / initialPinchDist;
-                    const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, initialPinchScale * scaleFactor));
+                    
+                    const rect = viewportCanvas.getBoundingClientRect();
+                    const currentMidX = ((t1.clientX + t2.clientX) / 2) - rect.left - rect.width / 2;
+                    const currentMidY = ((t1.clientY + t2.clientY) / 2) - rect.top - rect.height / 2;
 
-                    // Zoom suave focado no ponto médio entre os dois dedos
-                    if (newScale !== avatarScale) {
-                        let nextX = initialPinchMidX - (initialPinchMidX - initialPinchPanX) * (newScale / initialPinchScale);
-                        let nextY = initialPinchMidY - (initialPinchMidY - initialPinchPanY) * (newScale / initialPinchScale);
-                        avatarScale = newScale;
-                        const clamped = clampPan(nextX, nextY);
-                        avatarPanX = clamped.x;
-                        avatarPanY = clamped.y;
-                        updateAvatarTransform(false);
-                    }
+                    // Deslocamento de arrasto simultâneo dos 2 dedos (Pan)
+                    const deltaX = currentMidX - lastPinchMidX;
+                    const deltaY = currentMidY - lastPinchMidY;
+
+                    // Fator de escala dinâmico baseado na abertura dos dedos (Zoom)
+                    const zoomRatio = currentDist / lastPinchDist;
+                    const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, avatarScale * zoomRatio));
+
+                    // Foco preciso e simultâneo: o ponto sob os dedos permanece exatamente onde os dedos estão
+                    let nextX = currentMidX - (currentMidX - (avatarPanX + deltaX)) * (newScale / avatarScale);
+                    let nextY = currentMidY - (currentMidY - (avatarPanY + deltaY)) * (newScale / avatarScale);
+
+                    avatarScale = newScale;
+                    const clamped = clampPan(nextX, nextY, avatarScale);
+                    avatarPanX = clamped.x;
+                    avatarPanY = clamped.y;
+                    updateAvatarTransform(false);
+
+                    lastPinchDist = currentDist;
+                    lastPinchMidX = currentMidX;
+                    lastPinchMidY = currentMidY;
                 }
             }, { passive: true });
 
             viewportCanvas.addEventListener('touchend', (e) => {
                 if (e.touches.length < 2) {
                     isPinching = false;
-                    initialPinchDist = 0;
-                    const bounds = getStrictPanBounds();
-                    if (avatarPanX < bounds.minX || avatarPanX > bounds.maxX || avatarPanY < bounds.minY || avatarPanY > bounds.maxY) {
-                        avatarPanX = Math.min(bounds.maxX, Math.max(bounds.minX, avatarPanX));
-                        avatarPanY = Math.min(bounds.maxY, Math.max(bounds.minY, avatarPanY));
-                        updateAvatarTransform(true);
-                    }
+                    lastPinchDist = 0;
                 }
             }, { passive: true });
 
