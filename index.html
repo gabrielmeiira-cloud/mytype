@@ -300,7 +300,7 @@
         /* Viewport / Canvas Interativo */
         .viewport {
             position: absolute;
-            top: 0;
+            top: 36px;
             left: 0;
             width: 100%;
             bottom: 74px; 
@@ -312,7 +312,7 @@
             z-index: 1;
             cursor: grab;
             touch-action: none;
-            transition: background 0.3s ease;
+            transition: background 0.3s ease, top 0.2s ease;
         }
 
         .viewport:active {
@@ -1535,25 +1535,18 @@
         function getSafeViewportBounds(customSheetH = null) {
             const m = getAvatarLayoutMetrics();
             
-            // A linha delimitadora marca a altura máxima até onde as configurações sobem
-            const maxH = getMaxHeight();
-            const limitTopPos = (appContainer ? appContainer.clientHeight : m.h) - maxH - 74;
-            
+            // Limite padrão do menu para enquadramento da câmera (~32% da altura da tela)
+            const standardMenuLimit = Math.max(120, Math.min(m.h * 0.32, 240));
             const rawSheetH = customSheetH !== null ? customSheetH : ((bottomSheet && bottomSheet.offsetHeight > 0) ? bottomSheet.offsetHeight : 40);
-            
-            // O canvas fica limitado por padrão exatamente até a linha divisória superior
-            const effectiveSheetH = Math.min(rawSheetH, maxH);
+            const effectiveSheetH = Math.min(rawSheetH, standardMenuLimit);
             
             const left = m.w * customViewportCollider.marginLeft;
             const right = m.w * (1 - customViewportCollider.marginRight);
             const top = m.h * customViewportCollider.marginTop;
-            
-            // O limite inferior do canvas útil respeita rigorosamente a posição da linha divisória
-            const bottomLineY = Math.max(top + 80, limitTopPos - (m.h * customViewportCollider.marginBottom));
-            const bottom = bottomLineY;
+            const bottom = m.h - effectiveSheetH - (m.h * customViewportCollider.marginBottom);
             
             const width = Math.max(80, right - left);
-            const height = Math.max(80, bottom - top);
+            const height = Math.max(100, bottom - top);
             const centerY = top + (height / 2);
             const centerX = left + (width / 2);
 
@@ -2227,10 +2220,18 @@
 
         function renderSheetLimitLine() {
             const line = document.getElementById('sheetDragLimitLine');
-            if (!line || !appContainer) return;
+            if (!appContainer) return;
             const maxH = getMaxHeight();
             const topPos = appContainer.clientHeight - maxH - 74;
-            line.style.top = `${topPos}px`;
+            
+            if (line) {
+                line.style.top = `${topPos}px`;
+            }
+
+            // Limita o canvas (.viewport) para iniciar exatamente a partir da linha divisória
+            if (viewportCanvas) {
+                viewportCanvas.style.top = `${topPos}px`;
+            }
 
             // Mantém os ícones laterais sempre abaixo da linha divisória
             if (sideMenu) {
