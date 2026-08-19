@@ -16,8 +16,6 @@ let globalViewportCollider = {
     marginBottom: 0.005685071574642124
 };
 
-let globalUiScale = 100;
-
 export default function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -39,24 +37,12 @@ export default function handler(req, res) {
                 if (data.viewportCollider) {
                     globalViewportCollider = { ...globalViewportCollider, ...data.viewportCollider };
                 }
-                if (data.uiScale !== undefined) {
-                    globalUiScale = Number(data.uiScale) || 100;
-                }
-                return res.status(200).json({ 
-                    success: true, 
-                    collisionBoxes: globalCollisionBoxes, 
-                    viewportCollider: globalViewportCollider,
-                    uiScale: globalUiScale
-                });
+                return res.status(200).json({ success: true, collisionBoxes: globalCollisionBoxes, viewportCollider: globalViewportCollider });
             }
         } catch(e) {
             return res.status(400).json({ error: e.message });
         }
     }
 
-    return res.status(200).json({ 
-        collisionBoxes: globalCollisionBoxes, 
-        viewportCollider: globalViewportCollider,
-        uiScale: globalUiScale
-    });
+    return res.status(200).json({ collisionBoxes: globalCollisionBoxes, viewportCollider: globalViewportCollider });
 }
