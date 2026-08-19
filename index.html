@@ -838,16 +838,17 @@
         .side-menu {
             position: absolute;
             right: 10px;
-            top: 20px;
+            top: 50px;
             display: flex;
             flex-direction: column;
             gap: 8px;
             z-index: 25;
-            max-height: calc(100% - 100px);
+            max-height: calc(100% - 140px);
             overflow-y: auto;
             scrollbar-width: none;
             padding: 2px 0;
             -webkit-overflow-scrolling: touch;
+            transition: top 0.2s ease;
         }
 
         .side-menu::-webkit-scrollbar {
@@ -964,16 +965,16 @@
             overflow: hidden;
         }
 
-        /* Linha Fina Delicada do Limite Máximo de Arraste das Configurações */
+        /* Linha Fina Cinza Delicada de Ponta a Ponta */
         .sheet-drag-limit-line {
             position: absolute;
-            left: 16px;
-            right: 16px;
+            left: 0;
+            right: 0;
+            width: 100%;
             height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15) 15%, rgba(201, 107, 124, 0.5) 50%, rgba(255, 255, 255, 0.15) 85%, transparent);
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.10) 15%, rgba(255, 255, 255, 0.10) 85%, rgba(255, 255, 255, 0.02));
             pointer-events: none;
             z-index: 29;
-            box-shadow: 0 0 10px rgba(201, 107, 124, 0.25);
             opacity: 0.85;
             transition: opacity 0.3s ease;
         }
@@ -2223,6 +2224,11 @@
             const maxH = getMaxHeight();
             const topPos = appContainer.clientHeight - maxH - 74;
             line.style.top = `${topPos}px`;
+
+            // Mantém os ícones laterais sempre abaixo da linha divisória
+            if (sideMenu) {
+                sideMenu.style.top = `${topPos + 10}px`;
+            }
         }
 
         let currentHeight = minHeight;
