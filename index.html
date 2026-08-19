@@ -838,7 +838,7 @@
             background: none;
             border: none;
             color: var(--text-secondary);
-            font-size: 9px;
+            font-size: 9.5px;
             cursor: pointer;
             gap: 2px;
             transition: color 0.2s;
@@ -849,31 +849,31 @@
         }
 
         .side-icon-wrapper {
-            width: 30px;
-            height: 30px;
+            width: 28px;
+            height: 28px;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
         .side-icon-wrapper svg {
-            width: 19px;
-            height: 19px;
+            width: 21px;
+            height: 21px;
             fill: currentColor;
         }
 
-        /* Barra Inferior (Padrão Desktop: Fina e Elegante) */
+        /* Barra Inferior Flutuante */
         .footer-nav {
             position: absolute;
-            bottom: 20px;
+            bottom: 14px;
             left: 12px;
             right: 12px;
             display: flex;
             gap: 5px;
             align-items: center;
             background-color: var(--bg-pill);
-            padding: 9px 10px;
-            border-radius: 16px;
+            padding: 8px 10px;
+            border-radius: 14px;
             border: 1px solid var(--border-color);
             z-index: 40;
             box-shadow: 0 8px 20px rgba(0,0,0,0.4);
@@ -892,7 +892,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
             color: var(--text-secondary);
             font-size: 9.5px;
             font-weight: 500;
@@ -927,14 +927,15 @@
             fill: currentColor;
         }
 
+        /* Aba Deslizante de Configurações (Estende até a base como plano de fundo) */
         .bottom-sheet {
             position: absolute;
-            bottom: 84px;
+            bottom: 0;
             left: 0;
             width: 100%;
             background-color: var(--bg-sheet);
-            border-top-left-radius: 24px;
-            border-top-right-radius: 24px;
+            border-top-left-radius: 26px;
+            border-top-right-radius: 26px;
             padding: 8px 14px 14px 14px;
             z-index: 30;
             box-shadow: 0 -8px 25px rgba(0,0,0,0.5);
@@ -960,7 +961,7 @@
         .sheet-header-area {
             width: 100%;
             cursor: pointer;
-            padding: 4px 0 10px 0;
+            padding: 6px 0 10px 0;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -970,21 +971,22 @@
         }
 
         .sheet-handle {
-            width: 36px;
-            height: 5px;
+            width: 42px;
+            height: 6px;
             background-color: #5c5765;
-            border-radius: 10px;
-            transition: background-color 0.2s ease;
+            border-radius: 12px;
+            transition: background-color 0.2s ease, transform 0.2s ease;
         }
 
         .sheet-header-area:hover .sheet-handle,
         .sheet-header-area:active .sheet-handle,
         .sheet-handle.active-pink {
             background-color: var(--primary);
+            transform: scale(1.05);
         }
 
         .sheet-title {
-            font-size: 12px;
+            font-size: 12.5px;
             font-weight: 600;
             color: var(--text-secondary);
             letter-spacing: 0.3px;
@@ -1004,6 +1006,7 @@
             flex-direction: column;
             gap: 12px;
             flex: 1;
+            padding-bottom: 84px;
             opacity: 1;
             transition: opacity 0.15s ease;
             -webkit-overflow-scrolling: touch;
@@ -1132,74 +1135,70 @@
                 display: none !important;
             }
 
-            /* Barra inferior ampla, elevada e com botões 'gordinhos' para o polegar */
+            /* Barra inferior flutuante rebaixada com respiro no celular */
             .footer-nav {
-                bottom: max(26px, env(safe-area-inset-bottom, 26px)) !important;
-                padding: 14px 12px !important;
-                border-radius: 22px !important;
+                bottom: max(16px, env(safe-area-inset-bottom, 16px)) !important;
+                padding: 12px 12px !important;
+                border-radius: 18px !important;
                 gap: 6px !important;
             }
 
             .nav-item {
-                font-size: 12px !important;
-                gap: 5px !important;
-                min-width: 60px !important;
+                font-size: 11.5px !important;
+                gap: 4px !important;
+                min-width: 58px !important;
                 font-weight: 600 !important;
             }
 
             .nav-icon-wrapper {
-                width: 32px !important;
-                height: 32px !important;
+                width: 28px !important;
+                height: 28px !important;
             }
 
             .nav-icon-wrapper svg {
-                width: 26px !important;
-                height: 26px !important;
+                width: 23px !important;
+                height: 23px !important;
             }
 
-            .bottom-sheet {
-                bottom: calc(max(26px, env(safe-area-inset-bottom, 26px)) + 84px) !important;
-            }
-
-            .viewport {
-                bottom: calc(max(26px, env(safe-area-inset-bottom, 26px)) + 84px) !important;
-            }
-
-            /* Puxador da aba de configurações proporcionalmente ampliado */
+            /* Puxador da aba de configurações mais gordinho e com respiro */
             .sheet-handle {
-                width: 48px !important;
-                height: 6px !important;
-                border-radius: 12px !important;
+                width: 52px !important;
+                height: 7.5px !important;
+                border-radius: 14px !important;
             }
 
             .sheet-header-area {
-                padding: 6px 0 12px 0 !important;
+                padding: 8px 0 14px 0 !important;
             }
 
             .sheet-title {
-                font-size: 13.5px !important;
+                font-size: 14px !important;
             }
 
-            /* Menu e ícones laterais proporcionalmente ampliados no celular */
+            .sheet-content {
+                padding-bottom: 108px !important;
+            }
+
+            /* Menu e ícones laterais +15% maiores no celular */
             .side-menu {
                 right: 14px !important;
-                gap: 10px !important;
+                gap: 12px !important;
             }
 
             .side-item {
-                font-size: 10.5px !important;
+                font-size: 11.5px !important;
                 gap: 3px !important;
-                font-weight: 500 !important;
+                font-weight: 600 !important;
             }
 
             .side-icon-wrapper {
-                width: 38px !important;
-                height: 38px !important;
+                width: 44px !important;
+                height: 44px !important;
             }
 
             .side-icon-wrapper svg {
-                width: 24px !important;
-                height: 24px !important;
+                width: 28px !important;
+                height: 28px !important;
             }
         }
     </style>
@@ -2285,37 +2284,40 @@
         let lastMoveY = 0;
         let lastMoveTime = 0;
         let sheetVelocityY = 0; // px / ms (positivo = subindo rápido, negativo = descendo rápido)
-        const minHeight = 40; 
+
+        function getMinHeight() {
+            const isMobile = window.innerWidth <= 500;
+            return isMobile ? 122 : 98;
+        }
 
         function getMaxHeight() { 
-            const isMobile = window.innerWidth <= 500;
-            return isMobile ? (appContainer.clientHeight - 138) : (appContainer.clientHeight - 116); 
+            return appContainer.clientHeight - 28; 
         }
         function getInitialHeight() { 
-            return Math.max(140, Math.min(appContainer.clientHeight * 0.32, 260)); 
+            const isMobile = window.innerWidth <= 500;
+            return isMobile ? Math.max(260, Math.min(appContainer.clientHeight * 0.52, 380)) : Math.max(200, Math.min(appContainer.clientHeight * 0.45, 320)); 
         }
+
+        let currentHeight = getMinHeight();
+        bottomSheet.style.height = currentHeight + 'px';
+        updateSheetState(currentHeight);
 
         function renderSheetLimitLine() {
             const line = document.getElementById('sheetDragLimitLine');
             if (!appContainer) return;
             
-            const isMobile = window.innerWidth <= 500;
-            const bottomNavOffset = isMobile ? 116 : 84;
+            const minH = getMinHeight();
             const maxH = getMaxHeight();
-            const topPos = appContainer.clientHeight - maxH - bottomNavOffset;
+            const topPos = appContainer.clientHeight - maxH;
             
             if (line) {
                 line.style.top = `${topPos}px`;
             }
 
-            // Limita o canvas (.viewport) para iniciar exatamente a partir da linha divisória
+            // Limita o canvas (.viewport) para iniciar na linha divisória e terminar na linha de corte superior da aba fechada
             if (viewportCanvas) {
                 viewportCanvas.style.top = `${topPos}px`;
-                viewportCanvas.style.bottom = `${bottomNavOffset}px`;
-            }
-
-            if (bottomSheet) {
-                bottomSheet.style.bottom = `${bottomNavOffset}px`;
+                viewportCanvas.style.bottom = `${minH}px`;
             }
 
             // Mantém os ícones laterais sempre abaixo da linha divisória
@@ -2323,10 +2325,6 @@
                 sideMenu.style.top = `${topPos + 10}px`;
             }
         }
-
-        let currentHeight = minHeight;
-        bottomSheet.style.height = currentHeight + 'px';
-        updateSheetState(currentHeight);
 
         sheetHeader.addEventListener('pointerdown', (e) => {
             isDraggingSheet = true;
@@ -2357,9 +2355,10 @@
             }
 
             let newHeight = sheetStartHeight + diff;
-            const max = getMaxHeight();
-            if (newHeight < minHeight) newHeight = minHeight;
-            if (newHeight > max) newHeight = max;
+            const minH = getMinHeight();
+            const maxH = getMaxHeight();
+            if (newHeight < minH) newHeight = minH;
+            if (newHeight > maxH) newHeight = maxH;
 
             bottomSheet.style.height = newHeight + 'px';
             updateSheetState(newHeight);
@@ -2376,6 +2375,8 @@
 
             const totalTime = performance.now() - sheetStartTime;
             const totalDiff = sheetStartY - e.clientY;
+            const minH = getMinHeight();
+            const maxH = getMaxHeight();
             let targetH;
 
             // Detecção de Swipe Rápido / Flick (arrastar bem rápido com o dedo ou mouse)
@@ -2384,19 +2385,19 @@
 
             if (isFastFlickUp) {
                 // Arraste RÁPIDO pra cima: abre todo!
-                targetH = getMaxHeight();
+                targetH = maxH;
             } else if (isFastFlickDown) {
                 // Arraste RÁPIDO pra baixo: fecha todo!
-                targetH = minHeight;
+                targetH = minH;
             } else if (sheetHasMoved) {
                 // Arraste NORMAL / AJUSTE MANUAL: mantém exatamente na altura onde o usuário soltou!
-                targetH = Math.max(minHeight, Math.min(getMaxHeight(), bottomSheet.clientHeight));
+                targetH = Math.max(minH, Math.min(maxH, bottomSheet.clientHeight));
             } else {
                 // Clique/Toque simples: alterna entre aberto inicial e fechado
-                if (bottomSheet.clientHeight <= minHeight + 15) {
+                if (bottomSheet.clientHeight <= minH + 15) {
                     targetH = getInitialHeight();
                 } else {
-                    targetH = minHeight;
+                    targetH = minH;
                 }
             }
 
@@ -2414,11 +2415,12 @@
         });
 
         function updateSheetState(height) {
-            const max = getMaxHeight();
-            const range = max - minHeight;
-            const progress = (height - minHeight) / (range || 1);
+            const minH = getMinHeight();
+            const maxH = getMaxHeight();
+            const range = maxH - minH;
+            const progress = (height - minH) / (range || 1);
 
-            if (height <= minHeight + 15) {
+            if (height <= minH + 15) {
                 sheetTitle.style.opacity = '1';
                 sheetContent.style.opacity = '0';
                 sheetContent.style.pointerEvents = 'none';
