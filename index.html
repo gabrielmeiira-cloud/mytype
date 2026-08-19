@@ -883,23 +883,19 @@
 
         .green-handle {
             position: absolute;
-            width: 10px;
-            height: 10px;
+            width: 12px;
+            height: 12px;
             background-color: #ffffff;
             border: 2px solid #10b981;
-            border-radius: 2px;
-            box-shadow: 0 0 6px rgba(0,0,0,0.8);
+            border-radius: 3px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.8);
             z-index: 75;
             box-sizing: border-box;
         }
-        .green-handle.handle-nw { top: -5px; left: -5px; cursor: nwse-resize; }
-        .green-handle.handle-ne { top: -5px; right: -5px; cursor: nesw-resize; }
-        .green-handle.handle-sw { bottom: -5px; left: -5px; cursor: nesw-resize; }
-        .green-handle.handle-se { bottom: -5px; right: -5px; cursor: nwse-resize; }
-        .green-handle.handle-n  { top: -5px; left: calc(50% - 5px); cursor: ns-resize; }
-        .green-handle.handle-s  { bottom: -5px; left: calc(50% - 5px); cursor: ns-resize; }
-        .green-handle.handle-w  { left: -5px; top: calc(50% - 5px); cursor: ew-resize; }
-        .green-handle.handle-e  { right: -5px; top: calc(50% - 5px); cursor: ew-resize; }
+        .green-handle.handle-nw { top: -6px; left: -6px; cursor: nwse-resize; }
+        .green-handle.handle-ne { top: -6px; right: -6px; cursor: nesw-resize; }
+        .green-handle.handle-sw { bottom: -6px; left: -6px; cursor: nesw-resize; }
+        .green-handle.handle-se { bottom: -6px; right: -6px; cursor: nwse-resize; }
 
         /* Seção Exclusiva da Colisão Verde Universal no Menu HUD */
         .green-dedicated-section {
@@ -1565,16 +1561,12 @@
                     </div>
 
                     <!-- Caixa de Colisão Universal Verde (Anatomia Direta da Imagem - Imune a Zoom) -->
-                    <div class="debug-green-box" id="debugGreenBox" title="Arraste para mover ou use as alças verdes para redimensionar a colisão universal da imagem">
+                    <div class="debug-green-box" id="debugGreenBox" title="Arraste para mover ou use as 4 alças nos cantos para redimensionar">
                         <div class="green-badge-tag" id="greenBadgeTag">Verde Universal: Identidade</div>
                         <div class="green-handle handle-nw" data-handle="nw"></div>
                         <div class="green-handle handle-ne" data-handle="ne"></div>
                         <div class="green-handle handle-sw" data-handle="sw"></div>
                         <div class="green-handle handle-se" data-handle="se"></div>
-                        <div class="green-handle handle-n" data-handle="n"></div>
-                        <div class="green-handle handle-s" data-handle="s"></div>
-                        <div class="green-handle handle-w" data-handle="w"></div>
-                        <div class="green-handle handle-e" data-handle="e"></div>
                     </div>
 
                     <div class="avatar-container" id="avatarContainer">
@@ -1925,26 +1917,35 @@
             }
         }
 
-        /* --- MOTOR DE ENQUADRAMENTO BASEADO NA COLISÃO BORDA-A-BORDA COM O CANVAS ÚTIL --- */
+        /* --- MOTOR DE ENQUADRAMENTO BASEADO NA COLISÃO BORDA-A-BORDA COM AS BARRAS (SUPERIOR, LATERAIS E INFERIOR) --- */
         function getSafeViewportBounds(customSheetH = null) {
             const m = getAvatarLayoutMetrics();
             
-            // Limite padrão do menu para enquadramento da câmera (~32% da altura da tela)
-            const standardMenuLimit = Math.max(120, Math.min(m.h * 0.32, 240));
-            const rawSheetH = customSheetH !== null ? customSheetH : ((bottomSheet && bottomSheet.offsetHeight > 0) ? bottomSheet.offsetHeight : 40);
-            const effectiveSheetH = Math.min(rawSheetH, standardMenuLimit);
+            // Colisão com Barra Superior (Titlebar):
+            const topBarEl = document.getElementById('desktopTitlebar');
+            const topBarH = (topBarEl && topBarEl.offsetHeight > 0) ? topBarEl.offsetHeight : 44;
             
-            const left = m.w * customViewportCollider.marginLeft;
-            const right = m.w * (1 - customViewportCollider.marginRight);
-            const top = m.h * customViewportCollider.marginTop;
-            const bottom = m.h - effectiveSheetH - (m.h * customViewportCollider.marginBottom);
+            // Colisão com Barra Lateral Direita (Menu de Botões):
+            const sideMenuEl = document.getElementById('sideMenu');
+            const sideMenuW = (sideMenuEl && sideMenuEl.offsetWidth > 0) ? (sideMenuEl.offsetWidth + 18) : 58;
+            
+            // Colisão com Barra Lateral Esquerda:
+            const leftBarW = 16;
+            
+            // Colisão com Barra de Configurações Inferior (Bottom Sheet):
+            const rawSheetH = customSheetH !== null ? customSheetH : ((bottomSheet && bottomSheet.offsetHeight > 0) ? bottomSheet.offsetHeight : 54);
+            
+            const left = Math.max(leftBarW, m.w * customViewportCollider.marginLeft);
+            const right = Math.min(m.w - sideMenuW, m.w * (1 - customViewportCollider.marginRight));
+            const top = Math.max(topBarH + 6, m.h * customViewportCollider.marginTop);
+            const bottom = Math.max(top + 80, m.h - rawSheetH - (m.h * customViewportCollider.marginBottom));
             
             const width = Math.max(80, right - left);
             const height = Math.max(100, bottom - top);
             const centerY = top + (height / 2);
             const centerX = left + (width / 2);
 
-            return { left, top, width, height, centerX, centerY };
+            return { left, top, width, height, centerX, centerY, right, bottom };
         }
 
         function renderViewportBoxDOM() {
