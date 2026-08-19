@@ -1924,37 +1924,35 @@
             }
         }
 
-        /* --- MOTOR DE ENQUADRAMENTO BASEADO NA COLISÃO BORDA-A-BORDA COM AS BARRAS (SUPERIOR, LATERAIS E INFERIOR) --- */
+        /* --- MOTOR DE ENQUADRAMENTO BASEADO NA COLISÃO BORDA-A-BORDA COM AS LINHAS VERMELHAS --- */
         function getSafeViewportBounds(customSheetH = null) {
             const m = getAvatarLayoutMetrics();
             
-            // Colisão com Barra Superior (Titlebar):
-            const topBarEl = document.getElementById('desktopTitlebar');
-            const topBarH = (topBarEl && topBarEl.offsetHeight > 0) ? topBarEl.offsetHeight : 44;
+            // Limite Superior (Linha Vermelha do Topo - logo abaixo da barra de título):
+            const top = 0;
             
-            // Colisão com Barra Lateral Direita (Menu de Botões):
-            const sideMenuEl = document.getElementById('sideMenu');
-            const sideMenuW = (sideMenuEl && sideMenuEl.offsetWidth > 0) ? (sideMenuEl.offsetWidth + 20) : 60;
-            
-            // Colisão com Barra Lateral Esquerda:
-            const leftBarW = 16;
-            
-            // Colisão com Barra de Configurações Inferior (Bottom Sheet):
+            // Limite Inferior (Linha Vermelha de Baixo - exatamente no topo da barra de configurações):
+            const vpRect = viewportCanvas ? viewportCanvas.getBoundingClientRect() : null;
             const sheetEl = document.getElementById('bottomSheet');
-            let sheetHeight = 60;
+            const sheetRect = sheetEl ? sheetEl.getBoundingClientRect() : null;
+            
+            let bottomLimitPx = m.h - 120;
             if (customSheetH !== null) {
-                sheetHeight = customSheetH;
-            } else if (sheetEl && sheetEl.offsetHeight > 0) {
-                sheetHeight = sheetEl.offsetHeight;
+                bottomLimitPx = m.h - Math.max(0, customSheetH - 84);
+            } else if (vpRect && sheetRect && sheetRect.top > vpRect.top) {
+                bottomLimitPx = sheetRect.top - vpRect.top;
             }
             
-            const left = Math.max(leftBarW, m.w * customViewportCollider.marginLeft);
-            const right = Math.min(m.w - sideMenuW, m.w * (1 - customViewportCollider.marginRight));
-            const top = Math.max(topBarH + 6, m.h * customViewportCollider.marginTop);
-            const bottom = Math.max(top + 80, m.h - sheetHeight - 14);
+            const bottom = Math.max(80, Math.min(m.h, bottomLimitPx));
+            
+            // Limites Laterais (Menu de Botões à direita e Margem à esquerda):
+            const sideMenuEl = document.getElementById('sideMenu');
+            const sideMenuW = (sideMenuEl && sideMenuEl.offsetWidth > 0) ? (sideMenuEl.offsetWidth + 18) : 56;
+            const left = 14;
+            const right = Math.min(m.w - sideMenuW, m.w - 14);
             
             const width = Math.max(80, right - left);
-            const height = Math.max(100, bottom - top);
+            const height = Math.max(80, bottom - top);
             const centerY = top + (height / 2);
             const centerX = left + (width / 2);
 
@@ -2448,6 +2446,20 @@
             }
         }
 
+        function getMaxGreenBounds() {
+            const m = getAvatarLayoutMetrics();
+            const vpRect = viewportCanvas ? viewportCanvas.getBoundingClientRect() : null;
+            const sheetEl = document.getElementById('bottomSheet');
+            const sheetRect = sheetEl ? sheetEl.getBoundingClientRect() : null;
+
+            let bottomPx = m.h - 100;
+            if (vpRect && sheetRect && sheetRect.top > vpRect.top) {
+                bottomPx = sheetRect.top - vpRect.top;
+            }
+            const maxNormY = Math.max(0.15, Math.min(1.0, bottomPx / m.h));
+            return { minX: 0.0, maxX: 1.0, minY: 0.0, maxY: maxNormY };
+        }
+
         /* --- INTERAÇÃO DIRETA: REDIMENSIONAR A CAIXA VERDE PELOS CANTOS E ARESTAS --- */
         let greenDragMode = null;
         let greenStartMouseX = 0;
@@ -2471,6 +2483,7 @@
             window.addEventListener('pointermove', (e) => {
                 if (!greenDragMode || !greenStartBox) return;
                 const m = getAvatarLayoutMetrics();
+                const bounds = getMaxGreenBounds();
 
                 // Totalmente imune ao zoom da câmera - mapeado no Canvas
                 const deltaNormX = (e.clientX - greenStartMouseX) / m.w;
@@ -2482,25 +2495,25 @@
                 let newH = greenStartBox.h;
 
                 if (greenDragMode.includes('e')) {
-                    newW = Math.max(0.04, Math.min(1 - greenStartBox.x, greenStartBox.w + deltaNormX));
+                    newW = Math.max(0.04, Math.min(bounds.maxX - greenStartBox.x, greenStartBox.w + deltaNormX));
                 }
                 if (greenDragMode.includes('s')) {
-                    newH = Math.max(0.04, Math.min(1 - greenStartBox.y, greenStartBox.h + deltaNormY));
+                    newH = Math.max(0.04, Math.min(bounds.maxY - greenStartBox.y, greenStartBox.h + deltaNormY));
                 }
                 if (greenDragMode.includes('w')) {
                     const right = greenStartBox.x + greenStartBox.w;
-                    newX = Math.max(0, Math.min(right - 0.04, greenStartBox.x + deltaNormX));
+                    newX = Math.max(bounds.minX, Math.min(right - 0.04, greenStartBox.x + deltaNormX));
                     newW = right - newX;
                 }
                 if (greenDragMode.includes('n')) {
                     const bottom = greenStartBox.y + greenStartBox.h;
-                    newY = Math.max(0, Math.min(bottom - 0.04, greenStartBox.y + deltaNormY));
+                    newY = Math.max(bounds.minY, Math.min(bottom - 0.04, greenStartBox.y + deltaNormY));
                     newH = bottom - newY;
                 }
 
-                // Respeita estritamente os limites do Canvas (cima y=0, baixo y=1 e laterais x=0/1)
-                newX = Math.max(0, Math.min(1 - newW, newX));
-                newY = Math.max(0, Math.min(1 - newH, newY));
+                // Respeita estritamente as linhas vermelhas do usuário (topo: y=0, baixo: topo da aba de configurações)
+                newX = Math.max(bounds.minX, Math.min(bounds.maxX - newW, newX));
+                newY = Math.max(bounds.minY, Math.min(bounds.maxY - newH, newY));
 
                 currentGreenBox = { x: newX, y: newY, w: newW, h: newH };
                 renderGreenBoxDOM();
