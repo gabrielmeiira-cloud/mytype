@@ -101,7 +101,7 @@
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                padding: 0 16px;
+                padding: 0 20px 0 18px;
                 z-index: 80;
                 cursor: grab;
                 user-select: none;
@@ -127,42 +127,13 @@
                 color: var(--text-muted);
                 letter-spacing: 0.4px;
                 pointer-events: none;
-                margin-left: 6px;
             }
 
             .titlebar-right {
                 display: flex;
                 align-items: center;
-                gap: 6px;
-            }
-
-            .titlebar-btn-debug {
-                width: 28px;
-                height: 28px;
-                border-radius: 8px;
-                background: rgba(255, 255, 255, 0.07);
-                border: 1px solid rgba(255, 255, 255, 0.14);
-                color: #d1cdd9;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                transition: all 0.2s ease;
-            }
-
-            .titlebar-btn-debug:hover,
-            .titlebar-btn-debug.active {
-                background: rgba(201, 107, 124, 0.28);
-                border-color: var(--primary);
-                color: var(--primary);
-                transform: scale(1.06);
-            }
-
-            .titlebar-btn-debug svg {
-                width: 16px;
-                height: 16px;
-                fill: currentColor;
-                pointer-events: none;
+                gap: 8px;
+                margin-right: 4px;
             }
 
             .titlebar-action-btn {
@@ -1290,6 +1261,10 @@
 
     <!-- Painel de Depuração Flutuante Externo (Apenas Computador - Fora do Canvas) -->
     <div class="desktop-debug-wrapper" id="desktopDebugWrapper">
+        <button class="desktop-debug-btn" id="btnDebugMode" title="Alternar Painel de Depuração" aria-label="Depuração" onclick="toggleDebugMode(event)">
+            <svg viewBox="0 0 24 24"><path d="M20 8h-2.81c-.45-.78-1.07-1.45-1.82-1.96L17 4.41 15.59 3l-2.17C12.96 5.06 12.49 5 12 5c-.49 0-.96.06-1.41.17L8.41 3 7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8zm-6 8h-4v-2h4v2zm0-4h-4v-2h4v2z"/></svg>
+        </button>
+
         <div class="camera-hud-group" id="cameraHudGroup">
             <div class="camera-hud-badge" id="cameraHudBadge" title="Clique para copiar os valores de Zoom e Coordenadas">
                 <div class="hud-row">
@@ -1325,7 +1300,7 @@
 
             <!-- Botão para alternar entre degradê antigo e novo -->
             <button class="bg-mode-btn" id="bgToggleBtn" title="Clique para alternar o estilo do fundo" onclick="toggleBackgroundMode()">
-                <svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 22,12M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20V4Z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20V4Z"/></svg>
                 <span id="bgModeLabel">Fundo: Câmera (Novo)</span>
             </button>
 
@@ -1360,18 +1335,15 @@
                 <!-- Barra de Título Superior Estilo Janela OS (Desktop) -->
                 <div class="desktop-titlebar" id="desktopTitlebar" title="Clique e arraste para movimentar a janela">
                     <div class="titlebar-left">
+                        <span class="titlebar-title">MyType Studio</span>
+                    </div>
+
+                    <div class="titlebar-right">
                         <button class="titlebar-action-btn" id="btnMinimize" title="Minimizar janela (vira celularzinho no canto)" aria-label="Minimizar" onclick="minimizePhoneWindow(event)">
                             <svg viewBox="0 0 24 24"><path d="M19,13H5V11H19V13Z"/></svg>
                         </button>
                         <button class="titlebar-action-btn" id="btnMaximize" title="Restaurar tamanho e posição original (Reset)" aria-label="Restaurar" onclick="resetWindowSizeAndPos(event)">
                             <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
-                        </button>
-                        <span class="titlebar-title">MyType Studio</span>
-                    </div>
-
-                    <div class="titlebar-right">
-                        <button class="titlebar-btn-debug" id="btnDebugMode" title="Alternar Painel de Depuração" aria-label="Depuração" onclick="toggleDebugMode(event)">
-                            <svg viewBox="0 0 24 24"><path d="M20 8h-2.81c-.45-.78-1.07-1.45-1.82-1.96L17 4.41 15.59 3l-2.17C12.96 5.06 12.49 5 12 5c-.49 0-.96.06-1.41.17L8.41 3 7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8zm-6 8h-4v-2h4v2zm0-4h-4v-2h4v2z"/></svg>
                         </button>
                     </div>
                 </div>
