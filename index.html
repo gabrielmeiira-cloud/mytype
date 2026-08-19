@@ -385,27 +385,27 @@
         /* Painel de Depuração Flutuante Externo (Apenas Computador - Fora do Canvas) */
         .desktop-debug-wrapper {
             position: fixed;
-            top: 24px;
-            left: 24px;
+            top: 18px;
+            left: 18px;
             display: flex;
             flex-direction: column;
             gap: 10px;
-            z-index: 999;
+            z-index: 99999;
             align-items: flex-start;
         }
 
         .desktop-debug-btn {
-            width: 40px;
-            height: 40px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             background: #232029;
-            border: 2px solid rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.25);
             color: #d1cdd9;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.75);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.85);
             transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
             outline: none;
             padding: 0;
@@ -428,8 +428,8 @@
         }
 
         .desktop-debug-btn svg {
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             fill: currentColor;
             pointer-events: none;
             display: block;
@@ -818,11 +818,159 @@
             box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
         }
 
+        .btn-lock-toggle.btn-green-lock.unlocked {
+            background: rgba(16, 185, 129, 0.28);
+            border-color: #10b981;
+            color: #ffffff;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+        }
+
         .btn-lock-toggle.is-locked {
             opacity: 0.65;
             background: rgba(18, 16, 22, 0.9);
             border-color: rgba(255, 255, 255, 0.1);
             color: #8c8899;
+        }
+
+        /* --- CAIXA DE COLISÃO UNIVERSAL VERDE (ANATOMIA DO AVATAR) --- */
+        .debug-green-box {
+            position: absolute;
+            border: 2px solid #10b981;
+            background: rgba(16, 185, 129, 0.16);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.5), inset 0 0 16px rgba(16, 185, 129, 0.2);
+            z-index: 65;
+            cursor: move;
+            pointer-events: auto;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease;
+            touch-action: none;
+            box-sizing: border-box;
+        }
+
+        .debug-green-box.debug-visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .debug-green-box.is-locked {
+            pointer-events: none !important;
+            opacity: 0.55 !important;
+            border-style: dotted !important;
+        }
+
+        .debug-green-box.is-locked .green-handle {
+            display: none !important;
+        }
+
+        .green-badge-tag {
+            position: absolute;
+            top: -24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10, 24, 18, 0.96);
+            color: #10b981;
+            font-size: 8.5px;
+            font-weight: 700;
+            font-family: monospace;
+            padding: 2px 7px;
+            border-radius: 5px;
+            border: 1px solid #10b981;
+            white-space: nowrap;
+            pointer-events: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+        }
+
+        .green-handle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #ffffff;
+            border: 2px solid #10b981;
+            border-radius: 2px;
+            box-shadow: 0 0 6px rgba(0,0,0,0.8);
+            z-index: 75;
+            box-sizing: border-box;
+        }
+        .green-handle.handle-nw { top: -5px; left: -5px; cursor: nwse-resize; }
+        .green-handle.handle-ne { top: -5px; right: -5px; cursor: nesw-resize; }
+        .green-handle.handle-sw { bottom: -5px; left: -5px; cursor: nesw-resize; }
+        .green-handle.handle-se { bottom: -5px; right: -5px; cursor: nwse-resize; }
+        .green-handle.handle-n  { top: -5px; left: calc(50% - 5px); cursor: ns-resize; }
+        .green-handle.handle-s  { bottom: -5px; left: calc(50% - 5px); cursor: ns-resize; }
+        .green-handle.handle-w  { left: -5px; top: calc(50% - 5px); cursor: ew-resize; }
+        .green-handle.handle-e  { right: -5px; top: calc(50% - 5px); cursor: ew-resize; }
+
+        /* Seção Exclusiva da Colisão Verde Universal no Menu HUD */
+        .green-dedicated-section {
+            background: rgba(16, 28, 22, 0.94);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            border-radius: 12px;
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), 0 0 12px rgba(16, 185, 129, 0.2);
+            max-width: 280px;
+        }
+
+        .green-section-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .green-dot-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 8px #10b981;
+        }
+
+        .green-section-title {
+            font-size: 9.5px;
+            font-weight: 700;
+            color: #10b981;
+            letter-spacing: 0.2px;
+        }
+
+        .btn-green-action {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: rgba(16, 185, 129, 0.5);
+            color: #10b981;
+        }
+        .btn-green-action:hover {
+            background: #10b981;
+            color: #ffffff;
+        }
+
+        .btn-green-save {
+            background: rgba(16, 185, 129, 0.3);
+            border-color: #10b981;
+            color: #ffffff;
+            font-weight: 700;
+        }
+        .btn-green-save:hover {
+            background: #059669;
+            transform: scale(1.04);
+        }
+
+        .btn-green-export {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+        }
+        .btn-green-export:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .green-tag:hover,
+        .green-tag.active {
+            background: #10b981 !important;
+            color: #ffffff !important;
+            border-color: #34d399 !important;
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
         }
 
         .bg-mode-btn svg {
@@ -1284,11 +1432,14 @@
 
             <!-- Botões de Travar/Destravar Colisores Independentes -->
             <div class="lock-toggles-row">
-                <button class="btn-lock-toggle btn-avatar-lock unlocked" id="btnLockAvatar" onclick="toggleLockAvatarBox()" title="Clique para travar/destravar o Colisor Vermelho do Avatar">
-                    <span id="labelLockAvatar">🔓 Vermelho (Editando)</span>
+                <button class="btn-lock-toggle btn-green-lock unlocked" id="btnLockGreen" onclick="toggleLockGreenBox()" title="Clique para travar/destravar o Colisor Verde Universal">
+                    <span id="labelLockGreen">🔓 Verde (Editando)</span>
                 </button>
-                <button class="btn-lock-toggle btn-viewport-lock is-locked" id="btnLockViewport" onclick="toggleLockViewportBox()" title="Clique para travar/destravar o Colisor Azul do Canvas">
-                    <span id="labelLockViewport">🔒 Azul (Travado)</span>
+                <button class="btn-lock-toggle btn-avatar-lock is-locked" id="btnLockAvatar" onclick="toggleLockAvatarBox()" title="Clique para travar/destravar o Colisor Vermelho">
+                    <span id="labelLockAvatar">🔒 Vermelho</span>
+                </button>
+                <button class="btn-lock-toggle btn-viewport-lock is-locked" id="btnLockViewport" onclick="toggleLockViewportBox()" title="Clique para travar/destravar o Colisor Azul">
+                    <span id="labelLockViewport">🔒 Azul</span>
                 </button>
             </div>
 
@@ -1303,6 +1454,37 @@
                 <button class="pin-action-btn" id="btnExportFixed" onclick="exportFixedBoxesConfig()" title="Copiar todas as caixas de colisão salvas">
                     📋 Exportar
                 </button>
+            </div>
+
+            <!-- Seção Exclusiva da Colisão Verde Universal (Anatomia do Avatar) -->
+            <div class="green-dedicated-section" id="greenDedicatedSection">
+                <div class="green-section-header">
+                    <span class="green-dot-indicator"></span>
+                    <span class="green-section-title">Colisão Universal Verde (Avatar)</span>
+                </div>
+                <div class="hud-sub" id="greenCoordsText" style="color: #10b981; font-weight: 600;">📐 Verde: X: 35% | Y: 0% | L: 30% | A: 27%</div>
+                
+                <div class="pin-actions-row">
+                    <button class="pin-action-btn btn-green-action" onclick="focusCameraOnGreenBox()" title="Enquadra a modelo usando a caixa verde">
+                        🎯 Enquadrar Verde
+                    </button>
+                    <button class="pin-action-btn btn-green-save" id="btnSaveGreen" onclick="registerGreenBoxPreset()" title="Registra a caixa verde exclusivamente para a sessão selecionada">
+                        💾 Gravar Verde
+                    </button>
+                    <button class="pin-action-btn btn-green-export" id="btnExportGreen" onclick="exportGreenBoxesConfig()" title="Exporta todas as 7 caixas verdes universais">
+                        📋 Exportar Verde
+                    </button>
+                </div>
+
+                <div class="debug-sessions-bar green-sessions-bar" id="greenSessionsBar">
+                    <span class="debug-session-tag green-tag active" data-green-tab="Identidade" onclick="selectGreenSession('Identidade')">Identidade</span>
+                    <span class="debug-session-tag green-tag" data-green-tab="Aparência" onclick="selectGreenSession('Aparência')">Aparência</span>
+                    <span class="debug-session-tag green-tag" data-green-tab="Busto" onclick="selectGreenSession('Busto')">Busto</span>
+                    <span class="debug-session-tag green-tag" data-green-tab="Pernas" onclick="selectGreenSession('Pernas')">Pernas</span>
+                    <span class="debug-session-tag green-tag" data-green-tab="Pés" onclick="selectGreenSession('Pés')">Pés</span>
+                    <span class="debug-session-tag green-tag" data-green-tab="Estilo" onclick="selectGreenSession('Estilo')">Estilo</span>
+                    <span class="debug-session-tag green-tag" data-green-tab="Gravação" onclick="selectGreenSession('Gravação')">Gravação</span>
+                </div>
             </div>
 
             <!-- Botão para alternar entre degradê antigo e novo -->
@@ -1389,6 +1571,20 @@
                             <div class="box-handle handle-s" data-handle="s"></div>
                             <div class="box-handle handle-w" data-handle="w"></div>
                             <div class="box-handle handle-e" data-handle="e"></div>
+                        </div>
+
+                        <!-- Caixa de Colisão Universal Verde (Anatomia Direta da Imagem) -->
+                        <div class="debug-green-box" id="debugGreenBox" title="Arraste para mover ou use as alças verdes para redimensionar a colisão universal da imagem">
+                            <div class="green-badge-tag" id="greenBadgeTag">Verde Universal: Identidade</div>
+                            <div class="box-crosshair-center" style="border-color: #10b981;"></div>
+                            <div class="green-handle handle-nw" data-handle="nw"></div>
+                            <div class="green-handle handle-ne" data-handle="ne"></div>
+                            <div class="green-handle handle-sw" data-handle="sw"></div>
+                            <div class="green-handle handle-se" data-handle="se"></div>
+                            <div class="green-handle handle-n" data-handle="n"></div>
+                            <div class="green-handle handle-s" data-handle="s"></div>
+                            <div class="green-handle handle-w" data-handle="w"></div>
+                            <div class="green-handle handle-e" data-handle="e"></div>
                         </div>
                     </div>
                 </div>
@@ -1613,6 +1809,8 @@
             const lblAv = document.getElementById('labelLockAvatar');
             const btnVp = document.getElementById('btnLockViewport');
             const lblVp = document.getElementById('labelLockViewport');
+            const btnGr = document.getElementById('btnLockGreen');
+            const lblGr = document.getElementById('labelLockGreen');
 
             if (debugCollisionBox) {
                 if (isAvatarBoxLocked) {
@@ -1630,15 +1828,35 @@
                 }
             }
 
+            if (debugGreenBox) {
+                if (isGreenBoxLocked) {
+                    debugGreenBox.classList.add('is-locked');
+                } else {
+                    debugGreenBox.classList.remove('is-locked');
+                }
+            }
+
+            if (btnGr && lblGr) {
+                if (isGreenBoxLocked) {
+                    btnGr.classList.remove('unlocked');
+                    btnGr.classList.add('is-locked');
+                    lblGr.innerText = "🔒 Verde";
+                } else {
+                    btnGr.classList.add('unlocked');
+                    btnGr.classList.remove('is-locked');
+                    lblGr.innerText = "🔓 Verde (Editando)";
+                }
+            }
+
             if (btnAv && lblAv) {
                 if (isAvatarBoxLocked) {
                     btnAv.classList.remove('unlocked');
                     btnAv.classList.add('is-locked');
-                    lblAv.innerText = "🔒 Vermelho (Travado)";
+                    lblAv.innerText = "🔒 Vermelho";
                 } else {
                     btnAv.classList.add('unlocked');
                     btnAv.classList.remove('is-locked');
-                    lblAv.innerText = "🔓 Vermelho (Editando)";
+                    lblAv.innerText = "🔓 Vermelho";
                 }
             }
 
@@ -1646,11 +1864,11 @@
                 if (isViewportBoxLocked) {
                     btnVp.classList.remove('unlocked');
                     btnVp.classList.add('is-locked');
-                    lblVp.innerText = "🔒 Azul (Travado)";
+                    lblVp.innerText = "🔒 Azul";
                 } else {
                     btnVp.classList.add('unlocked');
                     btnVp.classList.remove('is-locked');
-                    lblVp.innerText = "🔓 Azul (Editando)";
+                    lblVp.innerText = "🔓 Azul";
                 }
             }
         }
@@ -1675,14 +1893,17 @@
                 if (cameraHudGroup) cameraHudGroup.classList.add('debug-visible');
                 if (debugCollisionBox) debugCollisionBox.classList.add('debug-visible');
                 if (debugViewportBox) debugViewportBox.classList.add('debug-visible');
+                if (debugGreenBox) debugGreenBox.classList.add('debug-visible');
                 updateLockStatesDOM();
                 renderCollisionBoxDOM();
                 renderViewportBoxDOM();
+                renderGreenBoxDOM();
             } else {
                 if (btnDebugMode) btnDebugMode.classList.remove('active');
                 if (cameraHudGroup) cameraHudGroup.classList.remove('debug-visible');
                 if (debugCollisionBox) debugCollisionBox.classList.remove('debug-visible');
                 if (debugViewportBox) debugViewportBox.classList.remove('debug-visible');
+                if (debugGreenBox) debugGreenBox.classList.remove('debug-visible');
             }
         }
 
@@ -1813,6 +2034,7 @@
                 coordsText.innerText = `X: ${Math.round(avatarPanX)} | Y: ${Math.round(avatarPanY)}`;
             }
             renderCollisionBoxDOM();
+            renderGreenBoxDOM();
         }
 
         function animateAvatarCamera(targetScale, targetX, targetY, duration = 480) {
@@ -1835,6 +2057,10 @@
             const box = sessionBoundingBoxes[sessionName] || sessionBoundingBoxes["Identidade"];
             currentBox = { ...box };
             renderCollisionBoxDOM();
+
+            if (isDebugMode) {
+                selectGreenSession(sessionName);
+            }
 
             const framing = calculateFramingFromBoundingBox(currentBox);
             animateAvatarCamera(framing.scale, framing.x, framing.y, duration);
@@ -2060,6 +2286,199 @@
                 boxDragMode = null;
                 dragStartBox = null;
                 try { debugCollisionBox.releasePointerCapture(e.pointerId); } catch(err){}
+            });
+        }
+
+        /* --- CAIXA DE COLISÃO UNIVERSAL VERDE (ANATOMIA DO AVATAR) --- */
+        const debugGreenBox = document.getElementById('debugGreenBox');
+        const greenBadgeTag = document.getElementById('greenBadgeTag');
+        const greenCoordsText = document.getElementById('greenCoordsText');
+
+        const universalGreenBoxes = {
+            "Identidade": { x: 0.05, y: 0.011, w: 0.90, h: 0.989 }, // Corpo Inteiro
+            "Aparência":  { x: 0.35, y: 0.000, w: 0.297, h: 0.270 }, // Cabeça e Rosto
+            "Busto":      { x: 0.375, y: 0.175, w: 0.248, h: 0.164 }, // Busto e Cintura
+            "Pernas":     { x: 0.20, y: 0.380, w: 0.600, h: 0.440 }, // Pernas e Joelhos
+            "Pés":        { x: 0.24, y: 0.800, w: 0.520, h: 0.200 }, // Tornozelos e Pés
+            "Estilo":     { x: 0.10, y: 0.040, w: 0.800, h: 0.900 }, // Moda Geral
+            "Gravação":   { x: 0.05, y: 0.000, w: 0.900, h: 1.000 }  // Estúdio
+        };
+
+        try {
+            const savedGreen = localStorage.getItem('mytype_green_universal_boxes');
+            if (savedGreen) {
+                Object.assign(universalGreenBoxes, JSON.parse(savedGreen));
+            }
+        } catch(e) {}
+
+        let selectedGreenTab = "Identidade";
+        let currentGreenBox = { ...universalGreenBoxes["Identidade"] };
+        let isGreenBoxLocked = false;
+
+        function toggleLockGreenBox() {
+            isGreenBoxLocked = !isGreenBoxLocked;
+            updateLockStatesDOM();
+        }
+
+        function renderGreenBoxDOM() {
+            if (!debugGreenBox) return;
+            const m = getAvatarLayoutMetrics();
+
+            const leftPx = m.offsetX + (m.renderedW * currentGreenBox.x);
+            const topPx = m.offsetY + (m.renderedH * currentGreenBox.y);
+            const widthPx = m.renderedW * currentGreenBox.w;
+            const heightPx = m.renderedH * currentGreenBox.h;
+
+            debugGreenBox.style.left = `${leftPx}px`;
+            debugGreenBox.style.top = `${topPx}px`;
+            debugGreenBox.style.width = `${widthPx}px`;
+            debugGreenBox.style.height = `${heightPx}px`;
+
+            const wPercent = (currentGreenBox.w * 100).toFixed(0);
+            const hPercent = (currentGreenBox.h * 100).toFixed(0);
+            const xPercent = (currentGreenBox.x * 100).toFixed(0);
+            const yPercent = (currentGreenBox.y * 100).toFixed(0);
+
+            if (greenBadgeTag) greenBadgeTag.innerText = `Verde Universal: ${selectedGreenTab} (${wPercent}% × ${hPercent}%)`;
+            if (greenCoordsText) greenCoordsText.innerText = `📐 [${selectedGreenTab}] X:${xPercent}% Y:${yPercent}% | L:${wPercent}% A:${hPercent}%`;
+        }
+
+        function selectGreenSession(sessionName) {
+            selectedGreenTab = sessionName;
+            currentGreenBox = { ...(universalGreenBoxes[sessionName] || universalGreenBoxes["Identidade"]) };
+            renderGreenBoxDOM();
+
+            document.querySelectorAll('.green-tag').forEach(tag => {
+                if (tag.getAttribute('data-green-tab') === sessionName) {
+                    tag.classList.add('active');
+                } else {
+                    tag.classList.remove('active');
+                }
+            });
+        }
+
+        function focusCameraOnGreenBox() {
+            const framing = calculateFramingFromBoundingBox(currentGreenBox);
+            animateAvatarCamera(framing.scale, framing.x, framing.y, 450);
+        }
+
+        function registerGreenBoxPreset() {
+            universalGreenBoxes[selectedGreenTab] = {
+                x: parseFloat(currentGreenBox.x.toFixed(3)),
+                y: parseFloat(currentGreenBox.y.toFixed(3)),
+                w: parseFloat(currentGreenBox.w.toFixed(3)),
+                h: parseFloat(currentGreenBox.h.toFixed(3))
+            };
+
+            try {
+                localStorage.setItem('mytype_green_universal_boxes', JSON.stringify(universalGreenBoxes));
+            } catch(e) {}
+
+            const btn = document.getElementById('btnSaveGreen');
+            if (btn) {
+                const prev = btn.innerHTML;
+                btn.innerHTML = `🟢 Gravado!`;
+                btn.style.backgroundColor = '#10b981';
+                btn.style.color = '#ffffff';
+                setTimeout(() => {
+                    btn.innerHTML = prev;
+                    btn.style.backgroundColor = '';
+                    btn.style.color = '';
+                }, 1800);
+            }
+
+            if (greenCoordsText) {
+                greenCoordsText.innerText = `🟢 Gravado para ${selectedGreenTab}!`;
+                setTimeout(() => {
+                    renderGreenBoxDOM();
+                }, 2000);
+            }
+        }
+
+        function exportGreenBoxesConfig() {
+            const exportData = {
+                universalGreenBoxes: universalGreenBoxes
+            };
+            const jsonText = JSON.stringify(exportData, null, 4);
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(jsonText);
+            }
+            const btn = document.getElementById('btnExportGreen');
+            if (btn) {
+                const prev = btn.innerHTML;
+                btn.innerHTML = `✅ Copiado!`;
+                setTimeout(() => { btn.innerHTML = prev; }, 2000);
+            }
+            if (greenCoordsText) {
+                greenCoordsText.innerText = "📋 JSON das 7 Caixas Verdes Copiado!";
+                setTimeout(() => {
+                    renderGreenBoxDOM();
+                }, 3000);
+            }
+        }
+
+        /* --- INTERAÇÃO DIRETA: ARRASTAR E REDIMENSIONAR A CAIXA VERDE --- */
+        let greenDragMode = null;
+        let greenStartMouseX = 0;
+        let greenStartMouseY = 0;
+        let greenStartBox = null;
+
+        if (debugGreenBox) {
+            debugGreenBox.addEventListener('pointerdown', (e) => {
+                e.stopPropagation();
+                const handle = e.target.getAttribute('data-handle');
+                greenDragMode = handle ? handle : 'move';
+
+                greenStartMouseX = e.clientX;
+                greenStartMouseY = e.clientY;
+                greenStartBox = { ...currentGreenBox };
+
+                try { debugGreenBox.setPointerCapture(e.pointerId); } catch(err){}
+            });
+
+            debugGreenBox.addEventListener('pointermove', (e) => {
+                if (!greenDragMode || !greenStartBox) return;
+                const m = getAvatarLayoutMetrics();
+
+                const deltaNormX = (e.clientX - greenStartMouseX) / (m.renderedW * avatarScale);
+                const deltaNormY = (e.clientY - greenStartMouseY) / (m.renderedH * avatarScale);
+
+                if (greenDragMode === 'move') {
+                    currentGreenBox.x = Math.max(0, Math.min(1 - greenStartBox.w, greenStartBox.x + deltaNormX));
+                    currentGreenBox.y = Math.max(0, Math.min(1 - greenStartBox.h, greenStartBox.y + deltaNormY));
+                } else {
+                    let newX = greenStartBox.x;
+                    let newY = greenStartBox.y;
+                    let newW = greenStartBox.w;
+                    let newH = greenStartBox.h;
+
+                    if (greenDragMode.includes('e')) {
+                        newW = Math.max(0.06, Math.min(1 - greenStartBox.x, greenStartBox.w + deltaNormX));
+                    }
+                    if (greenDragMode.includes('s')) {
+                        newH = Math.max(0.06, Math.min(1 - greenStartBox.y, greenStartBox.h + deltaNormY));
+                    }
+                    if (greenDragMode.includes('w')) {
+                        const right = greenStartBox.x + greenStartBox.w;
+                        newX = Math.max(0, Math.min(right - 0.06, greenStartBox.x + deltaNormX));
+                        newW = right - newX;
+                    }
+                    if (greenDragMode.includes('n')) {
+                        const bottom = greenStartBox.y + greenStartBox.h;
+                        newY = Math.max(0, Math.min(bottom - 0.06, greenStartBox.y + deltaNormY));
+                        newH = bottom - newY;
+                    }
+
+                    currentGreenBox = { x: newX, y: newY, w: newW, h: newH };
+                }
+
+                renderGreenBoxDOM();
+            });
+
+            debugGreenBox.addEventListener('pointerup', (e) => {
+                greenDragMode = null;
+                greenStartBox = null;
+                try { debugGreenBox.releasePointerCapture(e.pointerId); } catch(err){}
             });
         }
 
