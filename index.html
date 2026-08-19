@@ -87,85 +87,106 @@
                 border-radius: 38px;
                 border: 2px solid var(--border-color);
                 box-shadow: 0 20px 48px rgba(0, 0, 0, 0.75);
-                position: relative;
-            }
-
-            /* Botão de Mover Circular Sobreposto na Quina Superior Esquerda */
-            .window-btn-drag {
-                position: absolute;
-                top: -14px;
-                left: -14px;
-                width: 36px;
-                height: 36px;
-                border-radius: 50%;
-                background: #232029;
-                border: 2px solid rgba(255, 255, 255, 0.2);
-                color: var(--text-main);
+            /* Barra de Título Superior Estilo Janela OS (Apenas Computador) */
+            .desktop-titlebar {
+                width: 100%;
+                height: 38px;
+                background: rgba(22, 19, 28, 0.95);
+                backdrop-filter: blur(16px);
+                -webkit-backdrop-filter: blur(16px);
+                border-bottom: 1px solid var(--border-color);
                 display: flex;
                 align-items: center;
-                justify-content: center;
+                justify-content: space-between;
+                padding: 0 12px;
+                z-index: 80;
                 cursor: grab;
-                z-index: 90;
-                box-shadow: 0 6px 18px rgba(0, 0, 0, 0.75);
-                transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+                user-select: none;
+                flex-shrink: 0;
+                border-top-left-radius: 36px;
+                border-top-right-radius: 36px;
                 touch-action: none;
             }
 
-            .window-btn-drag:hover {
-                background-color: #382c33;
-                border-color: var(--primary);
-                color: var(--primary);
-                transform: scale(1.12);
-                box-shadow: 0 8px 24px rgba(201, 107, 124, 0.45);
-            }
-
-            .window-btn-drag:active {
+            .desktop-titlebar:active {
                 cursor: grabbing;
-                transform: scale(0.95);
             }
 
-            .window-btn-drag svg {
-                width: 17px;
-                height: 17px;
-                fill: currentColor;
-                pointer-events: none;
+            .titlebar-left {
+                display: flex;
+                align-items: center;
+                gap: 8px;
             }
 
-            /* Botão de Minimizar Circular Sobreposto na Quina Superior Direita */
-            .window-btn-minimize {
-                position: absolute;
-                top: -14px;
-                right: -14px;
-                width: 36px;
-                height: 36px;
-                border-radius: 50%;
-                background: #232029;
-                border: 2px solid rgba(255, 255, 255, 0.2);
-                color: var(--text-main);
+            .titlebar-btn-debug {
+                width: 26px;
+                height: 26px;
+                border-radius: 7px;
+                background: rgba(255, 255, 255, 0.07);
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                color: #d1cdd9;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 cursor: pointer;
-                z-index: 90;
-                box-shadow: 0 6px 18px rgba(0, 0, 0, 0.75);
-                transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+                transition: all 0.2s ease;
             }
 
-            .window-btn-minimize:hover {
-                background-color: #382c33;
+            .titlebar-btn-debug:hover,
+            .titlebar-btn-debug.active {
+                background: rgba(201, 107, 124, 0.28);
                 border-color: var(--primary);
                 color: var(--primary);
-                transform: scale(1.12);
-                box-shadow: 0 8px 24px rgba(201, 107, 124, 0.45);
             }
 
-            .window-btn-minimize:active {
+            .titlebar-btn-debug svg {
+                width: 15px;
+                height: 15px;
+                fill: currentColor;
+                pointer-events: none;
+            }
+
+            .titlebar-title {
+                font-size: 11px;
+                font-weight: 600;
+                color: var(--text-muted);
+                letter-spacing: 0.4px;
+                pointer-events: none;
+            }
+
+            .titlebar-right {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .titlebar-action-btn {
+                width: 26px;
+                height: 26px;
+                border-radius: 7px;
+                background: rgba(255, 255, 255, 0.07);
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                color: #d1cdd9;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .titlebar-action-btn:hover {
+                background: rgba(255, 255, 255, 0.16);
+                color: #ffffff;
+                transform: scale(1.06);
+            }
+
+            .titlebar-action-btn:active {
                 transform: scale(0.92);
             }
 
-            .window-btn-minimize svg {
-                width: 16px;
-                height: 16px;
+            .titlebar-action-btn svg {
+                width: 13px;
+                height: 13px;
                 fill: currentColor;
                 pointer-events: none;
             }
@@ -185,6 +206,12 @@
             .win-resize-ne { top: -8px; right: -8px; width: 28px; height: 28px; cursor: nesw-resize; }
             .win-resize-sw { bottom: -8px; left: -8px; width: 28px; height: 28px; cursor: nesw-resize; }
             .win-resize-se { bottom: -8px; right: -8px; width: 28px; height: 28px; cursor: nwse-resize; }
+        }
+
+        @media (max-width: 500px) {
+            .desktop-titlebar {
+                display: none !important;
+            }
         }
 
 
@@ -1258,10 +1285,6 @@
 
     <!-- Painel de Depuração Flutuante Externo (Apenas Computador - Fora do Canvas) -->
     <div class="desktop-debug-wrapper" id="desktopDebugWrapper">
-        <button class="desktop-debug-btn" id="btnDebugMode" title="Alternar Painel de Depuração" aria-label="Depuração" onclick="toggleDebugMode()">
-            <svg viewBox="0 0 24 24"><path d="M20 8h-2.81c-.45-.78-1.07-1.45-1.82-1.96L17 4.41 15.59 3l-2.17 2.17C12.96 5.06 12.49 5 12 5c-.49 0-.96.06-1.41.17L8.41 3 7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8zm-6 8h-4v-2h4v2zm0-4h-4v-2h4v2z"/></svg>
-        </button>
-
         <div class="camera-hud-group" id="cameraHudGroup">
             <div class="camera-hud-badge" id="cameraHudBadge" title="Clique para copiar os valores de Zoom e Coordenadas">
                 <div class="hud-row">
@@ -1297,7 +1320,7 @@
 
             <!-- Botão para alternar entre degradê antigo e novo -->
             <button class="bg-mode-btn" id="bgToggleBtn" title="Clique para alternar o estilo do fundo" onclick="toggleBackgroundMode()">
-                <svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20V4Z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 22,12M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20V4Z"/></svg>
                 <span id="bgModeLabel">Fundo: Câmera (Novo)</span>
             </button>
 
@@ -1317,16 +1340,6 @@
     <div class="phone-wrapper" id="phoneWrapper">
         <div class="phone-movable-frame" id="phoneMovableFrame">
             
-            <!-- Botão de Arrastar Circular (Sobreposto na Quina Superior Esquerda) -->
-            <div class="window-btn-drag" id="windowDragHandle" title="Clique e segure para arrastar a janela">
-                <svg viewBox="0 0 24 24"><path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"/></svg>
-            </div>
-
-            <!-- Botão de Minimizar Circular (Sobreposto na Quina Superior Direita) -->
-            <button class="window-btn-minimize" id="btnMinimize" title="Minimizar (vira celularzinho no canto)" aria-label="Minimizar">
-                <svg viewBox="0 0 24 24"><path d="M19,13H5V11H19V13Z"/></svg>
-            </button>
-
             <!-- Alças Interativas de Redimensionamento Livre da Janela (Estilo Windows OS no Computador) -->
             <div class="win-resize-handle win-resize-n" data-resize="n" title="Arraste para redimensionar verticalmente"></div>
             <div class="win-resize-handle win-resize-s" data-resize="s" title="Arraste para redimensionar verticalmente"></div>
@@ -1338,6 +1351,25 @@
             <div class="win-resize-handle win-resize-se" data-resize="se" title="Arraste para redimensionar"></div>
 
             <div class="app-container" id="appContainer">
+                
+                <!-- Barra de Título Superior Estilo Janela OS (Desktop) -->
+                <div class="desktop-titlebar" id="desktopTitlebar" title="Clique e arraste para movimentar a janela">
+                    <div class="titlebar-left">
+                        <button class="titlebar-btn-debug" id="btnDebugMode" title="Alternar Painel de Depuração" aria-label="Depuração" onclick="toggleDebugMode(event)">
+                            <svg viewBox="0 0 24 24"><path d="M20 8h-2.81c-.45-.78-1.07-1.45-1.82-1.96L17 4.41 15.59 3l-2.17C12.96 5.06 12.49 5 12 5c-.49 0-.96.06-1.41.17L8.41 3 7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8zm-6 8h-4v-2h4v2zm0-4h-4v-2h4v2z"/></svg>
+                        </button>
+                        <span class="titlebar-title">MyType Studio</span>
+                    </div>
+
+                    <div class="titlebar-right">
+                        <button class="titlebar-action-btn" id="btnMinimize" title="Minimizar janela (vira celularzinho no canto)" aria-label="Minimizar" onclick="minimizePhoneWindow(event)">
+                            <svg viewBox="0 0 24 24"><path d="M19,13H5V11H19V13Z"/></svg>
+                        </button>
+                        <button class="titlebar-action-btn" id="btnMaximize" title="Aumentar / Restaurar tamanho e posição original" aria-label="Aumentar / Restaurar" onclick="resetWindowSizeAndPos(event)">
+                            <svg viewBox="0 0 24 24"><path d="M4,4H20V20H4V4M6,8V18H18V8H6Z"/></svg>
+                        </button>
+                    </div>
+                </div>
                 
                 <!-- Viewport / Canvas Interativo da Modelo -->
                 <div class="viewport" id="viewportCanvas">
@@ -2230,7 +2262,7 @@
             viewportCanvas.addEventListener('pointercancel', handlePointerUpOrCancel);
         }
 
-        /* --- CONTROLE DE ARRASTE DA JANELA (BOTÃO MOVER NO DESKTOP) --- */
+        /* --- CONTROLE DE ARRASTE DA JANELA PELA BARRA DE TÍTULO (DESKTOP) --- */
         let isPhoneDragging = false;
         let phonePosX = 0;
         let phonePosY = 0;
@@ -2239,11 +2271,12 @@
         let phoneInitialX = 0;
         let phoneInitialY = 0;
 
-        if (windowDragHandle) {
-            windowDragHandle.addEventListener('pointerdown', (e) => {
+        const titlebarEl = document.getElementById('desktopTitlebar');
+        if (titlebarEl) {
+            titlebarEl.addEventListener('pointerdown', (e) => {
                 if (window.innerWidth <= 500) return;
+                if (e.target.closest('button')) return;
                 e.preventDefault();
-                e.stopPropagation();
 
                 isPhoneDragging = true;
                 phoneDragStartX = e.clientX;
@@ -2252,28 +2285,60 @@
                 phoneInitialY = phonePosY;
 
                 phoneMovableFrame.style.transition = 'none';
-                try { windowDragHandle.setPointerCapture(e.pointerId); } catch(err) {}
+                try { titlebarEl.setPointerCapture(e.pointerId); } catch(err) {}
             });
 
-            windowDragHandle.addEventListener('pointermove', (e) => {
+            titlebarEl.addEventListener('pointermove', (e) => {
                 if (!isPhoneDragging) return;
                 phonePosX = phoneInitialX + (e.clientX - phoneDragStartX);
                 phonePosY = phoneInitialY + (e.clientY - phoneDragStartY);
                 phoneMovableFrame.style.transform = `translate(${phonePosX}px, ${phonePosY}px)`;
             });
 
-            windowDragHandle.addEventListener('pointerup', (e) => {
+            titlebarEl.addEventListener('pointerup', (e) => {
                 if (!isPhoneDragging) return;
                 isPhoneDragging = false;
-                try { windowDragHandle.releasePointerCapture(e.pointerId); } catch(err) {}
+                try { titlebarEl.releasePointerCapture(e.pointerId); } catch(err) {}
                 snapPhoneToBoundaries();
             });
 
-            windowDragHandle.addEventListener('pointercancel', (e) => {
+            titlebarEl.addEventListener('pointercancel', (e) => {
                 if (!isPhoneDragging) return;
                 isPhoneDragging = false;
                 snapPhoneToBoundaries();
             });
+
+            titlebarEl.addEventListener('dblclick', (e) => {
+                if (e.target.closest('button')) return;
+                resetWindowSizeAndPos(e);
+            });
+        }
+
+        function resetWindowSizeAndPos(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            phonePosX = 0;
+            phonePosY = 0;
+            phoneMovableFrame.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+            phoneMovableFrame.style.transform = `translate(0px, 0px)`;
+
+            appContainer.style.transition = 'width 0.35s ease, height 0.35s ease';
+            appContainer.style.width = '';
+            appContainer.style.maxWidth = '';
+            appContainer.style.height = '';
+            appContainer.style.maxHeight = '';
+            appContainer.style.aspectRatio = '9 / 19.5';
+
+            setTimeout(() => {
+                appContainer.style.transition = '';
+                renderSheetLimitLine();
+                syncSheetLayout();
+                if (activeSessionName) {
+                    applyResponsivePreset(activeSessionName, 0);
+                }
+            }, 360);
         }
 
         /* --- REDIMENSIONAMENTO LIVRE DE JANELA ESTILO WINDOWS (DESKTOP) --- */
