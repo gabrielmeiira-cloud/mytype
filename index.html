@@ -1566,6 +1566,19 @@
                         <div class="vp-handle vp-handle-e" data-vp-handle="e"></div>
                     </div>
 
+                    <!-- Caixa de Colisão Universal Verde (Acompanha o Zoom da Imagem, Mantém Aparência Intacta e Trava nas Bordas da Tela) -->
+                    <div class="debug-green-box" id="debugGreenBox" title="Use os 4 cantos e as 4 arestas para redimensionar">
+                        <div class="green-badge-tag" id="greenBadgeTag">Verde Universal: Identidade</div>
+                        <div class="green-handle handle-nw" data-handle="nw"></div>
+                        <div class="green-handle handle-ne" data-handle="ne"></div>
+                        <div class="green-handle handle-sw" data-handle="sw"></div>
+                        <div class="green-handle handle-se" data-handle="se"></div>
+                        <div class="green-handle handle-n" data-handle="n"></div>
+                        <div class="green-handle handle-s" data-handle="s"></div>
+                        <div class="green-handle handle-w" data-handle="w"></div>
+                        <div class="green-handle handle-e" data-handle="e"></div>
+                    </div>
+
                     <div class="avatar-container" id="avatarContainer">
                         <div class="infinite-gradient-backdrop" id="infiniteBackdrop"></div>
                         <img src="avatar.webp" alt="Base Avatar" class="avatar-layer avatar-base" id="layerBase">
@@ -1585,20 +1598,6 @@
                             <div class="box-handle handle-w" data-handle="w"></div>
                             <div class="box-handle handle-e" data-handle="e"></div>
                         </div>
-
-                        <!-- Caixa de Colisão Universal Verde (Acompanha o Zoom do Avatar e Trava nas Bordas da Tela) -->
-                        <div class="debug-green-box" id="debugGreenBox" title="Use os 4 cantos e as 4 arestas para redimensionar">
-                            <div class="green-badge-tag" id="greenBadgeTag">Verde Universal: Identidade</div>
-                            <div class="green-handle handle-nw" data-handle="nw"></div>
-                            <div class="green-handle handle-ne" data-handle="ne"></div>
-                            <div class="green-handle handle-sw" data-handle="sw"></div>
-                            <div class="green-handle handle-se" data-handle="se"></div>
-                            <div class="green-handle handle-n" data-handle="n"></div>
-                            <div class="green-handle handle-s" data-handle="s"></div>
-                            <div class="green-handle handle-w" data-handle="w"></div>
-                            <div class="green-handle handle-e" data-handle="e"></div>
-                        </div>
-                    </div>
                     </div>
                 </div>
 
@@ -2354,17 +2353,38 @@
         function renderGreenBoxDOM() {
             if (!debugGreenBox) return;
             const m = getAvatarLayoutMetrics();
+            const vb = getSafeViewportBounds();
 
-            // Mapeado diretamente sobre a imagem do Avatar (acompanha zoom e pan perfeitamente)
-            const leftPx = m.offsetX + (m.renderedW * currentGreenBox.x);
-            const topPx = m.offsetY + (m.renderedH * currentGreenBox.y);
-            const widthPx = m.renderedW * currentGreenBox.w;
-            const heightPx = m.renderedH * currentGreenBox.h;
+            // Posição base na anatomia da modelo (escala 1.0):
+            const ptLeft = m.offsetX + (m.renderedW * currentGreenBox.x);
+            const ptTop = m.offsetY + (m.renderedH * currentGreenBox.y);
+            const ptW = m.renderedW * currentGreenBox.w;
+            const ptH = m.renderedH * currentGreenBox.h;
 
-            debugGreenBox.style.left = `${leftPx}px`;
-            debugGreenBox.style.top = `${topPx}px`;
-            debugGreenBox.style.width = `${widthPx}px`;
-            debugGreenBox.style.height = `${heightPx}px`;
+            // Projeção na tela acompanhando o zoom e pan da modelo:
+            let screenLeft = (ptLeft - m.w / 2) * avatarScale + (m.w / 2) + avatarPanX;
+            let screenTop = (ptTop - m.h / 2) * avatarScale + (m.h / 2) + avatarPanY;
+            let screenW = ptW * avatarScale;
+            let screenH = ptH * avatarScale;
+
+            // A tela sempre bloqueia e é o limite da colisão verde (independente do zoom):
+            const minLeft = vb.left;
+            const minTop = vb.top;
+            const maxRight = vb.right;
+            const maxBottom = vb.bottom;
+
+            let clampedLeft = Math.max(minLeft, screenLeft);
+            let clampedTop = Math.max(minTop, screenTop);
+            let clampedRight = Math.min(maxRight, screenLeft + screenW);
+            let clampedBottom = Math.min(maxBottom, screenTop + screenH);
+
+            let clampedW = Math.max(20, clampedRight - clampedLeft);
+            let clampedH = Math.max(20, clampedBottom - clampedTop);
+
+            debugGreenBox.style.left = `${clampedLeft}px`;
+            debugGreenBox.style.top = `${clampedTop}px`;
+            debugGreenBox.style.width = `${clampedW}px`;
+            debugGreenBox.style.height = `${clampedH}px`;
 
             const wPercent = (currentGreenBox.w * 100).toFixed(0);
             const hPercent = (currentGreenBox.h * 100).toFixed(0);
@@ -2528,22 +2548,32 @@
             });
         }
 
-        /* --- LIMITES RÍGIDOS DE COLISÃO DA AVATAR (BRAÇOS, CABEÇA E PÉS NUNCA PASSAM DA BORDA) --- */
+        /* --- LIMITES RÍGIDOS DE COLISÃO DA AVATAR (TRAVA NAS BORDAS DA TELA) --- */
         function getStrictPanBounds(scale = avatarScale) {
             const m = getAvatarLayoutMetrics();
-            const w = m.w;
-            const h = m.h;
+            const vb = getSafeViewportBounds();
 
-            const scaledW = m.renderedW * scale;
-            const scaledH = m.renderedH * scale;
+            const ptLeft = m.offsetX + (m.renderedW * currentGreenBox.x);
+            const ptTop = m.offsetY + (m.renderedH * currentGreenBox.y);
+            const ptW = m.renderedW * currentGreenBox.w;
+            const ptH = m.renderedH * currentGreenBox.h;
 
-            // Limites laterais permitidos com margem confortável
-            let maxX = Math.max(w * 0.40, (scaledW - w) * 0.60 + (w * 0.25));
-            let minX = -maxX;
+            const boxCenterPxX = ptLeft + (ptW / 2);
+            const boxCenterPxY = ptTop + (ptH / 2);
 
-            // Limites verticais (topo da cabeça e pés perfeitamente alcançáveis em qualquer nível de zoom)
-            let maxY = Math.max(h * 0.50, (scaledH - h) * 0.70 + (h * 0.45)); // Traz a cabeça para o centro da tela
-            let minY = -Math.max(h * 0.50, (scaledH - h) * 0.70 + (h * 0.45)); // Traz os pés para o centro da tela
+            const scaledBoxW = ptW * scale;
+            const scaledBoxH = ptH * scale;
+
+            const maxDeltaX = Math.max(0, (scaledBoxW - vb.width) / 2) + (m.w * 0.25);
+            const maxDeltaY = Math.max(0, (scaledBoxH - vb.height) / 2) + (m.h * 0.25);
+
+            const centerPanX = (vb.centerX - (m.w / 2)) - (boxCenterPxX - (m.w / 2)) * scale;
+            const centerPanY = (vb.centerY - (m.h / 2)) - (boxCenterPxY - (m.h / 2)) * scale;
+
+            let minX = centerPanX - maxDeltaX;
+            let maxX = centerPanX + maxDeltaX;
+            let minY = centerPanY - maxDeltaY;
+            let maxY = centerPanY + maxDeltaY;
 
             if (minX > maxX) [minX, maxX] = [maxX, minX];
             if (minY > maxY) [minY, maxY] = [maxY, minY];
