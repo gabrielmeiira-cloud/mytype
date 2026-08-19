@@ -79,10 +79,12 @@
             }
 
             .app-container {
-                width: 350px;
-                height: calc(100vh - 28px);
+                aspect-ratio: 9 / 19.5;
+                height: min(94vh, calc(100vh - 28px));
+                width: auto;
+                max-width: calc(min(94vh, calc(100vh - 28px)) * (9 / 19.5));
                 max-height: 94vh;
-                border-radius: 34px;
+                border-radius: 38px;
                 border: 2px solid var(--border-color);
                 box-shadow: 0 20px 48px rgba(0, 0, 0, 0.75);
                 position: relative;
