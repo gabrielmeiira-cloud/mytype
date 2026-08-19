@@ -1955,171 +1955,125 @@
             }, { passive: false });
         }
 
-        /* --- CONTROLE DE TOQUES E GESTOS NO CELULAR E COMPUTADOR --- */
-        let isPanningAvatar = false;
-        let isPinching = false;
-        let panStartX = 0;
-        let panStartY = 0;
-        let panInitialX = 0;
-        let panInitialY = 0;
-        let activePointerId = null;
-
+        /* --- GESTOR UNIFICADO DE TOQUES E PINÇA (POINTER EVENTS ENGINE) --- */
+        const activePointers = new Map();
         let lastTapTime = 0;
-        let lastPinchDist = 0;
-        let lastPinchMidX = 0;
-        let lastPinchMidY = 0;
+        let pinchPrevDist = 0;
+        let pinchPrevMidX = 0;
+        let pinchPrevMidY = 0;
+
+        function getPointersMidpoint() {
+            const pts = Array.from(activePointers.values());
+            if (pts.length < 2) return null;
+            const rect = viewportCanvas.getBoundingClientRect();
+            const p1 = pts[0];
+            const p2 = pts[1];
+            const dist = Math.hypot(p1.clientX - p2.clientX, p1.clientY - p2.clientY);
+            const midX = ((p1.clientX + p2.clientX) / 2) - rect.left - (rect.width / 2);
+            const midY = ((p1.clientY + p2.clientY) / 2) - rect.top - (rect.height / 2);
+            return { dist, midX, midY };
+        }
 
         if (viewportCanvas) {
-            // Touchstart para detectar gesto de 2 dedos (Pinch-to-zoom + Arraste simultâneo)
-            viewportCanvas.addEventListener('touchstart', (e) => {
-                if (e.touches.length >= 2) {
-                    isPanningAvatar = false;
-                    isPinching = true;
-                    if (activePointerId !== null) {
-                        try { viewportCanvas.releasePointerCapture(activePointerId); } catch(err){}
-                        activePointerId = null;
+            viewportCanvas.addEventListener('pointerdown', (e) => {
+                if (e.target.closest('.side-menu') || e.target.closest('.bottom-sheet') || e.target.closest('.footer-nav') || e.target.closest('.camera-hud-group')) return;
+                
+                // Duplo toque / duplo clique para alternar zoom rápido
+                if (activePointers.size === 0) {
+                    const now = performance.now();
+                    if (now - lastTapTime < 300 && now - lastTapTime > 40) {
+                        e.preventDefault();
+                        lastTapTime = 0;
+                        if (avatarScale > 1.3) {
+                            animateAvatarCamera(DEFAULT_SCALE, 0, 0, 380);
+                        } else {
+                            const rect = viewportCanvas.getBoundingClientRect();
+                            const tapX = e.clientX - rect.left - (rect.width / 2);
+                            const tapY = e.clientY - rect.top - (rect.height / 2);
+                            const clamped = clampPan(-tapX * 0.75, -tapY * 0.75, 2.2);
+                            animateAvatarCamera(2.2, clamped.x, clamped.y, 380);
+                        }
+                        return;
                     }
-
-                    const t1 = e.touches[0];
-                    const t2 = e.touches[1];
-                    lastPinchDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
-
-                    const rect = viewportCanvas.getBoundingClientRect();
-                    lastPinchMidX = ((t1.clientX + t2.clientX) / 2) - rect.left - rect.width / 2;
-                    lastPinchMidY = ((t1.clientY + t2.clientY) / 2) - rect.top - rect.height / 2;
+                    lastTapTime = now;
                 }
-            }, { passive: true });
 
-            viewportCanvas.addEventListener('touchmove', (e) => {
-                if (e.touches.length >= 2 && lastPinchDist > 0) {
-                    isPanningAvatar = false;
-                    isPinching = true;
-                    
-                    const t1 = e.touches[0];
-                    const t2 = e.touches[1];
-                    const currentDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
-                    
-                    const rect = viewportCanvas.getBoundingClientRect();
-                    const currentMidX = ((t1.clientX + t2.clientX) / 2) - rect.left - rect.width / 2;
-                    const currentMidY = ((t1.clientY + t2.clientY) / 2) - rect.top - rect.height / 2;
+                activePointers.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+                try { viewportCanvas.setPointerCapture(e.pointerId); } catch(err){}
 
-                    // Deslocamento de arrasto simultâneo dos 2 dedos (Pan)
-                    const deltaX = currentMidX - lastPinchMidX;
-                    const deltaY = currentMidY - lastPinchMidY;
+                if (activePointers.size === 2) {
+                    const p = getPointersMidpoint();
+                    if (p) {
+                        pinchPrevDist = p.dist;
+                        pinchPrevMidX = p.midX;
+                        pinchPrevMidY = p.midY;
+                    }
+                }
+            });
 
-                    // Fator de escala dinâmico baseado na abertura dos dedos (Zoom)
-                    const zoomRatio = currentDist / lastPinchDist;
-                    const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, avatarScale * zoomRatio));
+            viewportCanvas.addEventListener('pointermove', (e) => {
+                if (!activePointers.has(e.pointerId) || isCameraAnimating) return;
 
-                    // Foco preciso e simultâneo: o ponto sob os dedos permanece exatamente onde os dedos estão
-                    let nextX = currentMidX - (currentMidX - (avatarPanX + deltaX)) * (newScale / avatarScale);
-                    let nextY = currentMidY - (currentMidY - (avatarPanY + deltaY)) * (newScale / avatarScale);
+                const prevPtr = activePointers.get(e.pointerId);
+                const deltaSingleX = e.clientX - prevPtr.clientX;
+                const deltaSingleY = e.clientY - prevPtr.clientY;
+                activePointers.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
 
-                    avatarScale = newScale;
+                if (activePointers.size === 1) {
+                    // ARRASTE COM 1 DEDO / MOUSE (PANNING 1:1)
+                    const nextX = avatarPanX + deltaSingleX;
+                    const nextY = avatarPanY + deltaSingleY;
                     const clamped = clampPan(nextX, nextY, avatarScale);
                     avatarPanX = clamped.x;
                     avatarPanY = clamped.y;
                     updateAvatarTransform(false);
+                } else if (activePointers.size >= 2) {
+                    // PINÇA E ARRASTE SIMULTÂNEO COM 2 DEDOS (PINCH-TO-ZOOM + PAN)
+                    const p = getPointersMidpoint();
+                    if (p && pinchPrevDist > 0) {
+                        const distRatio = p.dist / pinchPrevDist;
+                        const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, avatarScale * distRatio));
 
-                    lastPinchDist = currentDist;
-                    lastPinchMidX = currentMidX;
-                    lastPinchMidY = currentMidY;
-                }
-            }, { passive: true });
+                        // Ponto fixo exato sob os dedos: mantém o ponto sob a pinça 100% ancorado nos dedos
+                        let nextX = p.midX - (pinchPrevMidX - avatarPanX) * (newScale / avatarScale);
+                        let nextY = p.midY - (pinchPrevMidY - avatarPanY) * (newScale / avatarScale);
 
-            viewportCanvas.addEventListener('touchend', (e) => {
-                if (e.touches.length < 2) {
-                    isPinching = false;
-                    lastPinchDist = 0;
-                }
-            }, { passive: true });
+                        avatarScale = newScale;
+                        const clamped = clampPan(nextX, nextY, avatarScale);
+                        avatarPanX = clamped.x;
+                        avatarPanY = clamped.y;
+                        updateAvatarTransform(false);
 
-            // PointerEvents para 1 dedo ou mouse (isolado para não interferir no pinch zoom)
-            viewportCanvas.addEventListener('pointerdown', (e) => {
-                if (isPinching) return;
-                if (e.target.closest('.side-menu') || e.target.closest('.bottom-sheet') || e.target.closest('.footer-nav') || e.target.closest('.camera-hud-group')) return;
-
-                // Verificação de duplo toque isolada
-                const currentTime = new Date().getTime();
-                const tapLength = currentTime - lastTapTime;
-                if (tapLength < 300 && tapLength > 40) {
-                    e.preventDefault();
-                    isPanningAvatar = false;
-                    lastTapTime = 0;
-                    if (avatarScale > 1.3) {
-                        animateAvatarCamera(DEFAULT_SCALE, 0, 0, 400);
-                    } else {
-                        const rect = viewportCanvas.getBoundingClientRect();
-                        const tapX = e.clientX - rect.left - rect.width / 2;
-                        const tapY = e.clientY - rect.top - rect.height / 2;
-                        const clamped = clampPan(-tapX * 0.75, -tapY * 0.75);
-                        animateAvatarCamera(2.15, clamped.x, clamped.y, 400);
+                        pinchPrevDist = p.dist;
+                        pinchPrevMidX = p.midX;
+                        pinchPrevMidY = p.midY;
                     }
-                    return;
-                }
-                lastTapTime = currentTime;
-
-                isPanningAvatar = true;
-                activePointerId = e.pointerId;
-                panStartX = e.clientX;
-                panStartY = e.clientY;
-                panInitialX = avatarPanX;
-                panInitialY = avatarPanY;
-
-                try { viewportCanvas.setPointerCapture(e.pointerId); } catch(err){}
-            });
-
-            viewportCanvas.addEventListener('pointermove', (e) => {
-                if (!isPanningAvatar || isCameraAnimating || isPinching) return;
-                let targetX = panInitialX + (e.clientX - panStartX);
-                let targetY = panInitialY + (e.clientY - panStartY);
-
-                // Resistência elástica suave ao puxar além dos limites do corpo
-                const bounds = getStrictPanBounds();
-                if (targetX < bounds.minX) {
-                    targetX = bounds.minX + (targetX - bounds.minX) * 0.22;
-                } else if (targetX > bounds.maxX) {
-                    targetX = bounds.maxX + (targetX - bounds.maxX) * 0.22;
-                }
-
-                if (targetY < bounds.minY) {
-                    targetY = bounds.minY + (targetY - bounds.minY) * 0.22;
-                } else if (targetY > bounds.maxY) {
-                    targetY = bounds.maxY + (targetY - bounds.maxY) * 0.22;
-                }
-
-                avatarPanX = targetX;
-                avatarPanY = targetY;
-                updateAvatarTransform(false);
-            });
-
-            viewportCanvas.addEventListener('pointerup', (e) => {
-                if (!isPanningAvatar) return;
-                isPanningAvatar = false;
-                if (activePointerId !== null) {
-                    try { viewportCanvas.releasePointerCapture(activePointerId); } catch(err){}
-                    activePointerId = null;
-                }
-
-                // Desliza suavemente de volta para a moldura caso tenha passado
-                const bounds = getStrictPanBounds();
-                if (avatarPanX < bounds.minX || avatarPanX > bounds.maxX || avatarPanY < bounds.minY || avatarPanY > bounds.maxY) {
-                    avatarPanX = Math.min(bounds.maxX, Math.max(bounds.minX, avatarPanX));
-                    avatarPanY = Math.min(bounds.maxY, Math.max(bounds.minY, avatarPanY));
-                    updateAvatarTransform(true);
                 }
             });
 
-            viewportCanvas.addEventListener('pointercancel', (e) => {
-                isPanningAvatar = false;
-                activePointerId = null;
-                const bounds = getStrictPanBounds();
-                if (avatarPanX < bounds.minX || avatarPanX > bounds.maxX || avatarPanY < bounds.minY || avatarPanY > bounds.maxY) {
-                    avatarPanX = Math.min(bounds.maxX, Math.max(bounds.minX, avatarPanX));
-                    avatarPanY = Math.min(bounds.maxY, Math.max(bounds.minY, avatarPanY));
-                    updateAvatarTransform(true);
+            function handlePointerUpOrCancel(e) {
+                if (activePointers.has(e.pointerId)) {
+                    activePointers.delete(e.pointerId);
+                    try { viewportCanvas.releasePointerCapture(e.pointerId); } catch(err){}
                 }
-            });
+
+                if (activePointers.size === 1) {
+                    // Ao soltar 1 dos dedos, re-ancora o dedo restante para transição suave sem saltos
+                    const remainingEntry = Array.from(activePointers.entries())[0];
+                    if (remainingEntry) {
+                        activePointers.set(remainingEntry[0], {
+                            clientX: remainingEntry[1].clientX,
+                            clientY: remainingEntry[1].clientY
+                        });
+                    }
+                    pinchPrevDist = 0;
+                } else if (activePointers.size === 0) {
+                    pinchPrevDist = 0;
+                }
+            }
+
+            viewportCanvas.addEventListener('pointerup', handlePointerUpOrCancel);
+            viewportCanvas.addEventListener('pointercancel', handlePointerUpOrCancel);
         }
 
         /* --- CONTROLE DE ARRASTE DA JANELA (BOTÃO MOVER NO DESKTOP) --- */
