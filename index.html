@@ -172,7 +172,7 @@
 
         }
 
-        /* Celular Físico: Ocupa 100% da tela e altura do navegador */
+        /* Celular Físico: Ocupa 100% da tela e proporção touch perfeita */
         @media (max-width: 500px) {
             .phone-wrapper,
             .phone-movable-frame {
@@ -197,6 +197,38 @@
             .floating-mini-phone,
             .desktop-debug-wrapper {
                 display: none !important;
+            }
+
+            /* Barra inferior e botões ampliados e calibrados para o polegar no celular */
+            .footer-nav {
+                bottom: max(18px, env(safe-area-inset-bottom, 18px));
+                padding: 10px 10px;
+                border-radius: 18px;
+                gap: 6px;
+            }
+
+            .nav-item {
+                font-size: 11px;
+                gap: 4px;
+                min-width: 56px;
+            }
+
+            .nav-icon-wrapper {
+                width: 26px;
+                height: 26px;
+            }
+
+            .nav-icon-wrapper svg {
+                width: 22px;
+                height: 22px;
+            }
+
+            .bottom-sheet {
+                bottom: calc(max(18px, env(safe-area-inset-bottom, 18px)) + 64px);
+            }
+
+            .viewport {
+                bottom: calc(max(18px, env(safe-area-inset-bottom, 18px)) + 64px);
             }
         }
 
@@ -299,13 +331,13 @@
             100% { transform: translateY(0px) rotate(0deg); }
         }
 
-        /* Viewport / Canvas Interativo */
+        /* Viewport / Canvas Interativo (Padrão Desktop: Compacto e Elegante) */
         .viewport {
             position: absolute;
             top: 28px;
             left: 0;
             width: 100%;
-            bottom: 92px; 
+            bottom: 74px; 
             display: flex;
             justify-content: center;
             align-items: center;
@@ -888,17 +920,18 @@
             fill: currentColor;
         }
 
+        /* Barra Inferior (Padrão Desktop: Fina e Elegante) */
         .footer-nav {
             position: absolute;
-            bottom: 22px;
+            bottom: 16px;
             left: 12px;
             right: 12px;
             display: flex;
-            gap: 6px;
+            gap: 5px;
             align-items: center;
             background-color: var(--bg-pill);
-            padding: 10px 10px;
-            border-radius: 16px;
+            padding: 7px 8px;
+            border-radius: 14px;
             border: 1px solid var(--border-color);
             z-index: 40;
             box-shadow: 0 8px 20px rgba(0,0,0,0.4);
@@ -917,20 +950,20 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
             color: var(--text-secondary);
-            font-size: 10.5px;
+            font-size: 9px;
             font-weight: 500;
             cursor: pointer;
             transition: color 0.2s, transform 0.2s;
-            flex: 0 0 calc((100% - (4 * 6px)) / 5);
-            min-width: 54px;
+            flex: 0 0 calc((100% - (4 * 5px)) / 5);
+            min-width: 48px;
             white-space: nowrap;
         }
 
         @media (max-width: 360px) {
             .nav-item {
-                flex: 0 0 58px;
+                flex: 0 0 54px;
             }
         }
 
@@ -939,22 +972,22 @@
         }
 
         .nav-icon-wrapper {
-            width: 25px;
-            height: 25px;
+            width: 20px;
+            height: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
         .nav-icon-wrapper svg {
-            width: 21px;
-            height: 21px;
+            width: 17px;
+            height: 17px;
             fill: currentColor;
         }
 
         .bottom-sheet {
             position: absolute;
-            bottom: 92px;
+            bottom: 74px;
             left: 0;
             width: 100%;
             background-color: var(--bg-sheet);
@@ -2215,7 +2248,8 @@
         const minHeight = 40; 
 
         function getMaxHeight() { 
-            return appContainer.clientHeight - 120; 
+            const isMobile = window.innerWidth <= 500;
+            return isMobile ? (appContainer.clientHeight - 124) : (appContainer.clientHeight - 110); 
         }
         function getInitialHeight() { 
             return Math.max(140, Math.min(appContainer.clientHeight * 0.32, 260)); 
@@ -2224,8 +2258,11 @@
         function renderSheetLimitLine() {
             const line = document.getElementById('sheetDragLimitLine');
             if (!appContainer) return;
+            
+            const isMobile = window.innerWidth <= 500;
+            const bottomNavOffset = isMobile ? 96 : 74;
             const maxH = getMaxHeight();
-            const topPos = appContainer.clientHeight - maxH - 92;
+            const topPos = appContainer.clientHeight - maxH - bottomNavOffset;
             
             if (line) {
                 line.style.top = `${topPos}px`;
@@ -2234,6 +2271,11 @@
             // Limita o canvas (.viewport) para iniciar exatamente a partir da linha divisória
             if (viewportCanvas) {
                 viewportCanvas.style.top = `${topPos}px`;
+                viewportCanvas.style.bottom = `${bottomNavOffset}px`;
+            }
+
+            if (bottomSheet) {
+                bottomSheet.style.bottom = `${bottomNavOffset}px`;
             }
 
             // Mantém os ícones laterais sempre abaixo da linha divisória
