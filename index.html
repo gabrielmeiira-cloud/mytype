@@ -2305,11 +2305,11 @@
 
         function getMaxHeight() { 
             const isMobile = window.innerWidth <= 500;
-            return isMobile ? (appContainer.clientHeight - 135) : (appContainer.clientHeight - 115); 
+            return appContainer.clientHeight - (isMobile ? 32 : 28); 
         }
         function getInitialHeight() { 
             const isMobile = window.innerWidth <= 500;
-            return isMobile ? Math.max(280, Math.min(appContainer.clientHeight * 0.52, 400)) : Math.max(220, Math.min(appContainer.clientHeight * 0.45, 340)); 
+            return isMobile ? Math.max(220, Math.min(appContainer.clientHeight * 0.40, 300)) : Math.max(180, Math.min(appContainer.clientHeight * 0.35, 260)); 
         }
 
         let currentHeight = getMinHeight();
