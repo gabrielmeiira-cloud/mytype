@@ -2298,9 +2298,20 @@
         let lastMoveTime = 0;
         let sheetVelocityY = 0; // px / ms (positivo = subindo rápido, negativo = descendo rápido)
 
+        function getFooterNavTopDistance() {
+            const nav = document.querySelector('.footer-nav');
+            if (!nav || !appContainer) return (window.innerWidth <= 500 ? 76 : 64);
+            const navRect = nav.getBoundingClientRect();
+            const containerRect = appContainer.getBoundingClientRect();
+            return Math.max(0, containerRect.bottom - navRect.top);
+        }
+
         function getMinHeight() {
             const isMobile = window.innerWidth <= 500;
-            return isMobile ? 131 : 101;
+            const navTopDist = getFooterNavTopDistance();
+            // Espaço proporcional calculado estritamente a partir da barra de opções
+            const headerSpaceAboveNav = isMobile ? 54 : 44;
+            return Math.round(navTopDist + headerSpaceAboveNav);
         }
 
         function getMaxHeight() { 
@@ -2337,6 +2348,12 @@
             // Mantém os ícones laterais sempre abaixo da linha divisória
             if (sideMenu) {
                 sideMenu.style.top = `${topPos + 10}px`;
+            }
+
+            // Alinha dinamicamente a linha de corte dos cards no topo do retângulo
+            if (sheetContent) {
+                const navTopDist = getFooterNavTopDistance();
+                sheetContent.style.marginBottom = `${navTopDist + 4}px`;
             }
         }
 
