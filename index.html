@@ -612,12 +612,12 @@
             border: 2px solid var(--primary);
             background: rgba(201, 107, 124, 0.18);
             box-shadow: 0 0 18px rgba(201, 107, 124, 0.45), inset 0 0 16px rgba(201, 107, 124, 0.2);
-            z-index: 50;
+            z-index: 60;
             cursor: move;
             pointer-events: auto;
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.2s ease;
+            transition: opacity 0.2s ease, border-color 0.2s ease;
             touch-action: none;
             box-sizing: border-box;
         }
@@ -625,6 +625,17 @@
         .debug-collision-box.debug-visible {
             opacity: 1;
             visibility: visible;
+        }
+
+        .debug-collision-box.is-locked {
+            pointer-events: none !important;
+            opacity: 0.55 !important;
+            cursor: default !important;
+            border-style: dotted !important;
+        }
+
+        .debug-collision-box.is-locked .box-handle {
+            display: none !important;
         }
 
         .box-badge-tag {
@@ -689,7 +700,7 @@
             border: 2px solid var(--primary);
             border-radius: 2px;
             box-shadow: 0 0 6px rgba(0,0,0,0.8);
-            z-index: 60;
+            z-index: 70;
             box-sizing: border-box;
         }
 
@@ -712,10 +723,10 @@
             border-radius: 4px;
             pointer-events: auto;
             cursor: move;
-            z-index: 10;
+            z-index: 40;
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.25s ease;
+            transition: opacity 0.25s ease, border-color 0.2s ease;
             box-sizing: border-box;
             touch-action: none;
         }
@@ -723,6 +734,17 @@
         .debug-viewport-box.debug-visible {
             opacity: 1;
             visibility: visible;
+        }
+
+        .debug-viewport-box.is-locked {
+            pointer-events: none !important;
+            opacity: 0.55 !important;
+            cursor: default !important;
+            border-style: dotted !important;
+        }
+
+        .debug-viewport-box.is-locked .vp-handle {
+            display: none !important;
         }
 
         .viewport-box-tag {
@@ -751,7 +773,7 @@
             border: 2px solid #38bdf8;
             border-radius: 2px;
             box-shadow: 0 0 6px rgba(0,0,0,0.8);
-            z-index: 20;
+            z-index: 55;
             box-sizing: border-box;
         }
 
@@ -763,6 +785,53 @@
         .vp-handle.vp-handle-s  { bottom: -5px; left: calc(50% - 5px); cursor: ns-resize; }
         .vp-handle.vp-handle-w  { left: -5px; top: calc(50% - 5px); cursor: ew-resize; }
         .vp-handle.vp-handle-e  { right: -5px; top: calc(50% - 5px); cursor: ew-resize; }
+
+        /* Botões de Trava e Edição dos Colisores */
+        .lock-toggles-row {
+            display: flex;
+            gap: 6px;
+            width: 100%;
+        }
+
+        .btn-lock-toggle {
+            flex: 1;
+            font-size: 8.5px;
+            font-weight: 700;
+            padding: 6px 4px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(25, 22, 32, 0.95);
+            color: #d1cdd9;
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        .btn-lock-toggle.btn-avatar-lock.unlocked {
+            background: rgba(201, 107, 124, 0.28);
+            border-color: var(--primary);
+            color: #ffffff;
+            box-shadow: 0 0 10px rgba(201, 107, 124, 0.5);
+        }
+
+        .btn-lock-toggle.btn-viewport-lock.unlocked {
+            background: rgba(56, 189, 248, 0.28);
+            border-color: #38bdf8;
+            color: #ffffff;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+        }
+
+        .btn-lock-toggle.is-locked {
+            opacity: 0.65;
+            background: rgba(18, 16, 22, 0.9);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #8c8899;
+        }
 
         .bg-mode-btn svg {
             width: 12px;
@@ -1067,6 +1136,16 @@
                 <div class="hud-sub" id="boxInfoText" style="color: var(--primary); font-weight: 600;">📐 Caixa: L: 30% | A: 20%</div>
             </div>
 
+            <!-- Botões de Travar/Destravar Colisores Independentes -->
+            <div class="lock-toggles-row">
+                <button class="btn-lock-toggle btn-avatar-lock unlocked" id="btnLockAvatar" onclick="toggleLockAvatarBox()" title="Clique para travar/destravar o Colisor Vermelho do Avatar">
+                    <span id="labelLockAvatar">🔓 Vermelho (Editando)</span>
+                </button>
+                <button class="btn-lock-toggle btn-viewport-lock is-locked" id="btnLockViewport" onclick="toggleLockViewportBox()" title="Clique para travar/destravar o Colisor Azul do Canvas">
+                    <span id="labelLockViewport">🔒 Azul (Travado)</span>
+                </button>
+            </div>
+
             <!-- Ações Rápidas da Caixa de Colisão -->
             <div class="pin-actions-row">
                 <button class="pin-action-btn" id="btnFocusBox" onclick="focusCameraOnCurrentBox()" title="Enquadrar e dar Zoom baseado na Caixa de Colisão">
@@ -1360,6 +1439,67 @@
         // Caixa de Colisão Atualmente Editada
         let currentBox = { ...sessionBoundingBoxes["Identidade"] };
 
+        /* --- CONTROLE DE TRAVAMENTO INDEPENDENTE DOS COLISORES --- */
+        let isAvatarBoxLocked = false;
+        let isViewportBoxLocked = true; // Por padrão o azul começa travado para não cobrir o vermelho
+
+        function updateLockStatesDOM() {
+            const btnAv = document.getElementById('btnLockAvatar');
+            const lblAv = document.getElementById('labelLockAvatar');
+            const btnVp = document.getElementById('btnLockViewport');
+            const lblVp = document.getElementById('labelLockViewport');
+
+            if (debugCollisionBox) {
+                if (isAvatarBoxLocked) {
+                    debugCollisionBox.classList.add('is-locked');
+                } else {
+                    debugCollisionBox.classList.remove('is-locked');
+                }
+            }
+
+            if (debugViewportBox) {
+                if (isViewportBoxLocked) {
+                    debugViewportBox.classList.add('is-locked');
+                } else {
+                    debugViewportBox.classList.remove('is-locked');
+                }
+            }
+
+            if (btnAv && lblAv) {
+                if (isAvatarBoxLocked) {
+                    btnAv.classList.remove('unlocked');
+                    btnAv.classList.add('is-locked');
+                    lblAv.innerText = "🔒 Vermelho (Travado)";
+                } else {
+                    btnAv.classList.add('unlocked');
+                    btnAv.classList.remove('is-locked');
+                    lblAv.innerText = "🔓 Vermelho (Editando)";
+                }
+            }
+
+            if (btnVp && lblVp) {
+                if (isViewportBoxLocked) {
+                    btnVp.classList.remove('unlocked');
+                    btnVp.classList.add('is-locked');
+                    lblVp.innerText = "🔒 Azul (Travado)";
+                } else {
+                    btnVp.classList.add('unlocked');
+                    btnVp.classList.remove('is-locked');
+                    lblVp.innerText = "🔓 Azul (Editando)";
+                }
+            }
+        }
+
+        function toggleLockAvatarBox() {
+            isAvatarBoxLocked = !isAvatarBoxLocked;
+            updateLockStatesDOM();
+        }
+
+        function toggleLockViewportBox() {
+            isViewportBoxLocked = !isViewportBoxLocked;
+            updateLockStatesDOM();
+        }
+
         function toggleDebugMode() {
             isDebugMode = !isDebugMode;
             if (isDebugMode) {
@@ -1367,6 +1507,7 @@
                 if (cameraHudGroup) cameraHudGroup.classList.add('debug-visible');
                 if (debugCollisionBox) debugCollisionBox.classList.add('debug-visible');
                 if (debugViewportBox) debugViewportBox.classList.add('debug-visible');
+                updateLockStatesDOM();
                 renderCollisionBoxDOM();
                 renderViewportBoxDOM();
             } else {
