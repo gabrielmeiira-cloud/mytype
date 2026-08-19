@@ -395,12 +395,12 @@
         }
 
         .desktop-debug-btn {
-            width: 42px;
-            height: 42px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             background: #232029;
-            border: 2px solid rgba(255, 255, 255, 0.25);
-            color: #d1cdd9;
+            border: 2px solid rgba(255, 255, 255, 0.35);
+            color: #ffffff;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -413,24 +413,24 @@
 
         .desktop-debug-btn:hover {
             background-color: #382c33;
-            border-color: var(--primary);
-            color: var(--primary);
+            border-color: #10b981;
+            color: #10b981;
             transform: scale(1.12);
-            box-shadow: 0 8px 24px rgba(201, 107, 124, 0.45);
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.45);
         }
 
         .desktop-debug-btn.active {
-            background-color: var(--primary);
+            background-color: #10b981;
             border-color: #ffffff;
             color: #ffffff;
-            box-shadow: 0 0 20px rgba(201, 107, 124, 0.8), 0 6px 18px rgba(0, 0, 0, 0.75);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.8), 0 6px 18px rgba(0, 0, 0, 0.75);
             transform: scale(1.08);
         }
 
         .desktop-debug-btn svg {
             width: 22px;
             height: 22px;
-            fill: currentColor;
+            fill: #ffffff;
             pointer-events: none;
             display: block;
         }
@@ -832,13 +832,13 @@
             color: #8c8899;
         }
 
-        /* --- CAIXA DE COLISÃO UNIVERSAL VERDE (ANATOMIA DO AVATAR) --- */
+        /* --- CAIXA DE COLISÃO UNIVERSAL VERDE (ANATOMIA DO AVATAR - IMUNE A ZOOM) --- */
         .debug-green-box {
             position: absolute;
-            border: 2px solid #10b981;
-            background: rgba(16, 185, 129, 0.16);
-            box-shadow: 0 0 20px rgba(16, 185, 129, 0.5), inset 0 0 16px rgba(16, 185, 129, 0.2);
-            z-index: 65;
+            border: 2px dashed #10b981;
+            background: rgba(16, 185, 129, 0.08);
+            box-shadow: 0 0 16px rgba(16, 185, 129, 0.35);
+            z-index: 70;
             cursor: move;
             pointer-events: auto;
             opacity: 0;
@@ -1417,42 +1417,18 @@
     <!-- Painel de Depuração Flutuante Externo (Apenas Computador - Fora do Canvas) -->
     <div class="desktop-debug-wrapper" id="desktopDebugWrapper">
         <button class="desktop-debug-btn" id="btnDebugMode" title="Alternar Painel de Depuração" aria-label="Depuração" onclick="toggleDebugMode(event)">
-            <svg viewBox="0 0 24 24"><path d="M20 8h-2.81c-.45-.78-1.07-1.45-1.82-1.96L17 4.41 15.59 3l-2.17C12.96 5.06 12.49 5 12 5c-.49 0-.96.06-1.41.17L8.41 3 7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8zm-6 8h-4v-2h4v2zm0-4h-4v-2h4v2z"/></svg>
+            <svg viewBox="0 0 24 24" width="22" height="22"><path fill="#ffffff" d="M19 8h-1.81a5.985 5.985 0 0 0-1.82-1.96l1.39-1.39a1 1 0 0 0-1.41-1.41l-1.83 1.83C12.94 5.03 12.48 5 12 5s-.94.03-1.52.07L8.65 3.24a1 1 0 0 0-1.41 1.41l1.39 1.39A5.985 5.985 0 0 0 6.81 8H5a1 1 0 0 0 0 2h1.09c-.05.33-.09.66-.09 1v1H5a1 1 0 0 0 0 2h1v1c0 .34.04.67.09 1H5a1 1 0 0 0 0 2h1.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H19a1 1 0 0 0 0-2h-1.09c.05-.33.09-.66.09-1v-1h1a1 1 0 0 0 0-2h-1v-1c0-.34-.04-.67-.09-1H19a1 1 0 0 0 0-2zm-6 8h-2v-2h2v2zm0-4h-2v-2h2v2z"/></svg>
         </button>
 
         <div class="camera-hud-group" id="cameraHudGroup">
-            <div class="camera-hud-badge" id="cameraHudBadge" title="Clique para copiar os valores de Zoom e Coordenadas">
-                <div class="hud-row">
-                    <svg viewBox="0 0 24 24"><path d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M19,5V19H5V5H19Z"/></svg>
-                    <span id="zoomLevelText">Zoom: 90%</span>
-                </div>
-                <div class="hud-sub" id="coordsText">X: 0 | Y: 0</div>
-                <div class="hud-sub" id="boxInfoText" style="color: var(--primary); font-weight: 600;">📐 Caixa: L: 30% | A: 20%</div>
-            </div>
-
-            <!-- Botões de Travar/Destravar Colisores Independentes -->
+            
+            <!-- Seletor de Modo de Depuração Exclusivo: Verde vs Clássico -->
             <div class="lock-toggles-row">
-                <button class="btn-lock-toggle btn-green-lock unlocked" id="btnLockGreen" onclick="toggleLockGreenBox()" title="Clique para travar/destravar o Colisor Verde Universal">
-                    <span id="labelLockGreen">🔓 Verde (Editando)</span>
+                <button class="btn-lock-toggle btn-green-lock unlocked" id="btnModeGreen" onclick="setColliderMode('green')" title="Modo Verde: Colisão Universal na Imagem">
+                    <span id="labelModeGreen">🟢 Modo Verde (Universal)</span>
                 </button>
-                <button class="btn-lock-toggle btn-avatar-lock is-locked" id="btnLockAvatar" onclick="toggleLockAvatarBox()" title="Clique para travar/destravar o Colisor Vermelho">
-                    <span id="labelLockAvatar">🔒 Vermelho</span>
-                </button>
-                <button class="btn-lock-toggle btn-viewport-lock is-locked" id="btnLockViewport" onclick="toggleLockViewportBox()" title="Clique para travar/destravar o Colisor Azul">
-                    <span id="labelLockViewport">🔒 Azul</span>
-                </button>
-            </div>
-
-            <!-- Ações Rápidas da Caixa de Colisão -->
-            <div class="pin-actions-row">
-                <button class="pin-action-btn" id="btnFocusBox" onclick="focusCameraOnCurrentBox()" title="Enquadrar e dar Zoom baseado na Caixa de Colisão">
-                    🎯 Enquadrar Caixa
-                </button>
-                <button class="pin-action-btn btn-register-action" id="btnRegisterBox" onclick="registerCurrentBoxPreset()" title="Registrar a Caixa de Colisão para a sessão atual">
-                    💾 Registrar Colisor
-                </button>
-                <button class="pin-action-btn" id="btnExportFixed" onclick="exportFixedBoxesConfig()" title="Copiar todas as caixas de colisão salvas">
-                    📋 Exportar
+                <button class="btn-lock-toggle btn-avatar-lock is-locked" id="btnModeClassic" onclick="setColliderMode('classic')" title="Modo Clássico: Vermelho e Azul">
+                    <span id="labelModeClassic">🔴 Clássico (Vermelho/Azul)</span>
                 </button>
             </div>
 
@@ -1460,7 +1436,7 @@
             <div class="green-dedicated-section" id="greenDedicatedSection">
                 <div class="green-section-header">
                     <span class="green-dot-indicator"></span>
-                    <span class="green-section-title">Colisão Universal Verde (Avatar)</span>
+                    <span class="green-section-title">Colisão Universal Verde (Imune a Zoom)</span>
                 </div>
                 <div class="hud-sub" id="greenCoordsText" style="color: #10b981; font-weight: 600;">📐 Verde: X: 35% | Y: 0% | L: 30% | A: 27%</div>
                 
@@ -1487,22 +1463,57 @@
                 </div>
             </div>
 
+            <!-- Seção do Modo Clássico (Vermelho e Azul) - Ocultada no Modo Verde -->
+            <div id="classicDebugSection" style="display: none; flex-direction: column; gap: 8px; width: 100%;">
+                <div class="camera-hud-badge" id="cameraHudBadge" title="Clique para copiar os valores de Zoom e Coordenadas">
+                    <div class="hud-row">
+                        <svg viewBox="0 0 24 24"><path d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M19,5V19H5V5H19Z"/></svg>
+                        <span id="zoomLevelText">Zoom: 90%</span>
+                    </div>
+                    <div class="hud-sub" id="coordsText">X: 0 | Y: 0</div>
+                    <div class="hud-sub" id="boxInfoText" style="color: var(--primary); font-weight: 600;">📐 Caixa: L: 30% | A: 20%</div>
+                </div>
+
+                <!-- Botões de Travar/Destravar Colisores Independentes -->
+                <div class="lock-toggles-row">
+                    <button class="btn-lock-toggle btn-avatar-lock unlocked" id="btnLockAvatar" onclick="toggleLockAvatarBox()" title="Clique para travar/destravar o Colisor Vermelho">
+                        <span id="labelLockAvatar">🔓 Vermelho (Editando)</span>
+                    </button>
+                    <button class="btn-lock-toggle btn-viewport-lock is-locked" id="btnLockViewport" onclick="toggleLockViewportBox()" title="Clique para travar/destravar o Colisor Azul">
+                        <span id="labelLockViewport">🔒 Azul (Travado)</span>
+                    </button>
+                </div>
+
+                <!-- Ações Rápidas da Caixa de Colisão -->
+                <div class="pin-actions-row">
+                    <button class="pin-action-btn" id="btnFocusBox" onclick="focusCameraOnCurrentBox()" title="Enquadrar e dar Zoom baseado na Caixa de Colisão">
+                        🎯 Enquadrar Caixa
+                    </button>
+                    <button class="pin-action-btn btn-register-action" id="btnRegisterBox" onclick="registerCurrentBoxPreset()" title="Registrar a Caixa de Colisão para a sessão atual">
+                        💾 Registrar Colisor
+                    </button>
+                    <button class="pin-action-btn" id="btnExportFixed" onclick="exportFixedBoxesConfig()" title="Copiar todas as caixas de colisão salvas">
+                        📋 Exportar
+                    </button>
+                </div>
+
+                <!-- Barra de Navegação Rápida entre Todas as Sessões -->
+                <div class="debug-sessions-bar" id="debugSessionsBar">
+                    <span class="debug-session-tag active" data-tab="Identidade" onclick="testResponsiveSession('Identidade')">Identidade</span>
+                    <span class="debug-session-tag" data-tab="Aparência" onclick="testResponsiveSession('Aparência')">Aparência</span>
+                    <span class="debug-session-tag" data-tab="Busto" onclick="testResponsiveSession('Busto')">Busto</span>
+                    <span class="debug-session-tag" data-tab="Pernas" onclick="testResponsiveSession('Pernas')">Pernas</span>
+                    <span class="debug-session-tag" data-tab="Pés" onclick="testResponsiveSession('Pés')">Pés</span>
+                    <span class="debug-session-tag" data-tab="Estilo" onclick="testResponsiveSession('Estilo')">Estilo</span>
+                    <span class="debug-session-tag" data-tab="Gravação" onclick="testResponsiveSession('Gravação')">Gravação</span>
+                </div>
+            </div>
+
             <!-- Botão para alternar entre degradê antigo e novo -->
             <button class="bg-mode-btn" id="bgToggleBtn" title="Clique para alternar o estilo do fundo" onclick="toggleBackgroundMode()">
                 <svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20V4Z"/></svg>
                 <span id="bgModeLabel">Fundo: Câmera (Novo)</span>
             </button>
-
-            <!-- Barra de Navegação Rápida entre Todas as Sessões -->
-            <div class="debug-sessions-bar" id="debugSessionsBar">
-                <span class="debug-session-tag active" data-tab="Identidade" onclick="testResponsiveSession('Identidade')">Identidade</span>
-                <span class="debug-session-tag" data-tab="Aparência" onclick="testResponsiveSession('Aparência')">Aparência</span>
-                <span class="debug-session-tag" data-tab="Busto" onclick="testResponsiveSession('Busto')">Busto</span>
-                <span class="debug-session-tag" data-tab="Pernas" onclick="testResponsiveSession('Pernas')">Pernas</span>
-                <span class="debug-session-tag" data-tab="Pés" onclick="testResponsiveSession('Pés')">Pés</span>
-                <span class="debug-session-tag" data-tab="Estilo" onclick="testResponsiveSession('Estilo')">Estilo</span>
-                <span class="debug-session-tag" data-tab="Gravação" onclick="testResponsiveSession('Gravação')">Gravação</span>
-            </div>
         </div>
     </div>
 
@@ -1553,6 +1564,19 @@
                         <div class="vp-handle vp-handle-e" data-vp-handle="e"></div>
                     </div>
 
+                    <!-- Caixa de Colisão Universal Verde (Anatomia Direta da Imagem - Imune a Zoom) -->
+                    <div class="debug-green-box" id="debugGreenBox" title="Arraste para mover ou use as alças verdes para redimensionar a colisão universal da imagem">
+                        <div class="green-badge-tag" id="greenBadgeTag">Verde Universal: Identidade</div>
+                        <div class="green-handle handle-nw" data-handle="nw"></div>
+                        <div class="green-handle handle-ne" data-handle="ne"></div>
+                        <div class="green-handle handle-sw" data-handle="sw"></div>
+                        <div class="green-handle handle-se" data-handle="se"></div>
+                        <div class="green-handle handle-n" data-handle="n"></div>
+                        <div class="green-handle handle-s" data-handle="s"></div>
+                        <div class="green-handle handle-w" data-handle="w"></div>
+                        <div class="green-handle handle-e" data-handle="e"></div>
+                    </div>
+
                     <div class="avatar-container" id="avatarContainer">
                         <div class="infinite-gradient-backdrop" id="infiniteBackdrop"></div>
                         <img src="avatar.webp" alt="Base Avatar" class="avatar-layer avatar-base" id="layerBase">
@@ -1571,20 +1595,6 @@
                             <div class="box-handle handle-s" data-handle="s"></div>
                             <div class="box-handle handle-w" data-handle="w"></div>
                             <div class="box-handle handle-e" data-handle="e"></div>
-                        </div>
-
-                        <!-- Caixa de Colisão Universal Verde (Anatomia Direta da Imagem) -->
-                        <div class="debug-green-box" id="debugGreenBox" title="Arraste para mover ou use as alças verdes para redimensionar a colisão universal da imagem">
-                            <div class="green-badge-tag" id="greenBadgeTag">Verde Universal: Identidade</div>
-                            <div class="box-crosshair-center" style="border-color: #10b981;"></div>
-                            <div class="green-handle handle-nw" data-handle="nw"></div>
-                            <div class="green-handle handle-ne" data-handle="ne"></div>
-                            <div class="green-handle handle-sw" data-handle="sw"></div>
-                            <div class="green-handle handle-se" data-handle="se"></div>
-                            <div class="green-handle handle-n" data-handle="n"></div>
-                            <div class="green-handle handle-s" data-handle="s"></div>
-                            <div class="green-handle handle-w" data-handle="w"></div>
-                            <div class="green-handle handle-e" data-handle="e"></div>
                         </div>
                     </div>
                 </div>
@@ -1804,13 +1814,47 @@
         let isAvatarBoxLocked = false;
         let isViewportBoxLocked = true; // Por padrão o azul começa travado para não cobrir o vermelho
 
+        /* --- MODO DE DEPURAÇÃO: VERDE (UNIVERSAL) VS CLÁSSICO (VERMELHO/AZUL) --- */
+        let debugActiveMode = 'green'; // 'green' ou 'classic'
+
+        function setColliderMode(mode) {
+            debugActiveMode = mode;
+            const btnGr = document.getElementById('btnModeGreen');
+            const btnCl = document.getElementById('btnModeClassic');
+            const greenSec = document.getElementById('greenDedicatedSection');
+            const classicSec = document.getElementById('classicDebugSection');
+
+            if (mode === 'green') {
+                if (btnGr) { btnGr.classList.add('unlocked'); btnGr.classList.remove('is-locked'); }
+                if (btnCl) { btnCl.classList.remove('unlocked'); btnCl.classList.add('is-locked'); }
+                if (greenSec) greenSec.style.display = 'flex';
+                if (classicSec) classicSec.style.display = 'none';
+
+                // Mostra apenas o verde e desliga vermelho e azul
+                if (debugGreenBox) debugGreenBox.classList.add('debug-visible');
+                if (debugCollisionBox) debugCollisionBox.classList.remove('debug-visible');
+                if (debugViewportBox) debugViewportBox.classList.remove('debug-visible');
+                renderGreenBoxDOM();
+            } else {
+                if (btnGr) { btnGr.classList.remove('unlocked'); btnGr.classList.add('is-locked'); }
+                if (btnCl) { btnCl.classList.add('unlocked'); btnCl.classList.remove('is-locked'); }
+                if (greenSec) greenSec.style.display = 'none';
+                if (classicSec) classicSec.style.display = 'flex';
+
+                // Mostra vermelho e azul e desliga o verde
+                if (debugGreenBox) debugGreenBox.classList.remove('debug-visible');
+                if (debugCollisionBox) debugCollisionBox.classList.add('debug-visible');
+                if (debugViewportBox) debugViewportBox.classList.add('debug-visible');
+                renderCollisionBoxDOM();
+                renderViewportBoxDOM();
+            }
+        }
+
         function updateLockStatesDOM() {
             const btnAv = document.getElementById('btnLockAvatar');
             const lblAv = document.getElementById('labelLockAvatar');
             const btnVp = document.getElementById('btnLockViewport');
             const lblVp = document.getElementById('labelLockViewport');
-            const btnGr = document.getElementById('btnLockGreen');
-            const lblGr = document.getElementById('labelLockGreen');
 
             if (debugCollisionBox) {
                 if (isAvatarBoxLocked) {
@@ -1828,35 +1872,15 @@
                 }
             }
 
-            if (debugGreenBox) {
-                if (isGreenBoxLocked) {
-                    debugGreenBox.classList.add('is-locked');
-                } else {
-                    debugGreenBox.classList.remove('is-locked');
-                }
-            }
-
-            if (btnGr && lblGr) {
-                if (isGreenBoxLocked) {
-                    btnGr.classList.remove('unlocked');
-                    btnGr.classList.add('is-locked');
-                    lblGr.innerText = "🔒 Verde";
-                } else {
-                    btnGr.classList.add('unlocked');
-                    btnGr.classList.remove('is-locked');
-                    lblGr.innerText = "🔓 Verde (Editando)";
-                }
-            }
-
             if (btnAv && lblAv) {
                 if (isAvatarBoxLocked) {
                     btnAv.classList.remove('unlocked');
                     btnAv.classList.add('is-locked');
-                    lblAv.innerText = "🔒 Vermelho";
+                    lblAv.innerText = "🔒 Vermelho (Travado)";
                 } else {
                     btnAv.classList.add('unlocked');
                     btnAv.classList.remove('is-locked');
-                    lblAv.innerText = "🔓 Vermelho";
+                    lblAv.innerText = "🔓 Vermelho (Editando)";
                 }
             }
 
@@ -1864,11 +1888,11 @@
                 if (isViewportBoxLocked) {
                     btnVp.classList.remove('unlocked');
                     btnVp.classList.add('is-locked');
-                    lblVp.innerText = "🔒 Azul";
+                    lblVp.innerText = "🔒 Azul (Travado)";
                 } else {
                     btnVp.classList.add('unlocked');
                     btnVp.classList.remove('is-locked');
-                    lblVp.innerText = "🔓 Azul";
+                    lblVp.innerText = "🔓 Azul (Editando)";
                 }
             }
         }
@@ -1891,13 +1915,7 @@
             if (isDebugMode) {
                 if (btnDebugMode) btnDebugMode.classList.add('active');
                 if (cameraHudGroup) cameraHudGroup.classList.add('debug-visible');
-                if (debugCollisionBox) debugCollisionBox.classList.add('debug-visible');
-                if (debugViewportBox) debugViewportBox.classList.add('debug-visible');
-                if (debugGreenBox) debugGreenBox.classList.add('debug-visible');
-                updateLockStatesDOM();
-                renderCollisionBoxDOM();
-                renderViewportBoxDOM();
-                renderGreenBoxDOM();
+                setColliderMode(debugActiveMode);
             } else {
                 if (btnDebugMode) btnDebugMode.classList.remove('active');
                 if (cameraHudGroup) cameraHudGroup.classList.remove('debug-visible');
@@ -2440,8 +2458,9 @@
                 if (!greenDragMode || !greenStartBox) return;
                 const m = getAvatarLayoutMetrics();
 
-                const deltaNormX = (e.clientX - greenStartMouseX) / (m.renderedW * avatarScale);
-                const deltaNormY = (e.clientY - greenStartMouseY) / (m.renderedH * avatarScale);
+                // Totalmente imune ao zoom da câmera
+                const deltaNormX = (e.clientX - greenStartMouseX) / m.renderedW;
+                const deltaNormY = (e.clientY - greenStartMouseY) / m.renderedH;
 
                 if (greenDragMode === 'move') {
                     currentGreenBox.x = Math.max(0, Math.min(1 - greenStartBox.w, greenStartBox.x + deltaNormX));
