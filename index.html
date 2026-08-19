@@ -839,12 +839,10 @@
             background: rgba(16, 185, 129, 0.08);
             box-shadow: 0 0 16px rgba(16, 185, 129, 0.35);
             z-index: 70;
-            cursor: move;
-            pointer-events: auto;
+            pointer-events: none; /* Centro sem movimentação */
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.2s ease;
-            touch-action: none;
             box-sizing: border-box;
         }
 
@@ -854,7 +852,6 @@
         }
 
         .debug-green-box.is-locked {
-            pointer-events: none !important;
             opacity: 0.55 !important;
             border-style: dotted !important;
         }
@@ -883,19 +880,21 @@
 
         .green-handle {
             position: absolute;
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            height: 14px;
             background-color: #ffffff;
-            border: 2px solid #10b981;
-            border-radius: 3px;
+            border: 2.5px solid #10b981;
+            border-radius: 4px;
             box-shadow: 0 0 8px rgba(0,0,0,0.8);
             z-index: 75;
             box-sizing: border-box;
+            pointer-events: auto; /* Apenas os 4 cantos respondem para redimensionar */
+            touch-action: none;
         }
-        .green-handle.handle-nw { top: -6px; left: -6px; cursor: nwse-resize; }
-        .green-handle.handle-ne { top: -6px; right: -6px; cursor: nesw-resize; }
-        .green-handle.handle-sw { bottom: -6px; left: -6px; cursor: nesw-resize; }
-        .green-handle.handle-se { bottom: -6px; right: -6px; cursor: nwse-resize; }
+        .green-handle.handle-nw { top: -7px; left: -7px; cursor: nwse-resize; }
+        .green-handle.handle-ne { top: -7px; right: -7px; cursor: nesw-resize; }
+        .green-handle.handle-sw { bottom: -7px; left: -7px; cursor: nesw-resize; }
+        .green-handle.handle-se { bottom: -7px; right: -7px; cursor: nwse-resize; }
 
         /* Seção Exclusiva da Colisão Verde Universal no Menu HUD */
         .green-dedicated-section {
@@ -2436,7 +2435,7 @@
             }
         }
 
-        /* --- INTERAÇÃO DIRETA: ARRASTAR E REDIMENSIONAR A CAIXA VERDE --- */
+        /* --- INTERAÇÃO DIRETA: REDIMENSIONAR A CAIXA VERDE EXCLUSIVAMENTE PELOS CANTOS --- */
         let greenDragMode = null;
         let greenStartMouseX = 0;
         let greenStartMouseY = 0;
@@ -2444,18 +2443,19 @@
 
         if (debugGreenBox) {
             debugGreenBox.addEventListener('pointerdown', (e) => {
-                e.stopPropagation();
                 const handle = e.target.getAttribute('data-handle');
-                greenDragMode = handle ? handle : 'move';
+                if (!handle) return; // Centro sem movimentação: ignora qualquer clique que não seja nos 4 cantos
+                e.stopPropagation();
+                greenDragMode = handle;
 
                 greenStartMouseX = e.clientX;
                 greenStartMouseY = e.clientY;
                 greenStartBox = { ...currentGreenBox };
 
-                try { debugGreenBox.setPointerCapture(e.pointerId); } catch(err){}
+                try { e.target.setPointerCapture(e.pointerId); } catch(err){}
             });
 
-            debugGreenBox.addEventListener('pointermove', (e) => {
+            window.addEventListener('pointermove', (e) => {
                 if (!greenDragMode || !greenStartBox) return;
                 const m = getAvatarLayoutMetrics();
 
@@ -2463,42 +2463,39 @@
                 const deltaNormX = (e.clientX - greenStartMouseX) / m.renderedW;
                 const deltaNormY = (e.clientY - greenStartMouseY) / m.renderedH;
 
-                if (greenDragMode === 'move') {
-                    currentGreenBox.x = Math.max(0, Math.min(1 - greenStartBox.w, greenStartBox.x + deltaNormX));
-                    currentGreenBox.y = Math.max(0, Math.min(1 - greenStartBox.h, greenStartBox.y + deltaNormY));
-                } else {
-                    let newX = greenStartBox.x;
-                    let newY = greenStartBox.y;
-                    let newW = greenStartBox.w;
-                    let newH = greenStartBox.h;
+                let newX = greenStartBox.x;
+                let newY = greenStartBox.y;
+                let newW = greenStartBox.w;
+                let newH = greenStartBox.h;
 
-                    if (greenDragMode.includes('e')) {
-                        newW = Math.max(0.06, Math.min(1 - greenStartBox.x, greenStartBox.w + deltaNormX));
-                    }
-                    if (greenDragMode.includes('s')) {
-                        newH = Math.max(0.06, Math.min(1 - greenStartBox.y, greenStartBox.h + deltaNormY));
-                    }
-                    if (greenDragMode.includes('w')) {
-                        const right = greenStartBox.x + greenStartBox.w;
-                        newX = Math.max(0, Math.min(right - 0.06, greenStartBox.x + deltaNormX));
-                        newW = right - newX;
-                    }
-                    if (greenDragMode.includes('n')) {
-                        const bottom = greenStartBox.y + greenStartBox.h;
-                        newY = Math.max(0, Math.min(bottom - 0.06, greenStartBox.y + deltaNormY));
-                        newH = bottom - newY;
-                    }
-
-                    currentGreenBox = { x: newX, y: newY, w: newW, h: newH };
+                if (greenDragMode.includes('e')) {
+                    newW = Math.max(0.04, Math.min(1 - greenStartBox.x, greenStartBox.w + deltaNormX));
+                }
+                if (greenDragMode.includes('s')) {
+                    newH = Math.max(0.04, Math.min(1 - greenStartBox.y, greenStartBox.h + deltaNormY));
+                }
+                if (greenDragMode.includes('w')) {
+                    const right = greenStartBox.x + greenStartBox.w;
+                    newX = Math.max(0, Math.min(right - 0.04, greenStartBox.x + deltaNormX));
+                    newW = right - newX;
+                }
+                if (greenDragMode.includes('n')) {
+                    const bottom = greenStartBox.y + greenStartBox.h;
+                    newY = Math.max(0, Math.min(bottom - 0.04, greenStartBox.y + deltaNormY));
+                    newH = bottom - newY;
                 }
 
+                // Respeita estritamente os limites da modelo (cima, baixo e laterais de 0% a 100%)
+                newX = Math.max(0, Math.min(1 - newW, newX));
+                newY = Math.max(0, Math.min(1 - newH, newY));
+
+                currentGreenBox = { x: newX, y: newY, w: newW, h: newH };
                 renderGreenBoxDOM();
             });
 
-            debugGreenBox.addEventListener('pointerup', (e) => {
+            window.addEventListener('pointerup', (e) => {
                 greenDragMode = null;
                 greenStartBox = null;
-                try { debugGreenBox.releasePointerCapture(e.pointerId); } catch(err){}
             });
         }
 
