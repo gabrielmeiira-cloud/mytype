@@ -1440,14 +1440,17 @@
                 <div class="hud-sub" id="greenCoordsText" style="color: #10b981; font-weight: 600;">📐 Verde: X: 35% | Y: 0% | L: 30% | A: 27%</div>
                 
                 <div class="pin-actions-row">
-                    <button class="pin-action-btn btn-green-action" onclick="focusCameraOnGreenBox()" title="Enquadra a modelo usando a caixa verde">
+                    <button class="pin-action-btn btn-green-action" onclick="focusCameraOnGreenBox()" title="Aproxima a câmera focando exatamente na área marcada pela caixa verde">
                         🎯 Enquadrar Verde
                     </button>
                     <button class="pin-action-btn btn-green-save" id="btnSaveGreen" onclick="registerGreenBoxPreset()" title="Registra a caixa verde exclusivamente para a sessão selecionada">
                         💾 Gravar Verde
                     </button>
                     <button class="pin-action-btn btn-green-export" id="btnExportGreen" onclick="exportGreenBoxesConfig()" title="Exporta todas as 7 caixas verdes universais">
-                        📋 Exportar Verde
+                        📋 Exportar
+                    </button>
+                    <button class="pin-action-btn" onclick="resetAvatarToStandard()" title="Retorna a modelo para a visão padrão 100% de corpo inteiro">
+                        🔄 Padrão
                     </button>
                 </div>
 
@@ -1979,22 +1982,25 @@
             const m = getAvatarLayoutMetrics();
             const vb = getSafeViewportBounds(customSheetH);
 
-            // Largura e altura da caixa verde em pixels no canvas
-            const boxPixelW = Math.max(15, m.w * box.w);
-            const boxPixelH = Math.max(15, m.h * box.h);
+            // Tamanho em pixels da caixa verde marcada na tela padrão:
+            const boxWidthPx = Math.max(20, m.w * box.w);
+            const boxHeightPx = Math.max(20, m.h * box.h);
 
-            // Estica ao máximo para encaixar na colisão verde respeitando as colisões verticais e horizontais:
-            const scaleX = vb.width / boxPixelW;
-            const scaleY = vb.height / boxPixelH;
-            const targetScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, Math.min(scaleX, scaleY)));
-
-            // Centro da caixa verde no canvas
+            // Ponto central da região marcada pelo usuário:
             const centerPxX = m.w * (box.x + box.w / 2);
             const centerPxY = m.h * (box.y + box.h / 2);
 
-            // Centraliza o ponto focal exatamente no centro da área livre do Canvas
-            const targetPanX = (vb.centerX - (m.w / 2)) - (centerPxX - (m.w / 2)) * targetScale;
-            const targetPanY = (vb.centerY - (m.h / 2)) - (centerPxY - (m.h / 2)) * targetScale;
+            // Fator de escala para que a parte marcada cresça e preencha a área útil livre (vb):
+            const scaleX = vb.width / boxWidthPx;
+            const scaleY = vb.height / boxHeightPx;
+            
+            // Mantém a proporção natural da modelo (máximo zoom até encostar na primeira borda livre):
+            const zoomRatio = Math.min(scaleX, scaleY);
+            const targetScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, DEFAULT_SCALE * zoomRatio));
+
+            // Pan para alinhar o centro da parte marcada com o centro da área livre (vb.centerX, vb.centerY):
+            const targetPanX = (vb.centerX - (m.w / 2)) - (centerPxX - (m.w / 2)) * (targetScale / DEFAULT_SCALE);
+            const targetPanY = (vb.centerY - (m.h / 2)) - (centerPxY - (m.h / 2)) * (targetScale / DEFAULT_SCALE);
 
             const clamped = clampPan(targetPanX, targetPanY, targetScale);
 
@@ -2389,6 +2395,10 @@
         function focusCameraOnGreenBox() {
             const framing = calculateFramingFromBoundingBox(currentGreenBox);
             animateAvatarCamera(framing.scale, framing.x, framing.y, 480);
+        }
+
+        function resetAvatarToStandard() {
+            animateAvatarCamera(DEFAULT_SCALE, 0, 0, 400);
         }
 
         function registerGreenBoxPreset() {
