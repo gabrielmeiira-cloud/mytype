@@ -2050,6 +2050,30 @@
         }
 
         /* --- LIMITES SEGUROS DE MOVIMENTO DA CÂMERA --- */
+        function getStrictPanBounds(scale = avatarScale) {
+            const m = getAvatarLayoutMetrics();
+            const scaledW = m.renderedW * scale;
+            const scaledH = m.renderedH * scale;
+
+            let maxX = Math.max(m.w * 0.45, (scaledW - m.w) * 0.65 + (m.w * 0.35));
+            let minX = -maxX;
+
+            let maxY = Math.max(m.h * 0.85, (scaledH - m.h) * 0.95 + (m.h * 0.75));
+            let minY = -Math.max(m.h * 0.85, (scaledH - m.h) * 0.95 + (m.h * 0.75));
+
+            if (minX > maxX) [minX, maxX] = [maxX, minX];
+            if (minY > maxY) [minY, maxY] = [maxY, minY];
+
+            return { minX, maxX, minY, maxY };
+        }
+
+        function clampPan(x, y, scale = avatarScale) {
+            const bounds = getStrictPanBounds(scale);
+            return {
+                x: Math.min(bounds.maxX, Math.max(bounds.minX, x)),
+                y: Math.min(bounds.maxY, Math.max(bounds.minY, y))
+            };
+        }
 
         if (viewportCanvas) {
             viewportCanvas.addEventListener('wheel', (e) => {
