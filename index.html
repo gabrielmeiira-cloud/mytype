@@ -2555,22 +2555,12 @@
             const currentFocusMarker = document.getElementById('dbgCurrentFocusMarker');
             const dbgFocusLbl = document.getElementById('dbgFocusLabel');
 
-            if (markersAnatomy) {
-                // Sincroniza a coluna de marcadores anatômicos exatamente com a escala e pan da modelo
-                markersAnatomy.style.top = `${m.offsetY}px`;
-                markersAnatomy.style.height = `${m.renderedH}px`;
-                markersAnatomy.style.transform = `translate3d(${avatarPanX}px, ${avatarPanY}px, 0px) scale(${avatarScale})`;
-            }
-
             if (currentFocusMarker) {
                 currentFocusMarker.style.top = `${focusPercent}%`;
             }
             if (dbgFocusLbl) {
                 dbgFocusLbl.innerText = `📍 FOCO: ${focusPercent}%`;
             }
-
-            if (tagSession) tagSession.innerText = `SESSÃO: ${activeSessionName.toUpperCase()}`;
-            if (tagCoords) tagCoords.innerText = `Zoom: ${zoomVal}x | PanY: ${Math.round(avatarPanY)}px`;
         }
 
         function selectCameraSession(sessionName) {
