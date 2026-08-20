@@ -1428,15 +1428,7 @@
                         <span id="activeSessionTitle" style="color: #10b981; font-weight: 700;">🎯 Sessão: Identidade</span>
                     </div>
                 <!-- Controles de Âncora Vertical e Horizontal -->
-                <div class="camera-anchor-controls" id="cameraAnchorControls">
-                    <div class="anchor-control-row">
-                        <span class="anchor-label">⚓ Vertical:</span>
-                        <div class="anchor-btn-group">
-                            <button class="anchor-btn" data-anchor-v="top" onclick="setSessionAnchorV('top')" title="Fixar no Topo (ajusta para baixo)">⬆️ Topo</button>
-                            <button class="anchor-btn active" data-anchor-v="center" onclick="setSessionAnchorV('center')" title="Centro Vertical">⏺️ Centro</button>
-                            <button class="anchor-btn" data-anchor-v="bottom" onclick="setSessionAnchorV('bottom')" title="Fixar na Base (ajusta para cima)">⬇️ Base</button>
-                        </div>
-                    </div>
+                
                     <div class="anchor-control-row">
                         <span class="anchor-label">⚓ Horizontal:</span>
                         <div class="anchor-btn-group">
@@ -1450,7 +1442,13 @@
                     <div class="hud-sub" id="liveCameraStatus" style="font-family: monospace; font-size: 11px;">🔍 Zoom: 90% | ↔️ X: 0px | ↕️ Y: 0px</div>
                 </div>
 
+                
+                <div class="hud-row" style="margin-bottom: 8px;">
+                    <button class="anchor-btn active" id="btnModeAuto" style="flex:1" onclick="setBoxMode('auto')">⚡ Ponto Focal (Auto)</button>
+                    <button class="anchor-btn" id="btnModeCrop" style="flex:1" onclick="setBoxMode('crop')">✂️ Recorte Visual (Manual)</button>
+                </div>
                 <div class="pin-actions-row">
+
                     <button class="pin-action-btn btn-green-save" id="btnSaveCamera" onclick="saveCurrentCameraToSession()" title="Grava o Zoom e a Posição atuais para esta sessão">
                         💾 Gravar Câmera
                     </button>
@@ -1671,20 +1669,21 @@
             return { w, h, renderedW, renderedH, offsetX, offsetY };
         }
 
-        /* --- MOTOR DE CÂMERA DE ALTA FIDELIDADE (POSIÇÃO EXATA + ÂNCORA INTELIGENTE) --- */
-        // Grava a posição EXATA onde o usuário posicionou na tela sem alterar ou desviar
+        /* --- MOTOR DE CÂMERA UNIVERSAL (PONTO FOCAL & CAIXA DE RECORTE) --- */
+        // Cada sessão armazena: mode ('auto' | 'crop'), targetY (0.0 a 1.0), zoom
+        // Ou no caso de 'crop': cropY, cropH
         const sessionCameraPresets = {
-            "Identidade": { scale: 0.79, panX: 0, panY: 0, anchorV: "center", anchorH: "center" },
-            "Aparência":  { scale: 2.85, panX: 0, panY: 480, anchorV: "top", anchorH: "center" },
-            "Busto":      { scale: 3.53, panX: 0, panY: 260, anchorV: "center", anchorH: "center" },
-            "Pernas":     { scale: 1.65, panX: 0, panY: -210, anchorV: "center", anchorH: "center" },
-            "Pés":        { scale: 2.65, panX: 0, panY: -780, anchorV: "bottom", anchorH: "center" },
-            "Estilo":     { scale: 1.12, panX: 0, panY: 15, anchorV: "center", anchorH: "center" },
-            "Gravação":   { scale: 0.92, panX: 0, panY: 0, anchorV: "center", anchorH: "center" }
+            "Identidade": { mode: 'auto', targetY: 0.50, zoom: 0.8 },
+            "Aparência":  { mode: 'auto', targetY: 0.08, zoom: 2.85 },
+            "Busto":      { mode: 'auto', targetY: 0.25, zoom: 3.53 },
+            "Pernas":     { mode: 'auto', targetY: 0.65, zoom: 1.65 },
+            "Pés":        { mode: 'auto', targetY: 0.95, zoom: 2.65 },
+            "Estilo":     { mode: 'auto', targetY: 0.50, zoom: 1.12 },
+            "Gravação":   { mode: 'auto', targetY: 0.50, zoom: 0.92 }
         };
 
         try {
-            const saved = localStorage.getItem('mytype_camera_presets_v5');
+            const saved = localStorage.getItem('mytype_camera_presets_v6');
             if (saved) {
                 Object.assign(sessionCameraPresets, JSON.parse(saved));
             }
@@ -1694,13 +1693,17 @@
         const cameraHudGroup = document.getElementById('cameraHudGroup');
         const activeSessionTitle = document.getElementById('activeSessionTitle');
         const liveCameraStatus = document.getElementById('liveCameraStatus');
+        
         let isDebugMode = false;
+        let currentBoxMode = 'auto'; // 'auto' ou 'crop'
+
+        // Elementos da Crop Box
+        const visualCropBox = document.getElementById('visualCropBox');
 
         function toggleDebugMode(e) {
             if (e) e.stopPropagation();
             isDebugMode = !isDebugMode;
             
-            // Desativa as alças de redimensionamento da janela do OS durante a depuração para não conflitar
             const resizeHandles = document.querySelectorAll('.win-resize-handle');
             resizeHandles.forEach(h => {
                 h.style.display = isDebugMode ? 'none' : '';
@@ -1713,10 +1716,26 @@
             } else {
                 if (btnDebugMode) btnDebugMode.classList.remove('active');
                 if (cameraHudGroup) cameraHudGroup.classList.remove('debug-visible');
+                if (visualCropBox) visualCropBox.classList.remove('active');
             }
         }
 
-        /* --- GERENCIADOR DE STATUS DE SINCRONIZAÇÃO (ONLINE / OFFLINE / ENVIANDO) --- */
+        function setBoxMode(mode) {
+            currentBoxMode = mode;
+            document.getElementById('btnModeAuto').classList.toggle('active', mode === 'auto');
+            document.getElementById('btnModeCrop').classList.toggle('active', mode === 'crop');
+            
+            if (mode === 'crop') {
+                initCropBox();
+                visualCropBox.classList.add('active');
+                // Centraliza a câmera inteira primeiro para o usuário recortar
+                applySessionCameraPreset("Gravação", 300);
+            } else {
+                visualCropBox.classList.remove('active');
+            }
+        }
+
+        /* --- INTEGRAÇÃO EM TEMPO REAL COM O GOOGLE FIREBASE FIRESTORE --- */
         function setConnectionStatus(state, message) {
             const badge = document.getElementById('serverStatusBadge');
             const txt = document.getElementById('serverStatusText');
@@ -1731,7 +1750,6 @@
             txt.innerText = message;
         }
 
-        /* --- INTEGRAÇÃO EM TEMPO REAL COM O GOOGLE FIREBASE FIRESTORE --- */
         const firebaseConfig = {
             apiKey: "AIzaSyA1aoL7vtEiqpal0KwGbXp9V442aMLW5eA",
             authDomain: "meutipodata.firebaseapp.com",
@@ -1750,7 +1768,6 @@
                 db = firebase.firestore();
                 presetsDoc = db.collection('app_settings').doc('camera_presets');
                 
-                // Escuta alterações em tempo real via WebSockets (onSnapshot)
                 presetsDoc.onSnapshot((doc) => {
                     if (doc.exists) {
                         const remotePresets = doc.data();
@@ -1758,14 +1775,13 @@
                         setConnectionStatus("online", "🟢 Firebase: Online & Sincronizado");
                         Object.assign(sessionCameraPresets, remotePresets);
                         try {
-                            localStorage.setItem('mytype_camera_presets_v5', JSON.stringify(sessionCameraPresets));
+                            localStorage.setItem('mytype_camera_presets_v6', JSON.stringify(sessionCameraPresets));
                         } catch(e) {}
-                        if (activeSessionName) {
+                        if (activeSessionName && !isCameraAnimating) {
                             applySessionCameraPreset(activeSessionName, 350);
                         }
                         updateCameraHudDOM();
                     } else {
-                        // Inicializa o documento no Firestore se ainda não existir
                         presetsDoc.set(sessionCameraPresets);
                     }
                 }, (err) => {
@@ -1780,9 +1796,8 @@
         async function syncPresetToCloud(sessionName, presetData) {
             setConnectionStatus("sending", "🟡 Gravando...");
 
-            // Atualiza o localStorage local imediatamente para resposta instantânea
             try {
-                localStorage.setItem('mytype_camera_presets_v5', JSON.stringify(sessionCameraPresets));
+                localStorage.setItem('mytype_camera_presets_v6', JSON.stringify(sessionCameraPresets));
             } catch(e) {}
 
             let firestoreSuccess = false;
@@ -1800,84 +1815,13 @@
                     setConnectionStatus("error", isPerm ? "🔴 Regras do Firestore Bloqueadas" : "🔴 " + e.message);
                 }
             }
-
-            if (!firestoreSuccess) {
-                try {
-                    await fetch('/api/presets', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ [sessionName]: presetData })
-                    });
-                } catch(e) {}
-            }
         }
 
-        function setSessionAnchorV(anchor) {
-            if (!sessionCameraPresets[activeSessionName]) {
-                sessionCameraPresets[activeSessionName] = { scale: avatarScale, panX: avatarPanX, panY: avatarPanY };
-            }
-            sessionCameraPresets[activeSessionName].anchorV = anchor;
-            
-            // Ajusta o Pan Y respeitando a âncora
-            const m = getAvatarLayoutMetrics();
-            const sheetH = bottomSheet ? bottomSheet.clientHeight : getInitialHeight();
-            const visibleH = Math.max(120, m.h - sheetH);
-
-            if (anchor === 'top') {
-                const desiredTop = 18;
-                const naturalTopPt = m.offsetY;
-                const unpannedTop = (naturalTopPt - (m.h / 2)) * avatarScale + (m.h / 2);
-                avatarPanY = Math.round(desiredTop - unpannedTop);
-            } else if (anchor === 'bottom') {
-                const desiredBottom = visibleH - 14;
-                const naturalBottomPt = m.offsetY + m.renderedH;
-                const unpannedBottom = (naturalBottomPt - (m.h / 2)) * avatarScale + (m.h / 2);
-                avatarPanY = Math.round(desiredBottom - unpannedBottom);
-            }
-
-            const clamped = clampPan(avatarPanX, avatarPanY, avatarScale);
-            avatarPanX = clamped.x;
-            avatarPanY = clamped.y;
-            sessionCameraPresets[activeSessionName].panX = avatarPanX;
-            sessionCameraPresets[activeSessionName].panY = avatarPanY;
-
-            try {
-                localStorage.setItem('mytype_camera_presets_v5', JSON.stringify(sessionCameraPresets));
-            } catch(e) {}
-            syncPresetToCloud(activeSessionName, sessionCameraPresets[activeSessionName]);
-
-            updateAvatarTransform(true);
-            updateCameraHudDOM();
-        }
-
-        function setSessionAnchorH(anchor) {
-            if (!sessionCameraPresets[activeSessionName]) {
-                sessionCameraPresets[activeSessionName] = { scale: avatarScale, panX: avatarPanX, panY: avatarPanY };
-            }
-            sessionCameraPresets[activeSessionName].anchorH = anchor;
-            if (anchor === 'center') {
-                avatarPanX = 0;
-            }
-            sessionCameraPresets[activeSessionName].panX = avatarPanX;
-
-            try {
-                localStorage.setItem('mytype_camera_presets_v5', JSON.stringify(sessionCameraPresets));
-            } catch(e) {}
-            syncPresetToCloud(activeSessionName, sessionCameraPresets[activeSessionName]);
-
-            updateAvatarTransform(true);
-            updateCameraHudDOM();
-        }
-
+        /* --- MOTOR DE ENQUADRAMENTO RESPONSIVO --- */
         function updateCameraHudDOM() {
-            if (activeSessionTitle) {
-                activeSessionTitle.innerText = `🎯 Sessão: ${activeSessionName}`;
-            }
-            const preset = sessionCameraPresets[activeSessionName] || { scale: avatarScale, panX: avatarPanX, panY: avatarPanY, anchorV: 'center', anchorH: 'center' };
+            if (activeSessionTitle) activeSessionTitle.innerText = `🎯 Sessão: ${activeSessionName}`;
             if (liveCameraStatus) {
-                const aV = preset.anchorV || 'center';
-                const aH = preset.anchorH || 'center';
-                liveCameraStatus.innerText = `🔍 Zoom: ${Math.round(avatarScale * 100)}% | ↔️ X: ${Math.round(avatarPanX)} | ↕️ Y: ${Math.round(avatarPanY)} | ⚓ ${aV.toUpperCase()}`;
+                liveCameraStatus.innerText = `🔍 Zoom: ${Math.round(avatarScale * 100)}% | Modo: ${currentBoxMode.toUpperCase()}`;
             }
             document.querySelectorAll('[data-camera-tab]').forEach(tag => {
                 if (tag.getAttribute('data-camera-tab') === activeSessionName) {
@@ -1886,14 +1830,6 @@
                     tag.classList.remove('active');
                 }
             });
-
-            // Atualiza botões de âncora
-            document.querySelectorAll('[data-anchor-v]').forEach(btn => {
-                btn.classList.toggle('active', btn.getAttribute('data-anchor-v') === (preset.anchorV || 'center'));
-            });
-            document.querySelectorAll('[data-anchor-h]').forEach(btn => {
-                btn.classList.toggle('active', btn.getAttribute('data-anchor-h') === (preset.anchorH || 'center'));
-            });
         }
 
         function selectCameraSession(sessionName) {
@@ -1901,7 +1837,6 @@
             applySessionCameraPreset(sessionName, 450);
             updateCameraHudDOM();
 
-            // Sincroniza com o menu inferior
             const navBtn = document.querySelector(`.nav-item[data-tab="${sessionName}"]`);
             if (navBtn) {
                 document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -1910,46 +1845,110 @@
             }
         }
 
-        // Aplica a câmera gravada de forma 100% EXATA e fiel ao que o usuário configurou
-        function applySessionCameraPreset(sessionName, duration = 450, customSheetH = null) {
+        function applySessionCameraPreset(sessionName, duration = 450) {
             activeSessionName = sessionName;
             const preset = sessionCameraPresets[sessionName] || sessionCameraPresets["Identidade"];
             
-            let targetScale = preset.scale || DEFAULT_SCALE;
-            let targetPanX = preset.panX !== undefined ? preset.panX : 0;
-            let targetPanY = preset.panY !== undefined ? preset.panY : 0;
+            const m = getAvatarLayoutMetrics();
+            const sheetH = bottomSheet ? bottomSheet.clientHeight : getInitialHeight();
+            const visibleH = Math.max(120, m.h - sheetH);
+            const viewCenterY = visibleH * 0.45; // 45% do topo na tela atual
+
+            let targetScale = preset.zoom || DEFAULT_SCALE;
+            let targetPanY = 0;
+            let targetPanX = 0;
+
+            if (preset.mode === 'crop' && preset.cropH) {
+                // Modo 2: Caixa Visual
+                // A altura do crop na tela do usuário dita o zoom.
+                // Zoom necessário para fazer o cropH (em %) caber na tela visível (visibleH)
+                const cropPixelsH = preset.cropH * m.renderedH;
+                targetScale = (visibleH * 0.85) / cropPixelsH; // Encaixa ocupando 85% da tela visível
+                targetScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, targetScale));
+
+                // O centro do crop no corpo é cropY + (cropH/2)
+                const targetY = preset.cropY + (preset.cropH / 2);
+                const modelPtY = m.offsetY + (m.renderedH * targetY);
+                const unpannedY = (modelPtY - (m.h / 2)) * targetScale + (m.h / 2);
+                targetPanY = viewCenterY - unpannedY;
+            } else {
+                // Modo 1: Ponto Focal Normalizado (Auto)
+                const targetY = preset.targetY !== undefined ? preset.targetY : 0.5;
+                const modelPtY = m.offsetY + (m.renderedH * targetY);
+                const unpannedY = (modelPtY - (m.h / 2)) * targetScale + (m.h / 2);
+                targetPanY = viewCenterY - unpannedY;
+            }
 
             const clamped = clampPan(targetPanX, targetPanY, targetScale);
             animateAvatarCamera(targetScale, clamped.x, clamped.y, duration);
             updateCameraHudDOM();
         }
 
-        function applyResponsivePreset(sessionName, duration = 450, customSheetH = null) {
-            applySessionCameraPreset(sessionName, duration, customSheetH);
+        function applyResponsivePreset(sessionName, duration = 450) {
+            applySessionCameraPreset(sessionName, duration);
         }
 
-        // Grava a posição EXATA e instantânea da tela na sessão, no localStorage e no servidor
+        // --- SALVAMENTO REVERSO ---
+        // Calcula o ponto anatômico exato que o usuário focou (targetY)
         function saveCurrentCameraToSession() {
-            const prevAnchorV = (sessionCameraPresets[activeSessionName] && sessionCameraPresets[activeSessionName].anchorV) || 'center';
-            const prevAnchorH = (sessionCameraPresets[activeSessionName] && sessionCameraPresets[activeSessionName].anchorH) || 'center';
+            const m = getAvatarLayoutMetrics();
+            const sheetH = bottomSheet ? bottomSheet.clientHeight : getInitialHeight();
+            const visibleH = Math.max(120, m.h - sheetH);
+            const viewCenterY = visibleH * 0.45; 
 
-            sessionCameraPresets[activeSessionName] = {
-                scale: parseFloat(avatarScale.toFixed(2)),
-                panX: Math.round(avatarPanX),
-                panY: Math.round(avatarPanY),
-                anchorV: prevAnchorV,
-                anchorH: prevAnchorH
-            };
+            let sessionData = {};
 
-            try {
-                localStorage.setItem('mytype_camera_presets_v5', JSON.stringify(sessionCameraPresets));
-            } catch(e) {}
+            if (currentBoxMode === 'crop') {
+                // Se está usando a caixa visual, salva os dados relativos dela
+                const boxRect = visualCropBox.getBoundingClientRect();
+                const appRect = document.querySelector('.app-container').getBoundingClientRect();
+                
+                // Em relação à tela do app
+                const boxTop = boxRect.top - appRect.top;
+                const boxH = boxRect.height;
+                
+                // Converte posição na tela -> posição no corpo panned -> desfaz o pan -> desfaz a escala -> Y real na imagem
+                const unpannedTop = boxTop - avatarPanY;
+                const unscaledTop = ((unpannedTop - (m.h/2)) / avatarScale) + (m.h/2);
+                const relativeY = (unscaledTop - m.offsetY) / m.renderedH;
+
+                const unscaledH = boxH / avatarScale;
+                const relativeH = unscaledH / m.renderedH;
+
+                sessionData = {
+                    mode: 'crop',
+                    cropY: relativeY,
+                    cropH: relativeH,
+                    zoom: parseFloat(avatarScale.toFixed(2)) // Usado como fallback
+                };
+                
+                visualCropBox.classList.remove('active');
+                document.getElementById('btnModeAuto').click();
+                
+            } else {
+                // Modo Automático (Calcula de trás pra frente)
+                // Que ponto do avatar está em viewCenterY?
+                const unpannedY = viewCenterY - avatarPanY;
+                const modelPtY = ((unpannedY - (m.h / 2)) / avatarScale) + (m.h / 2);
+                let targetY = (modelPtY - m.offsetY) / m.renderedH;
+                
+                // Limita entre 0 e 1 (Cabeça e pé)
+                targetY = Math.max(0, Math.min(1, targetY));
+
+                sessionData = {
+                    mode: 'auto',
+                    targetY: parseFloat(targetY.toFixed(4)),
+                    zoom: parseFloat(avatarScale.toFixed(2))
+                };
+            }
+
+            sessionCameraPresets[activeSessionName] = sessionData;
             syncPresetToCloud(activeSessionName, sessionCameraPresets[activeSessionName]);
 
             const btn = document.getElementById('btnSaveCamera');
             if (btn) {
                 const prev = btn.innerHTML;
-                btn.innerHTML = `🟢 Gravado no Firebase!`;
+                btn.innerHTML = `🟢 Posição Gravada!`;
                 btn.style.backgroundColor = '#10b981';
                 btn.style.color = '#ffffff';
                 setTimeout(() => {
@@ -1961,26 +1960,70 @@
             updateCameraHudDOM();
         }
 
-        function resetCameraToDefault() {
-            sessionCameraPresets["Identidade"] = { scale: 0.79, panX: 0, panY: 0, anchorV: "center", anchorH: "center" };
-            sessionCameraPresets["Aparência"]  = { scale: 2.85, panX: 0, panY: 480, anchorV: "top", anchorH: "center" };
-            sessionCameraPresets["Busto"]      = { scale: 3.53, panX: 0, panY: 260, anchorV: "center", anchorH: "center" };
-            sessionCameraPresets["Pernas"]     = { scale: 1.65, panX: 0, panY: -210, anchorV: "center", anchorH: "center" };
-            sessionCameraPresets["Pés"]        = { scale: 2.65, panX: 0, panY: -780, anchorV: "bottom", anchorH: "center" };
-            sessionCameraPresets["Estilo"]     = { scale: 1.12, panX: 0, panY: 15, anchorV: "center", anchorH: "center" };
-            sessionCameraPresets["Gravação"]   = { scale: 0.92, panX: 0, panY: 0, anchorV: "center", anchorH: "center" };
+        // --- CROP BOX INTERACTION SCRIPT ---
+        let isDraggingCrop = false;
+        let cropStartY = 0;
+        let cropStartTop = 0;
+        
+        function initCropBox() {
+            if (!visualCropBox) return;
+            visualCropBox.style.width = '240px';
+            visualCropBox.style.height = '180px';
+            visualCropBox.style.left = '50%';
+            visualCropBox.style.top = '25%';
+            visualCropBox.style.transform = 'translate(-50%, -50%)';
             
-            try {
-                localStorage.setItem('mytype_camera_presets_v5', JSON.stringify(sessionCameraPresets));
-            } catch(e) {}
+            // Drag Simples
+            visualCropBox.onmousedown = (e) => {
+                isDraggingCrop = true;
+                cropStartY = e.clientY;
+                const rect = visualCropBox.getBoundingClientRect();
+                const appRect = document.querySelector('.app-container').getBoundingClientRect();
+                cropStartTop = rect.top - appRect.top + (rect.height/2); // Centro atual
+                e.stopPropagation();
+            };
+            
+            window.addEventListener('mousemove', (e) => {
+                if(isDraggingCrop) {
+                    const deltaY = e.clientY - cropStartY;
+                    visualCropBox.style.top = (cropStartTop + deltaY) + 'px';
+                }
+            });
+            
+            window.addEventListener('mouseup', () => {
+                isDraggingCrop = false;
+            });
+            
+            // Suporte a Touch
+            visualCropBox.ontouchstart = (e) => {
+                isDraggingCrop = true;
+                cropStartY = e.touches[0].clientY;
+                const rect = visualCropBox.getBoundingClientRect();
+                const appRect = document.querySelector('.app-container').getBoundingClientRect();
+                cropStartTop = rect.top - appRect.top + (rect.height/2); 
+                e.stopPropagation();
+            };
+            
+            window.addEventListener('touchmove', (e) => {
+                if(isDraggingCrop) {
+                    const deltaY = e.touches[0].clientY - cropStartY;
+                    visualCropBox.style.top = (cropStartTop + deltaY) + 'px';
+                }
+            }, {passive: false});
+            
+            window.addEventListener('touchend', () => {
+                isDraggingCrop = false;
+            });
+        }
 
-            applySessionCameraPreset(activeSessionName, 400);
+        function resetCameraToDefault() {
+            sessionCameraPresets["Identidade"] = { mode: 'auto', targetY: 0.50, zoom: 0.79 };
+            syncPresetToCloud("Identidade", sessionCameraPresets["Identidade"]);
+            applySessionCameraPreset("Identidade", 400);
         }
 
         function exportCameraPresets() {
-            const exportData = {
-                sessionCameraPresets: sessionCameraPresets
-            };
+            const exportData = { sessionCameraPresets: sessionCameraPresets };
             const jsonText = JSON.stringify(exportData, null, 4);
             if (navigator.clipboard) {
                 navigator.clipboard.writeText(jsonText);
@@ -2019,32 +2062,7 @@
         }
 
         /* --- LIMITES SEGUROS DE MOVIMENTO DA CÂMERA --- */
-        function getStrictPanBounds(scale = avatarScale) {
-            const m = getAvatarLayoutMetrics();
-            const scaledW = m.renderedW * scale;
-            const scaledH = m.renderedH * scale;
 
-            let maxX = Math.max(m.w * 0.45, (scaledW - m.w) * 0.65 + (m.w * 0.35));
-            let minX = -maxX;
-
-            let maxY = Math.max(m.h * 0.85, (scaledH - m.h) * 0.95 + (m.h * 0.75));
-            let minY = -Math.max(m.h * 0.85, (scaledH - m.h) * 0.95 + (m.h * 0.75));
-
-            if (minX > maxX) [minX, maxX] = [maxX, minX];
-            if (minY > maxY) [minY, maxY] = [maxY, minY];
-
-            return { minX, maxX, minY, maxY };
-        }
-
-        function clampPan(x, y, scale = avatarScale) {
-            const bounds = getStrictPanBounds(scale);
-            return {
-                x: Math.min(bounds.maxX, Math.max(bounds.minX, x)),
-                y: Math.min(bounds.maxY, Math.max(bounds.minY, y))
-            };
-        }
-
-                /* --- ZOOM COM SCROLL DO MOUSE (FOCO NO CURSOR) --- */
         if (viewportCanvas) {
             viewportCanvas.addEventListener('wheel', (e) => {
                 e.preventDefault();
