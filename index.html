@@ -189,6 +189,10 @@
         }
 
         @media (max-width: 500px) {
+            .viewport {
+                top: 0px !important;
+            }
+
             .desktop-titlebar {
                 display: none !important;
             }
@@ -298,7 +302,7 @@
         /* Viewport / Canvas Interativo (Padrão Desktop: Compacto e Elegante) */
         .viewport {
             position: absolute;
-            top: 28px;
+            top: 38px;
             left: 0;
             width: 100%;
             bottom: 84px; 
@@ -1558,7 +1562,7 @@
             width: 100%;
             height: 2px;
             border-top: 2px solid #06b6d4;
-            background: rgba(6, 182, 212, 0.15);
+            background: rgba(6, 182, 212, 0.25);
             z-index: 95;
         }
         .dbg-screen-top .dbg-line-label {
@@ -3156,7 +3160,9 @@
 
         function getMaxHeight() { 
             const isMobile = window.innerWidth <= 500;
-            return appContainer.clientHeight - (isMobile ? 32 : 28); 
+            const titlebar = document.getElementById('desktopTitlebar');
+            const titlebarH = (!isMobile && titlebar && window.getComputedStyle(titlebar).display !== 'none') ? titlebar.offsetHeight : 0;
+            return appContainer.clientHeight - titlebarH; 
         }
 
         function getInitialHeight() { 
