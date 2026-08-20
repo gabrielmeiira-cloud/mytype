@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Customizador de Avatar Dinâmico</title>
+    <!-- Google Firebase App & Firestore SDKs (Tempo Real Global) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
     <style>
         :root {
             --bg-main: #0c0b0e;
@@ -1657,24 +1661,61 @@
             }
         }
 
-        // Sincronização automática com o Servidor em Tempo Real
-        async function fetchServerPresets() {
-            try {
-                const res = await fetch('/api/presets');
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data && typeof data === 'object') {
-                        Object.assign(sessionCameraPresets, data);
-                        try { localStorage.setItem('mytype_camera_presets_v5', JSON.stringify(sessionCameraPresets)); } catch(e){}
+        /* --- INTEGRAÇÃO EM TEMPO REAL COM O GOOGLE FIREBASE FIRESTORE --- */
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1aoL7vtEiqpal0KwGbXp9V442aMLW5eA",
+            authDomain: "meutipodata.firebaseapp.com",
+            projectId: "meutipodata",
+            storageBucket: "meutipodata.firebasestorage.app",
+            messagingSenderId: "506962069843",
+            appId: "1:506962069843:web:685913c26130904b3d39a6"
+        };
+
+        let db = null;
+        let presetsDoc = null;
+
+        try {
+            if (typeof firebase !== 'undefined') {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                presetsDoc = db.collection('app_settings').doc('camera_presets');
+                
+                // Escuta alterações em tempo real via WebSockets (onSnapshot)
+                presetsDoc.onSnapshot((doc) => {
+                    if (doc.exists) {
+                        const remotePresets = doc.data();
+                        console.log("🔥 [Firebase] Presets recebidos em tempo real:", remotePresets);
+                        Object.assign(sessionCameraPresets, remotePresets);
+                        try {
+                            localStorage.setItem('mytype_camera_presets_v5', JSON.stringify(sessionCameraPresets));
+                        } catch(e) {}
                         if (activeSessionName) {
-                            applySessionCameraPreset(activeSessionName, 0);
+                            applySessionCameraPreset(activeSessionName, 350);
                         }
+                        updateCameraHudDOM();
+                    } else {
+                        // Inicializa o documento no Firestore se ainda não existir
+                        presetsDoc.set(sessionCameraPresets);
                     }
-                }
-            } catch(e) {}
+                }, (err) => {
+                    console.warn("Firebase onSnapshot warning:", err.message);
+                });
+            }
+        } catch(e) {
+            console.warn("Firebase initialization error:", e);
         }
 
-        async function syncPresetToServer(sessionName, presetData) {
+        async function syncPresetToCloud(sessionName, presetData) {
+            // Salva no Firebase Firestore (Tempo Real Global para todos os aparelhos)
+            if (presetsDoc) {
+                try {
+                    await presetsDoc.set({ [sessionName]: presetData }, { merge: true });
+                    console.log(`🔥 [Firebase] Posição "${sessionName}" salva e replicada para todos os aparelhos!`);
+                } catch(e) {
+                    console.warn("Erro ao salvar no Firestore:", e);
+                }
+            }
+            // Fallback para servidor local se disponível
             try {
                 await fetch('/api/presets', {
                     method: 'POST',
@@ -1716,7 +1757,7 @@
             try {
                 localStorage.setItem('mytype_camera_presets_v5', JSON.stringify(sessionCameraPresets));
             } catch(e) {}
-            syncPresetToServer(activeSessionName, sessionCameraPresets[activeSessionName]);
+            syncPresetToCloud(activeSessionName, sessionCameraPresets[activeSessionName]);
 
             updateAvatarTransform(true);
             updateCameraHudDOM();
@@ -1735,7 +1776,7 @@
             try {
                 localStorage.setItem('mytype_camera_presets_v5', JSON.stringify(sessionCameraPresets));
             } catch(e) {}
-            syncPresetToServer(activeSessionName, sessionCameraPresets[activeSessionName]);
+            syncPresetToCloud(activeSessionName, sessionCameraPresets[activeSessionName]);
 
             updateAvatarTransform(true);
             updateCameraHudDOM();
@@ -1816,12 +1857,12 @@
             try {
                 localStorage.setItem('mytype_camera_presets_v5', JSON.stringify(sessionCameraPresets));
             } catch(e) {}
-            syncPresetToServer(activeSessionName, sessionCameraPresets[activeSessionName]);
+            syncPresetToCloud(activeSessionName, sessionCameraPresets[activeSessionName]);
 
             const btn = document.getElementById('btnSaveCamera');
             if (btn) {
                 const prev = btn.innerHTML;
-                btn.innerHTML = `🟢 Posição Gravada!`;
+                btn.innerHTML = `🟢 Gravado no Firebase!`;
                 btn.style.backgroundColor = '#10b981';
                 btn.style.color = '#ffffff';
                 setTimeout(() => {
