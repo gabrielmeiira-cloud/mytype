@@ -1528,6 +1528,25 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.6);
         }
 
+        
+        .dbg-screen-top {
+            top: 0;
+            border-top: 2px solid #06b6d4;
+            background: rgba(6, 182, 212, 0.08);
+        }
+        .dbg-screen-bottom {
+            border-top: 2px solid #06b6d4;
+            background: rgba(6, 182, 212, 0.08);
+        }
+        .dbg-screen-bottom .dbg-line-label {
+            top: -18px;
+            right: 8px;
+        }
+        .dbg-screen-top .dbg-line-label {
+            top: 2px;
+            right: 8px;
+        }
+
         /* --- TELEMETRIA & SOBREPOSIÇÃO VISUAL DE DEPURAÇÃO --- */
         .debug-visual-overlays {
             position: absolute;
@@ -1917,14 +1936,24 @@
                     
                     <!-- HUD DE TELEMETRIA E SOBREPOSIÇÃO VISUAL (APENAS DEBUG) -->
                     <div class="debug-visual-overlays" id="debugVisualOverlays">
+                        <!-- Linha de Topo da Tela Útil -->
+                        <div class="dbg-line dbg-screen-top" id="dbgScreenTopLine">
+                            <span class="dbg-line-label" style="background:#06b6d4;">🔝 Topo da Tela Útil (0px)</span>
+                        </div>
+
                         <!-- Linha de Centro da Visão Atual -->
                         <div class="dbg-line dbg-view-center" id="dbgViewCenterLine">
-                            <span class="dbg-line-label">🎯 Centro da Tela Útil (ViewCenterY)</span>
+                            <span class="dbg-line-label">🎯 Centro da Tela (50%)</span>
+                        </div>
+
+                        <!-- Linha de Fundo / Base da Tela Útil -->
+                        <div class="dbg-line dbg-screen-bottom" id="dbgScreenBottomLine">
+                            <span class="dbg-line-label" style="background:#06b6d4;">🔚 Fundo da Tela Útil (Base)</span>
                         </div>
                         
                         <!-- Linha de Topo da Gaveta (Bottom Sheet Limit) -->
                         <div class="dbg-line dbg-sheet-limit" id="dbgSheetLimitLine">
-                            <span class="dbg-line-label">⬆️ Limite Superior da Gaveta (Sheet Top)</span>
+                            <span class="dbg-line-label">⬆️ Limite da Gaveta (Sheet Top)</span>
                         </div>
 
     
@@ -2326,9 +2355,15 @@
         /* --- FÓRMULA MATEMÁTICA ANATÔMICA CENTRALIZADORA --- */
         function calculatePanForAnatomicalPoint(focusY, targetScale, sheetHOverride = null) {
             const m = getAvatarLayoutMetrics();
+            
+            /* --- [GAVETA DESATIVADA TEMPORARIAMENTE PARA AJUSTES BÁSICOS] ---
             const sheetH = sheetHOverride !== null ? sheetHOverride : (bottomSheet ? bottomSheet.clientHeight : getInitialHeight());
             const visibleH = Math.max(100, m.h - sheetH);
-            const viewCenterY = visibleH * 0.48; // Centro perfeito da área útil visível
+            const viewCenterY = visibleH * 0.48;
+            ------------------------------------------------------------------- */
+            
+            // Centro 100% puro e geométrico do Viewport (sem influência da gaveta)
+            const viewCenterY = m.h * 0.50;
 
             const modelPtY = m.offsetY + (m.renderedH * focusY);
             const unpannedY = (modelPtY - (m.h / 2)) * targetScale + (m.h / 2);
@@ -2479,8 +2514,13 @@
             if (tPan) tPan.innerText = `X: ${Math.round(avatarPanX)}px | Y: ${Math.round(avatarPanY)}px`;
 
             // Atualização dos Overlays Visuais na Tela da Modelo
+            const lineTop = document.getElementById('dbgScreenTopLine');
+            const lineBottom = document.getElementById('dbgScreenBottomLine');
             const lineCenter = document.getElementById('dbgViewCenterLine');
             const lineSheet = document.getElementById('dbgSheetLimitLine');
+
+            if (lineTop) lineTop.style.top = '0px';
+            if (lineBottom) lineBottom.style.top = `${Math.round(m.h - 2)}px`;
             const markersAnatomy = document.getElementById('dbgAnatomyMarkers');
             const currentFocusMarker = document.getElementById('dbgCurrentFocusMarker');
             const tagSession = document.getElementById('dbgTagSession');
@@ -2551,11 +2591,14 @@
                     zoom: parseFloat(avatarScale.toFixed(2))
                 };
             } else {
-                // Modo B: Look-At Reverso
+                // Modo B: Look-At Reverso (Centro Puro)
                 const m = getAvatarLayoutMetrics();
+                /* GAVETA DESATIVADA TEMPORARIAMENTE:
                 const sheetH = bottomSheet ? bottomSheet.clientHeight : getInitialHeight();
                 const visibleH = Math.max(100, m.h - sheetH);
                 const viewCenterY = visibleH * 0.48;
+                */
+                const viewCenterY = m.h * 0.50;
 
                 const unpannedY = viewCenterY - avatarPanY;
                 const modelPtY = ((unpannedY - (m.h / 2)) / avatarScale) + (m.h / 2);
