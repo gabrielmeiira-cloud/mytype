@@ -1977,20 +1977,20 @@
             const m = getAvatarLayoutMetrics();
             const vb = getSafeViewportBounds(customSheetH);
 
-            // Largura e altura da caixa verde na escala natural da modelo (escala 1.0)
-            const boxPixelW = Math.max(15, m.renderedW * box.w);
-            const boxPixelH = Math.max(15, m.renderedH * box.h);
+            // Largura e altura da caixa verde em pixels na tela do aparelho (escala base 1.0)
+            const boxPixelW = Math.max(20, m.w * box.w);
+            const boxPixelH = Math.max(20, m.h * box.h);
 
             // Estica ao máximo para travar nas bordas da tela (topo, baixo, laterais):
             const scaleX = vb.width / boxPixelW;
             const scaleY = vb.height / boxPixelH;
             const targetScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, Math.min(scaleX, scaleY)));
 
-            // Centro anatômico da caixa verde na modelo
-            const centerPtX = m.offsetX + (m.renderedW * (box.x + box.w / 2));
-            const centerPtY = m.offsetY + (m.renderedH * (box.y + box.h / 2));
+            // Centro da caixa verde na tela do aparelho
+            const centerPtX = m.w * (box.x + box.w / 2);
+            const centerPtY = m.h * (box.y + box.h / 2);
 
-            // Centraliza o ponto focal exatamente no centro da área útil livre da tela
+            // Centraliza o ponto focal exatamente no centro da área útil da tela
             const targetPanX = (vb.centerX - (m.w / 2)) - (centerPtX - (m.w / 2)) * targetScale;
             const targetPanY = (vb.centerY - (m.h / 2)) - (centerPtY - (m.h / 2)) * targetScale;
 
@@ -2349,11 +2349,11 @@
             if (!debugGreenBox) return;
             const m = getAvatarLayoutMetrics();
 
-            // Posição base na anatomia da modelo (escala 1.0):
-            const ptLeft = m.offsetX + (m.renderedW * currentGreenBox.x);
-            const ptTop = m.offsetY + (m.renderedH * currentGreenBox.y);
-            const ptW = m.renderedW * currentGreenBox.w;
-            const ptH = m.renderedH * currentGreenBox.h;
+            // Mapeado na tela total do aparelho (permite ir de 0% a 100% da tela do aparelho):
+            const ptLeft = m.w * currentGreenBox.x;
+            const ptTop = m.h * currentGreenBox.y;
+            const ptW = m.w * currentGreenBox.w;
+            const ptH = m.h * currentGreenBox.h;
 
             // Projeção na tela acompanhando o zoom e pan da modelo em tempo real:
             const screenLeft = (ptLeft - m.w / 2) * avatarScale + (m.w / 2) + avatarPanX;
@@ -2480,10 +2480,10 @@
                 if (!greenDragMode || !greenStartBox) return;
                 const m = getAvatarLayoutMetrics();
 
-                // Normalizado pela escala atual do avatar para redimensionar perfeitamente em qualquer nível de zoom
+                // Normalizado pela escala da tela do aparelho
                 const effScale = Math.max(0.1, avatarScale);
-                const deltaNormX = (e.clientX - greenStartMouseX) / (m.renderedW * effScale);
-                const deltaNormY = (e.clientY - greenStartMouseY) / (m.renderedH * effScale);
+                const deltaNormX = (e.clientX - greenStartMouseX) / (m.w * effScale);
+                const deltaNormY = (e.clientY - greenStartMouseY) / (m.h * effScale);
 
                 let newX = greenStartBox.x;
                 let newY = greenStartBox.y;
@@ -2528,15 +2528,15 @@
             });
         }
 
-        /* --- LIMITES RÍGIDOS DE COLISÃO: A ÁREA VERDE COLIDE FISICAMENTE COM A ÁREA AZUL FIXA --- */
+        /* --- LIMITES RÍGIDOS DE COLISÃO: A ÁREA VERDE COLIDE FISICAMENTE COM A TELA DO APARELHO --- */
         function getStrictPanBounds(scale = avatarScale) {
             const m = getAvatarLayoutMetrics();
             const vb = getSafeViewportBounds();
 
-            const ptLeft = m.offsetX + (m.renderedW * currentGreenBox.x);
-            const ptTop = m.offsetY + (m.renderedH * currentGreenBox.y);
-            const ptW = m.renderedW * currentGreenBox.w;
-            const ptH = m.renderedH * currentGreenBox.h;
+            const ptLeft = m.w * currentGreenBox.x;
+            const ptTop = m.h * currentGreenBox.y;
+            const ptW = m.w * currentGreenBox.w;
+            const ptH = m.h * currentGreenBox.h;
 
             const baseScreenLeft = (ptLeft - m.w / 2) * scale + (m.w / 2);
             const baseScreenTop = (ptTop - m.h / 2) * scale + (m.h / 2);
@@ -2545,7 +2545,7 @@
 
             let minPanX, maxPanX, minPanY, maxPanY;
 
-            // Colisão Horizontal com a Área Azul:
+            // Colisão Horizontal com a Área da Tela:
             if (screenW <= vb.width) {
                 minPanX = vb.left - baseScreenLeft;
                 maxPanX = (vb.right - screenW) - baseScreenLeft;
@@ -2554,7 +2554,7 @@
                 maxPanX = vb.left - baseScreenLeft;
             }
 
-            // Colisão Vertical com a Área Azul:
+            // Colisão Vertical com a Área da Tela:
             if (screenH <= vb.height) {
                 minPanY = vb.top - baseScreenTop;
                 maxPanY = (vb.bottom - screenH) - baseScreenTop;
