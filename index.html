@@ -1509,7 +1509,7 @@
         }
 
         /* --- MOTOR DE CÂMERA RESPONSIVO (PROPORÇÃO NORMALIZADA DE CORPO) --- */
-        const DEFAULT_SCALE = 0.76;
+        const DEFAULT_SCALE = 0.79;
         const MIN_SCALE = 0.55;
         const MAX_SCALE = 4.0;
 
@@ -1546,13 +1546,41 @@
         // Cada sessão foca num ponto anatômico exato da modelo e define o zoom ideal
         // O algoritmo centraliza esse ponto na área visível da tela de QUALQUER aparelho (PC ou Celular)
         const sessionCameraPresets = {
-            "Identidade": { zoom: 0.92, focusY: 0.50, isFullBody: true },
-            "Aparência":  { zoom: 2.85, focusY: 0.08, isFullBody: false }, // Rosto & Cabeça
-            "Busto":      { zoom: 2.45, focusY: 0.28, isFullBody: false }, // Busto & Cintura
-            "Pernas":     { zoom: 1.65, focusY: 0.62, isFullBody: false }, // Pernas & Joelhos
-            "Pés":        { zoom: 2.65, focusY: 0.93, isFullBody: false }, // Pés & Sapatos
-            "Estilo":     { zoom: 1.12, focusY: 0.45, isFullBody: false }, // Moda Geral
-            "Gravação":   { zoom: 0.92, focusY: 0.50, isFullBody: true }   // Estúdio
+            "Identidade": {
+                "zoom": 0.79,
+                "focusY": 0.355,
+                "isFullBody": true
+            },
+            "Aparência": {
+                "zoom": 2.85,
+                "focusY": 0.017,
+                "isFullBody": false
+            },
+            "Busto": {
+                "zoom": 3.53,
+                "focusY": 0.187,
+                "isFullBody": false
+            },
+            "Pernas": {
+                "zoom": 1.65,
+                "focusY": 0.62,
+                "isFullBody": false
+            },
+            "Pés": {
+                "zoom": 2.65,
+                "focusY": 0.93,
+                "isFullBody": false
+            },
+            "Estilo": {
+                "zoom": 1.12,
+                "focusY": 0.45,
+                "isFullBody": false
+            },
+            "Gravação": {
+                "zoom": 0.92,
+                "focusY": 0.5,
+                "isFullBody": true
+            }
         };
 
         try {
