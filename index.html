@@ -1778,25 +1778,38 @@
         }
 
         async function syncPresetToCloud(sessionName, presetData) {
-            setConnectionStatus("sending", "🟡 Gravando no Firebase...");
-            // Salva no Firebase Firestore (Tempo Real Global para todos os aparelhos)
+            setConnectionStatus("sending", "🟡 Gravando...");
+
+            // Atualiza o localStorage local imediatamente para resposta instantânea
+            try {
+                localStorage.setItem('mytype_camera_presets_v5', JSON.stringify(sessionCameraPresets));
+            } catch(e) {}
+
+            let firestoreSuccess = false;
             if (presetsDoc) {
                 try {
-                    await presetsDoc.set({ [sessionName]: presetData }, { merge: true });
-                    console.log(`🔥 [Firebase] Posição "${sessionName}" salva e replicada para todos os aparelhos!`);
-                    setConnectionStatus("online", "🟢 Gravado: " + sessionName + " (" + new Date().toLocaleTimeString() + ")");
+                    const savePromise = presetsDoc.set({ [sessionName]: presetData }, { merge: true });
+                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Firestore pendente (ative o banco nas regras)")), 3000));
+                    await Promise.race([savePromise, timeoutPromise]);
+                    firestoreSuccess = true;
+                    console.log(`🔥 [Firebase] Posição "${sessionName}" salva e replicada!`);
+                    setConnectionStatus("online", "🟢 Gravado no Firebase: " + sessionName);
                 } catch(e) {
                     console.warn("Erro ao salvar no Firestore:", e);
+                    const isPerm = e.message && (e.message.includes("permission") || e.message.includes("PERMISSION_DENIED"));
+                    setConnectionStatus("error", isPerm ? "🔴 Regras do Firestore Bloqueadas" : "🔴 " + e.message);
                 }
             }
-            // Fallback para servidor local se disponível
-            try {
-                await fetch('/api/presets', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ [sessionName]: presetData })
-                });
-            } catch(e) {}
+
+            if (!firestoreSuccess) {
+                try {
+                    await fetch('/api/presets', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ [sessionName]: presetData })
+                    });
+                } catch(e) {}
+            }
         }
 
         function setSessionAnchorV(anchor) {
