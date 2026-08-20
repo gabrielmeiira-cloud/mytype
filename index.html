@@ -1819,31 +1819,31 @@
                             <div style="display:flex; justify-content:space-between; font-size:9.5px; color:#d1d5db;">
                                 <span>👤 Rosto / Cabeça:</span> <b id="lblLandmarkRosto" style="color:#f59e0b;">10%</b>
                             </div>
-                            <input type="range" min="0" max="40" value="10" step="1" style="accent-color:#f59e0b;" oninput="onLandmarkChange('rosto', this.value)">
+                            <input type="range" id="sliderLM_rosto" min="0" max="100" value="10" step="1" style="accent-color:#f59e0b;" oninput="onLandmarkChange('rosto', this.value)">
                         </div>
                         <div class="slider-control-group">
                             <div style="display:flex; justify-content:space-between; font-size:9.5px; color:#d1d5db;">
                                 <span>👕 Busto / Tronco:</span> <b id="lblLandmarkBusto" style="color:#f59e0b;">28%</b>
                             </div>
-                            <input type="range" min="15" max="55" value="28" step="1" style="accent-color:#f59e0b;" oninput="onLandmarkChange('busto', this.value)">
+                            <input type="range" id="sliderLM_busto" min="0" max="100" value="28" step="1" style="accent-color:#f59e0b;" oninput="onLandmarkChange('busto', this.value)">
                         </div>
                         <div class="slider-control-group">
                             <div style="display:flex; justify-content:space-between; font-size:9.5px; color:#d1d5db;">
                                 <span>🧍 Centro / Cintura:</span> <b id="lblLandmarkCentro" style="color:#f59e0b;">50%</b>
                             </div>
-                            <input type="range" min="35" max="70" value="50" step="1" style="accent-color:#f59e0b;" oninput="onLandmarkChange('centro', this.value)">
+                            <input type="range" id="sliderLM_centro" min="0" max="100" value="50" step="1" style="accent-color:#f59e0b;" oninput="onLandmarkChange('centro', this.value)">
                         </div>
                         <div class="slider-control-group">
                             <div style="display:flex; justify-content:space-between; font-size:9.5px; color:#d1d5db;">
                                 <span>👖 Pernas / Joelhos:</span> <b id="lblLandmarkPernas" style="color:#f59e0b;">65%</b>
                             </div>
-                            <input type="range" min="50" max="85" value="65" step="1" style="accent-color:#f59e0b;" oninput="onLandmarkChange('pernas', this.value)">
+                            <input type="range" id="sliderLM_pernas" min="0" max="100" value="65" step="1" style="accent-color:#f59e0b;" oninput="onLandmarkChange('pernas', this.value)">
                         </div>
                         <div class="slider-control-group">
                             <div style="display:flex; justify-content:space-between; font-size:9.5px; color:#d1d5db;">
                                 <span>👠 Pés / Base:</span> <b id="lblLandmarkPes" style="color:#f59e0b;">95%</b>
                             </div>
-                            <input type="range" min="75" max="100" value="95" step="1" style="accent-color:#f59e0b;" oninput="onLandmarkChange('pes', this.value)">
+                            <input type="range" id="sliderLM_pes" min="0" max="100" value="95" step="1" style="accent-color:#f59e0b;" oninput="onLandmarkChange('pes', this.value)">
                         </div>
                         <button class="pin-action-btn" style="background:#f59e0b; color:#000; font-weight:bold; font-size:9.5px; margin-top:4px;" onclick="saveLandmarksToCloud()">
                             💾 Gravar Posições da Régua
@@ -2271,13 +2271,14 @@
             const isOpen = group.style.display === 'flex';
             group.style.display = isOpen ? 'none' : 'flex';
             if (icon) icon.innerText = isOpen ? '▼' : '▲';
-            if (!isOpen) syncLandmarkSlidersUI();
+            // Apenas sincroniza os inputs com os valores já salvos na memória/firebase sem resetar
+            syncLandmarkSlidersUI();
         }
 
         function syncLandmarkSlidersUI() {
             for (let key in anatomicalLandmarks) {
                 const pct = Math.round(anatomicalLandmarks[key] * 100);
-                const input = document.querySelector(`input[oninput*="'${key}'"]`);
+                const input = document.getElementById(`sliderLM_${key}`);
                 const lbl = document.getElementById(`lblLandmark${key.charAt(0).toUpperCase() + key.slice(1)}`);
                 if (input) input.value = pct;
                 if (lbl) lbl.innerText = `${pct}%`;
@@ -2521,6 +2522,7 @@
 
             if (lineTop) lineTop.style.top = '0px';
             if (lineBottom) lineBottom.style.top = `${Math.round(m.h - 2)}px`;
+            updateRulerMarkersDOM();
             const markersAnatomy = document.getElementById('dbgAnatomyMarkers');
             const currentFocusMarker = document.getElementById('dbgCurrentFocusMarker');
             const tagSession = document.getElementById('dbgTagSession');
