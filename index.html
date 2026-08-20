@@ -789,7 +789,57 @@
         .dbg-handle.handle-e  { right: -6px; top: calc(50% - 6px); cursor: ew-resize; }
 
         /* Seção Exclusiva de Enquadramento no Menu HUD */
-        .green-dedicated-section {
+        
+        /* Controles Interativos de Âncora da Câmera */
+        .camera-anchor-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            background: rgba(12, 10, 16, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 6px 8px;
+        }
+        .anchor-control-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+        }
+        .anchor-label {
+            font-size: 9.5px;
+            font-weight: 700;
+            color: #10b981;
+            font-family: monospace;
+        }
+        .anchor-btn-group {
+            display: flex;
+            gap: 3px;
+        }
+        .anchor-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #d1cdd9;
+            font-size: 9px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .anchor-btn:hover {
+            background: rgba(255, 255, 255, 0.16);
+            color: #ffffff;
+        }
+        .anchor-btn.active {
+            background: #10b981 !important;
+            border-color: #10b981 !important;
+            color: #ffffff !important;
+            font-weight: 700 !important;
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+        }
+
+.green-dedicated-section {
             background: rgba(16, 28, 22, 0.94);
             border: 1px solid rgba(16, 185, 129, 0.4);
             border-radius: 12px;
@@ -1318,6 +1368,26 @@
                     <div class="hud-row">
                         <span id="activeSessionTitle" style="color: #10b981; font-weight: 700;">🎯 Sessão: Identidade</span>
                     </div>
+                <!-- Controles de Âncora Vertical e Horizontal -->
+                <div class="camera-anchor-controls" id="cameraAnchorControls">
+                    <div class="anchor-control-row">
+                        <span class="anchor-label">⚓ Vertical:</span>
+                        <div class="anchor-btn-group">
+                            <button class="anchor-btn" data-anchor-v="top" onclick="setSessionAnchorV('top')" title="Fixar no Topo (ajusta para baixo)">⬆️ Topo</button>
+                            <button class="anchor-btn active" data-anchor-v="center" onclick="setSessionAnchorV('center')" title="Centro Vertical">⏺️ Centro</button>
+                            <button class="anchor-btn" data-anchor-v="bottom" onclick="setSessionAnchorV('bottom')" title="Fixar na Base (ajusta para cima)">⬇️ Base</button>
+                        </div>
+                    </div>
+                    <div class="anchor-control-row">
+                        <span class="anchor-label">⚓ Horizontal:</span>
+                        <div class="anchor-btn-group">
+                            <button class="anchor-btn" data-anchor-h="left" onclick="setSessionAnchorH('left')" title="Fixar na Esquerda">⬅️ Esq</button>
+                            <button class="anchor-btn active" data-anchor-h="center" onclick="setSessionAnchorH('center')" title="Centro Horizontal">⏺️ Centro</button>
+                            <button class="anchor-btn" data-anchor-h="right" onclick="setSessionAnchorH('right')" title="Fixar na Direita">➡️ Dir</button>
+                        </div>
+                    </div>
+                </div>
+
                     <div class="hud-sub" id="liveCameraStatus" style="font-family: monospace; font-size: 11px;">🔍 Zoom: 90% | ↔️ X: 0px | ↕️ Y: 0px</div>
                 </div>
 
@@ -1542,49 +1612,62 @@
             return { w, h, renderedW, renderedH, offsetX, offsetY };
         }
 
-        /* --- MOTOR UNIVERSAL DE ENQUADRAMENTO ANATÔMICO (PRECISÃO MATEMÁTICA 100%) --- */
-        // Cada sessão foca num ponto anatômico exato da modelo e define o zoom ideal
-        // O algoritmo centraliza esse ponto na área visível da tela de QUALQUER aparelho (PC ou Celular)
+        /* --- MOTOR UNIVERSAL DE ENQUADRAMENTO COM SISTEMA DE ÂNCORAS (TOP, CENTER, BOTTOM, LEFT, RIGHT) --- */
+        // Permite travar a câmera em qualquer borda (ex: Topo travado para nunca cortar cabelo, Base travada para nunca cortar pés)
         const sessionCameraPresets = {
             "Identidade": {
                 "zoom": 0.79,
                 "focusY": 0.355,
+                "anchorV": "center",
+                "anchorH": "center",
                 "isFullBody": true
             },
             "Aparência": {
                 "zoom": 2.85,
                 "focusY": 0.017,
+                "anchorV": "top",      // ⚓ Ancorado no Topo: cabelo nunca corta!
+                "anchorH": "center",
                 "isFullBody": false
             },
             "Busto": {
                 "zoom": 3.53,
                 "focusY": 0.187,
+                "anchorV": "center",   // ⚓ Centro no Busto
+                "anchorH": "center",
                 "isFullBody": false
             },
             "Pernas": {
                 "zoom": 1.65,
                 "focusY": 0.62,
+                "anchorV": "center",   // ⚓ Centro nas Pernas
+                "anchorH": "center",
                 "isFullBody": false
             },
             "Pés": {
                 "zoom": 2.65,
-                "focusY": 0.93,
+                "focusY": 0.96,
+                "anchorV": "bottom",   // ⚓ Ancorado na Base: pés e sapatos nunca cortam!
+                "anchorH": "center",
                 "isFullBody": false
             },
             "Estilo": {
                 "zoom": 1.12,
                 "focusY": 0.45,
+                "anchorV": "center",
+                "anchorH": "center",
                 "isFullBody": false
             },
             "Gravação": {
                 "zoom": 0.92,
                 "focusY": 0.5,
+                "anchorV": "center",
+                "anchorH": "center",
                 "isFullBody": true
             }
         };
 
         try {
-            const saved = localStorage.getItem('mytype_camera_presets_v3');
+            const saved = localStorage.getItem('mytype_camera_presets_v4');
             if (saved) {
                 Object.assign(sessionCameraPresets, JSON.parse(saved));
             }
@@ -1609,21 +1692,18 @@
             }
         }
 
-        // Calcula a posição perfeita da câmera para QUALQUER tamanho de tela (iPhone, Android, PC)
+        // Calcula a posição perfeita da câmera respeitando as ÂNCORAS de topo/base/esquerda/direita
         function calculateAnatomicalFraming(preset, customSheetH = null) {
             const m = getAvatarLayoutMetrics();
             const sheetH = customSheetH !== null ? customSheetH : (bottomSheet ? bottomSheet.clientHeight : getInitialHeight());
             
             // Área visível livre da tela acima da barra de configurações
             const visibleH = Math.max(120, m.h - sheetH);
-            const desiredScreenY = visibleH * 0.45; // Ponto focal ideal na visão do usuário
-
             const zoom = Math.min(MAX_SCALE, Math.max(MIN_SCALE, preset.zoom || 1.0));
-            const focusY = preset.focusY !== undefined ? preset.focusY : 0.50;
-            const focusX = preset.focusX !== undefined ? preset.focusX : 0.50;
+            const anchorV = preset.anchorV || 'center'; // 'top', 'center', 'bottom'
+            const anchorH = preset.anchorH || 'center'; // 'left', 'center', 'right'
 
             if (preset.isFullBody) {
-                // Corpo Inteiro: dimensiona e centraliza perfeitamente no espaço visível
                 const fullBodyScale = Math.min(1.0, Math.max(0.72, (visibleH * 0.94) / m.renderedH));
                 const panX = 0;
                 const panY = (visibleH / 2) - (m.h / 2);
@@ -1631,16 +1711,46 @@
                 return { scale: fullBodyScale, panX: Math.round(clamped.x), panY: Math.round(clamped.y) };
             }
 
-            // Ponto anatômico na imagem da modelo em pixels
-            const avatarPtY = m.offsetY + (m.renderedH * focusY);
-            const avatarPtX = m.offsetX + (m.renderedW * focusX);
+            let targetPanY = 0;
+            let targetPanX = 0;
 
-            // Projeção sem pan quando escalado em torno do centro (m.w/2, m.h/2):
-            const unpannedScreenY = (avatarPtY - (m.h / 2)) * zoom + (m.h / 2);
-            const unpannedScreenX = (avatarPtX - (m.w / 2)) * zoom + (m.w / 2);
+            // 1. ÂNCORA VERTICAL
+            if (anchorV === 'top') {
+                // Topo da cabeça fixo no topo da tela visível (cresce para baixo)
+                const desiredTop = 18;
+                const naturalTopPt = m.offsetY + (m.renderedH * (preset.focusY !== undefined ? preset.focusY : 0.02));
+                const unpannedTop = (naturalTopPt - (m.h / 2)) * zoom + (m.h / 2);
+                targetPanY = desiredTop - unpannedTop;
+            } else if (anchorV === 'bottom') {
+                // Base dos pés fixada rente à barra de configurações (cresce para cima)
+                const desiredBottom = visibleH - 14;
+                const naturalBottomPt = m.offsetY + (m.renderedH * (preset.focusY !== undefined ? preset.focusY : 0.98));
+                const unpannedBottom = (naturalBottomPt - (m.h / 2)) * zoom + (m.h / 2);
+                targetPanY = desiredBottom - unpannedBottom;
+            } else {
+                // Centro vertical: centraliza o ponto focal anatômico na área visível
+                const desiredCenterY = visibleH * 0.45;
+                const focusY = preset.focusY !== undefined ? preset.focusY : 0.50;
+                const naturalCenterPt = m.offsetY + (m.renderedH * focusY);
+                const unpannedCenter = (naturalCenterPt - (m.h / 2)) * zoom + (m.h / 2);
+                targetPanY = desiredCenterY - unpannedCenter;
+            }
 
-            const targetPanY = desiredScreenY - unpannedScreenY;
-            const targetPanX = (m.w / 2) - unpannedScreenX;
+            // 2. ÂNCORA HORIZONTAL
+            if (anchorH === 'left') {
+                const desiredLeft = 16;
+                const naturalLeftPt = m.offsetX;
+                const unpannedLeft = (naturalLeftPt - (m.w / 2)) * zoom + (m.w / 2);
+                targetPanX = desiredLeft - unpannedLeft;
+            } else if (anchorH === 'right') {
+                const desiredRight = m.w - 16;
+                const naturalRightPt = m.offsetX + m.renderedW;
+                const unpannedRight = (naturalRightPt - (m.w / 2)) * zoom + (m.w / 2);
+                targetPanX = desiredRight - unpannedRight;
+            } else {
+                // Centro horizontal
+                targetPanX = 0;
+            }
 
             const clamped = clampPan(targetPanX, targetPanY, zoom);
             return {
@@ -1650,14 +1760,34 @@
             };
         }
 
+        function setSessionAnchorV(anchor) {
+            if (!sessionCameraPresets[activeSessionName]) {
+                sessionCameraPresets[activeSessionName] = { zoom: avatarScale, focusY: 0.5 };
+            }
+            sessionCameraPresets[activeSessionName].anchorV = anchor;
+            applySessionCameraPreset(activeSessionName, 350);
+            updateCameraHudDOM();
+        }
+
+        function setSessionAnchorH(anchor) {
+            if (!sessionCameraPresets[activeSessionName]) {
+                sessionCameraPresets[activeSessionName] = { zoom: avatarScale, focusY: 0.5 };
+            }
+            sessionCameraPresets[activeSessionName].anchorH = anchor;
+            applySessionCameraPreset(activeSessionName, 350);
+            updateCameraHudDOM();
+        }
+
         function updateCameraHudDOM() {
             if (activeSessionTitle) {
                 activeSessionTitle.innerText = `🎯 Sessão: ${activeSessionName}`;
             }
+            const preset = sessionCameraPresets[activeSessionName] || { zoom: avatarScale, focusY: 0.5, anchorV: 'center', anchorH: 'center' };
             if (liveCameraStatus) {
-                const preset = sessionCameraPresets[activeSessionName] || { zoom: avatarScale, focusY: 0.5 };
                 const fY = Math.round((preset.focusY || 0.5) * 100);
-                liveCameraStatus.innerText = `🔍 Zoom: ${Math.round(avatarScale * 100)}% | 📍 Foco: ${fY}%`;
+                const aV = preset.anchorV || 'center';
+                const aH = preset.anchorH || 'center';
+                liveCameraStatus.innerText = `🔍 Zoom: ${Math.round(avatarScale * 100)}% | ⚓ Âncora: ${aV.toUpperCase()} / ${aH.toUpperCase()}`;
             }
             document.querySelectorAll('[data-camera-tab]').forEach(tag => {
                 if (tag.getAttribute('data-camera-tab') === activeSessionName) {
@@ -1665,6 +1795,14 @@
                 } else {
                     tag.classList.remove('active');
                 }
+            });
+
+            // Atualiza botões de âncora
+            document.querySelectorAll('[data-anchor-v]').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-anchor-v') === (preset.anchorV || 'center'));
+            });
+            document.querySelectorAll('[data-anchor-h]').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-anchor-h') === (preset.anchorH || 'center'));
             });
         }
 
@@ -1701,20 +1839,24 @@
             const visibleH = Math.max(120, m.h - sheetH);
             const desiredScreenY = visibleH * 0.45;
 
-            // Ponto anatômico inverso
             const unpannedScreenY = desiredScreenY - avatarPanY;
             const avatarPtY = ((unpannedScreenY - (m.h / 2)) / avatarScale) + (m.h / 2);
             const focusY = parseFloat(Math.max(0, Math.min(1, (avatarPtY - m.offsetY) / m.renderedH)).toFixed(3));
             const zoom = parseFloat(avatarScale.toFixed(2));
 
+            const prevAnchorV = (sessionCameraPresets[activeSessionName] && sessionCameraPresets[activeSessionName].anchorV) || 'center';
+            const prevAnchorH = (sessionCameraPresets[activeSessionName] && sessionCameraPresets[activeSessionName].anchorH) || 'center';
+
             sessionCameraPresets[activeSessionName] = {
                 zoom: zoom,
                 focusY: focusY,
+                anchorV: prevAnchorV,
+                anchorH: prevAnchorH,
                 isFullBody: activeSessionName === 'Identidade' || activeSessionName === 'Gravação'
             };
 
             try {
-                localStorage.setItem('mytype_camera_presets_v3', JSON.stringify(sessionCameraPresets));
+                localStorage.setItem('mytype_camera_presets_v4', JSON.stringify(sessionCameraPresets));
             } catch(e) {}
 
             const btn = document.getElementById('btnSaveCamera');
@@ -1786,8 +1928,8 @@
             let maxX = Math.max(m.w * 0.45, (scaledW - m.w) * 0.65 + (m.w * 0.35));
             let minX = -maxX;
 
-            let maxY = Math.max(m.h * 0.70, (scaledH - m.h) * 0.80 + (m.h * 0.60));
-            let minY = -Math.max(m.h * 0.70, (scaledH - m.h) * 0.80 + (m.h * 0.60));
+            let maxY = Math.max(m.h * 0.65, (scaledH - m.h) * 0.75 + (m.h * 0.55));
+            let minY = -Math.max(m.h * 0.65, (scaledH - m.h) * 0.75 + (m.h * 0.55));
 
             if (minX > maxX) [minX, maxX] = [maxX, minX];
             if (minY > maxY) [minY, maxY] = [maxY, minY];
