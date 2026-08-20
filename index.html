@@ -619,126 +619,6 @@
             visibility: visible;
         }
 
-        .debug-collision-box.is-locked {
-            pointer-events: none !important;
-            opacity: 0.55 !important;
-            cursor: default !important;
-            border-style: dotted !important;
-        }
-
-        .debug-collision-box.is-locked .box-handle {
-            display: none !important;
-        }
-
-        .box-badge-tag {
-            position: absolute;
-            top: -24px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(12, 11, 14, 0.94);
-            color: #ffffff;
-            font-size: 8.5px;
-            font-weight: 700;
-            font-family: monospace;
-            padding: 2px 7px;
-            border-radius: 5px;
-            border: 1px solid var(--primary);
-            white-space: nowrap;
-            pointer-events: none;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.6);
-        }
-
-        .box-crosshair-center {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 10px;
-            height: 10px;
-            transform: translate(-50%, -50%);
-            border: 1px solid rgba(255, 255, 255, 0.7);
-            border-radius: 50%;
-            pointer-events: none;
-        }
-
-        .box-crosshair-center::before,
-        .box-crosshair-center::after {
-            content: '';
-            position: absolute;
-            background: var(--primary);
-        }
-
-        .box-crosshair-center::before {
-            top: 50%;
-            left: -4px;
-            right: -4px;
-            height: 1px;
-            transform: translateY(-50%);
-        }
-
-        .box-crosshair-center::after {
-            left: 50%;
-            top: -4px;
-            bottom: -4px;
-            width: 1px;
-            transform: translateX(-50%);
-        }
-
-        /* Alças de Redimensionamento dos Cantos e Bordas */
-        .box-handle {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background-color: #ffffff;
-            border: 2px solid var(--primary);
-            border-radius: 2px;
-            box-shadow: 0 0 6px rgba(0,0,0,0.8);
-            z-index: 70;
-            box-sizing: border-box;
-        }
-
-        .box-handle.handle-nw { top: -5px; left: -5px; cursor: nwse-resize; }
-        .box-handle.handle-ne { top: -5px; right: -5px; cursor: nesw-resize; }
-        .box-handle.handle-sw { bottom: -5px; left: -5px; cursor: nesw-resize; }
-        .box-handle.handle-se { bottom: -5px; right: -5px; cursor: nwse-resize; }
-
-        .box-handle.handle-n  { top: -5px; left: calc(50% - 5px); cursor: ns-resize; }
-        .box-handle.handle-s  { bottom: -5px; left: calc(50% - 5px); cursor: ns-resize; }
-        .box-handle.handle-w  { left: -5px; top: calc(50% - 5px); cursor: ew-resize; }
-        .box-handle.handle-e  { right: -5px; top: calc(50% - 5px); cursor: ew-resize; }
-
-        /* Caixa de Colisão da Área Útil do Canvas (Colisor Azul de Enquadramento) */
-        .debug-viewport-box {
-            position: absolute;
-            border: 2px dashed #38bdf8;
-            background: rgba(56, 189, 248, 0.05);
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.35), inset 0 0 20px rgba(56, 189, 248, 0.06);
-            border-radius: 4px;
-            pointer-events: auto;
-            cursor: move;
-            z-index: 40;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.25s ease, border-color 0.2s ease;
-            box-sizing: border-box;
-            touch-action: none;
-        }
-
-        .debug-viewport-box.debug-visible {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .debug-viewport-box.is-locked {
-            pointer-events: none !important;
-            opacity: 0.55 !important;
-            cursor: default !important;
-            border-style: dotted !important;
-        }
-
-        .debug-viewport-box.is-locked .vp-handle {
-            display: none !important;
-        }
-
         .viewport-box-tag {
             position: absolute;
             top: 4px;
@@ -832,35 +712,43 @@
             color: #8c8899;
         }
 
-        /* --- CAIXA DE COLISÃO UNIVERSAL VERDE (ANATOMIA DO AVATAR - IMUNE A ZOOM) --- */
-        .debug-green-box {
+        /* Alças de Redimensionamento Invisíveis da Janela OS no Desktop */
+        .win-resize-handle {
+            position: absolute;
+            z-index: 999;
+            background: transparent;
+            opacity: 0;
+            pointer-events: auto;
+        }
+        .win-resize-handle.win-resize-n  { top: -4px; left: 8px; right: 8px; height: 8px; cursor: ns-resize; }
+        .win-resize-handle.win-resize-s  { bottom: -4px; left: 8px; right: 8px; height: 8px; cursor: ns-resize; }
+        .win-resize-handle.win-resize-w  { left: -4px; top: 8px; bottom: 8px; width: 8px; cursor: ew-resize; }
+        .win-resize-handle.win-resize-e  { right: -4px; top: 8px; bottom: 8px; width: 8px; cursor: ew-resize; }
+        .win-resize-handle.win-resize-nw { top: -4px; left: -4px; width: 12px; height: 12px; cursor: nwse-resize; }
+        .win-resize-handle.win-resize-ne { top: -4px; right: -4px; width: 12px; height: 12px; cursor: nesw-resize; }
+        .win-resize-handle.win-resize-sw { bottom: -4px; left: -4px; width: 12px; height: 12px; cursor: nesw-resize; }
+        .win-resize-handle.win-resize-se { bottom: -4px; right: -4px; width: 12px; height: 12px; cursor: nwse-resize; }
+
+        /* --- CAIXA DE ENQUADRAMENTO UNIVERSAL (BOUNDING BOX) --- */
+        .debug-box-frame {
             position: absolute;
             border: 2px dashed #10b981;
             background: rgba(16, 185, 129, 0.08);
             box-shadow: 0 0 16px rgba(16, 185, 129, 0.35);
             z-index: 70;
-            pointer-events: none; /* Centro sem movimentação */
+            pointer-events: none;
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.2s ease;
             box-sizing: border-box;
         }
 
-        .debug-green-box.debug-visible {
+        .debug-box-frame.debug-visible {
             opacity: 1;
             visibility: visible;
         }
 
-        .debug-green-box.is-locked {
-            opacity: 0.55 !important;
-            border-style: dotted !important;
-        }
-
-        .debug-green-box.is-locked .green-handle {
-            display: none !important;
-        }
-
-        .green-badge-tag {
+        .debug-box-badge {
             position: absolute;
             top: -24px;
             left: 50%;
@@ -878,7 +766,7 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.6);
         }
 
-        .green-handle {
+        .dbg-handle {
             position: absolute;
             width: 12px;
             height: 12px;
@@ -888,19 +776,19 @@
             box-shadow: 0 0 8px rgba(0,0,0,0.8);
             z-index: 75;
             box-sizing: border-box;
-            pointer-events: auto; /* Cantos e arestas respondem para redimensionar */
+            pointer-events: auto;
             touch-action: none;
         }
-        .green-handle.handle-nw { top: -6px; left: -6px; cursor: nwse-resize; }
-        .green-handle.handle-ne { top: -6px; right: -6px; cursor: nesw-resize; }
-        .green-handle.handle-sw { bottom: -6px; left: -6px; cursor: nesw-resize; }
-        .green-handle.handle-se { bottom: -6px; right: -6px; cursor: nwse-resize; }
-        .green-handle.handle-n  { top: -6px; left: calc(50% - 6px); cursor: ns-resize; }
-        .green-handle.handle-s  { bottom: -6px; left: calc(50% - 6px); cursor: ns-resize; }
-        .green-handle.handle-w  { left: -6px; top: calc(50% - 6px); cursor: ew-resize; }
-        .green-handle.handle-e  { right: -6px; top: calc(50% - 6px); cursor: ew-resize; }
+        .dbg-handle.handle-nw { top: -6px; left: -6px; cursor: nwse-resize; }
+        .dbg-handle.handle-ne { top: -6px; right: -6px; cursor: nesw-resize; }
+        .dbg-handle.handle-sw { bottom: -6px; left: -6px; cursor: nesw-resize; }
+        .dbg-handle.handle-se { bottom: -6px; right: -6px; cursor: nwse-resize; }
+        .dbg-handle.handle-n  { top: -6px; left: calc(50% - 6px); cursor: ns-resize; }
+        .dbg-handle.handle-s  { bottom: -6px; left: calc(50% - 6px); cursor: ns-resize; }
+        .dbg-handle.handle-w  { left: -6px; top: calc(50% - 6px); cursor: ew-resize; }
+        .dbg-handle.handle-e  { right: -6px; top: calc(50% - 6px); cursor: ew-resize; }
 
-        /* Seção Exclusiva da Colisão Verde Universal no Menu HUD */
+        /* Seção Exclusiva de Enquadramento no Menu HUD */
         .green-dedicated-section {
             background: rgba(16, 28, 22, 0.94);
             border: 1px solid rgba(16, 185, 129, 0.4);
@@ -1497,8 +1385,22 @@
                         </button>
                     </div>
                 </div>
+                
                 <!-- Viewport / Canvas Interativo da Modelo -->
                 <div class="viewport" id="viewportCanvas">
+                    <!-- Caixa de Enquadramento por Colisão (Bounding Box) -->
+                    <div class="debug-box-frame" id="debugBoxFrame" title="Arraste as alças para ajustar a área de enquadramento">
+                        <div class="debug-box-badge" id="debugBoxBadge">Enquadramento: Aparência</div>
+                        <div class="dbg-handle handle-nw" data-handle="nw"></div>
+                        <div class="dbg-handle handle-ne" data-handle="ne"></div>
+                        <div class="dbg-handle handle-sw" data-handle="sw"></div>
+                        <div class="dbg-handle handle-se" data-handle="se"></div>
+                        <div class="dbg-handle handle-n" data-handle="n"></div>
+                        <div class="dbg-handle handle-s" data-handle="s"></div>
+                        <div class="dbg-handle handle-w" data-handle="w"></div>
+                        <div class="dbg-handle handle-e" data-handle="e"></div>
+                    </div>
+
                     <div class="avatar-container" id="avatarContainer">
                         <div class="infinite-gradient-backdrop" id="infiniteBackdrop"></div>
                         <img src="avatar.webp" alt="Base Avatar" class="avatar-layer avatar-base" id="layerBase">
