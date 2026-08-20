@@ -1981,11 +1981,7 @@
 
     
 
-                        <!-- Tag Visual Flutuante da Sessão Ativa -->
-                        <div class="dbg-session-watermark" id="dbgSessionWatermark">
-                            <span class="dbg-tag-session" id="dbgTagSession">SESSÃO: IDENTIDADE</span>
-                            <span class="dbg-tag-coords" id="dbgTagCoords">Zoom: 1.0x | X: 0 | Y: 0</span>
-                        </div>
+
                     </div>
                     <div class="avatar-container" id="avatarContainer">
                         <!-- Marcadores Anatômicos 100% Ancorados na Modelo (Escala 1:1) -->
@@ -2121,7 +2117,11 @@
         function getAvatarLayoutMetrics() {
             const w = viewportCanvas ? viewportCanvas.clientWidth : 350;
             const h = viewportCanvas ? viewportCanvas.clientHeight : 600;
-            const imgAspect = 9 / 16;
+            const layer = document.getElementById('layerBase');
+            // Proporção real da imagem da modelo (887x1774 = 1:2 = 0.5000)
+            const imgAspect = (layer && layer.naturalWidth && layer.naturalHeight) 
+                ? (layer.naturalWidth / layer.naturalHeight) 
+                : (887 / 1774);
             const containerAspect = w / h;
 
             let renderedW, renderedH, offsetX, offsetY;
@@ -2321,8 +2321,9 @@
             const m = getAvatarLayoutMetrics();
             const ruler = document.getElementById('dbgAnatomyRuler');
             if (ruler) {
-                ruler.style.top = `${m.offsetY}px`;
-                ruler.style.height = `${m.renderedH}px`;
+                ruler.style.top = `${Math.round(m.offsetY)}px`;
+                ruler.style.height = `${Math.round(m.renderedH)}px`;
+                ruler.style.left = `${Math.max(6, Math.round(m.offsetX + 8))}px`;
             }
 
             const map = {
@@ -2517,7 +2518,9 @@
             const m = getAvatarLayoutMetrics();
             const sheetH = bottomSheet ? bottomSheet.clientHeight : getInitialHeight();
             const visibleH = Math.max(100, m.h - sheetH);
-            const viewCenterY = visibleH * 0.48;
+            
+            // Centro 100% puro e geométrico do Viewport (50% da altura da tela)
+            const viewCenterY = Math.round(m.h * 0.50);
 
             const tViewDim = document.getElementById('tViewportDim');
             const tModelDim = document.getElementById('tModelDim');
@@ -2532,7 +2535,7 @@
             if (tModelDim) tModelDim.innerText = `${Math.round(m.renderedW)} x ${Math.round(m.renderedH)} px`;
             if (tOffsetY) tOffsetY.innerText = `${Math.round(m.offsetY)} px`;
             if (tSheetH) tSheetH.innerText = `${Math.round(sheetH)} px`;
-            if (tViewCenterY) tViewCenterY.innerText = `${Math.round(viewCenterY)} px`;
+            if (tViewCenterY) tViewCenterY.innerText = `${viewCenterY} px (50% Meio)`;
             if (tFocus) tFocus.innerText = `${focusPercent}%`;
             if (tZoom) tZoom.innerText = `${zoomVal}x (${Math.round(avatarScale * 100)}%)`;
             if (tPan) tPan.innerText = `X: ${Math.round(avatarPanX)}px | Y: ${Math.round(avatarPanY)}px`;
@@ -2545,15 +2548,12 @@
 
             if (lineTop) lineTop.style.top = '0px';
             if (lineBottom) lineBottom.style.top = `${Math.round(m.h - 2)}px`;
-            updateRulerMarkersDOM();
-            const markersAnatomy = document.getElementById('dbgAnatomyMarkers');
-            const currentFocusMarker = document.getElementById('dbgCurrentFocusMarker');
-            const tagSession = document.getElementById('dbgTagSession');
-            const tagCoords = document.getElementById('dbgTagCoords');
-            const dbgFocusLbl = document.getElementById('dbgFocusLabel');
-
             if (lineCenter) lineCenter.style.top = `${viewCenterY}px`;
             if (lineSheet) lineSheet.style.top = `${visibleH}px`;
+
+            updateRulerMarkersDOM();
+            const currentFocusMarker = document.getElementById('dbgCurrentFocusMarker');
+            const dbgFocusLbl = document.getElementById('dbgFocusLabel');
 
             if (markersAnatomy) {
                 // Sincroniza a coluna de marcadores anatômicos exatamente com a escala e pan da modelo
