@@ -1612,62 +1612,20 @@
             return { w, h, renderedW, renderedH, offsetX, offsetY };
         }
 
-        /* --- MOTOR UNIVERSAL DE ENQUADRAMENTO COM SISTEMA DE ÂNCORAS (TOP, CENTER, BOTTOM, LEFT, RIGHT) --- */
-        // Permite travar a câmera em qualquer borda (ex: Topo travado para nunca cortar cabelo, Base travada para nunca cortar pés)
+        /* --- MOTOR DE CÂMERA DE ALTA FIDELIDADE (POSIÇÃO EXATA + ÂNCORA INTELIGENTE) --- */
+        // Grava a posição EXATA onde o usuário posicionou na tela sem alterar ou desviar
         const sessionCameraPresets = {
-            "Identidade": {
-                "zoom": 0.79,
-                "focusY": 0.355,
-                "anchorV": "center",
-                "anchorH": "center",
-                "isFullBody": true
-            },
-            "Aparência": {
-                "zoom": 2.85,
-                "focusY": 0.017,
-                "anchorV": "top",      // ⚓ Ancorado no Topo: cabelo nunca corta!
-                "anchorH": "center",
-                "isFullBody": false
-            },
-            "Busto": {
-                "zoom": 3.53,
-                "focusY": 0.187,
-                "anchorV": "center",   // ⚓ Centro no Busto
-                "anchorH": "center",
-                "isFullBody": false
-            },
-            "Pernas": {
-                "zoom": 1.65,
-                "focusY": 0.62,
-                "anchorV": "center",   // ⚓ Centro nas Pernas
-                "anchorH": "center",
-                "isFullBody": false
-            },
-            "Pés": {
-                "zoom": 2.65,
-                "focusY": 0.96,
-                "anchorV": "bottom",   // ⚓ Ancorado na Base: pés e sapatos nunca cortam!
-                "anchorH": "center",
-                "isFullBody": false
-            },
-            "Estilo": {
-                "zoom": 1.12,
-                "focusY": 0.45,
-                "anchorV": "center",
-                "anchorH": "center",
-                "isFullBody": false
-            },
-            "Gravação": {
-                "zoom": 0.92,
-                "focusY": 0.5,
-                "anchorV": "center",
-                "anchorH": "center",
-                "isFullBody": true
-            }
+            "Identidade": { scale: 0.79, panX: 0, panY: 0, anchorV: "center", anchorH: "center" },
+            "Aparência":  { scale: 2.85, panX: 0, panY: 480, anchorV: "top", anchorH: "center" },
+            "Busto":      { scale: 3.53, panX: 0, panY: 260, anchorV: "center", anchorH: "center" },
+            "Pernas":     { scale: 1.65, panX: 0, panY: -210, anchorV: "center", anchorH: "center" },
+            "Pés":        { scale: 2.65, panX: 0, panY: -780, anchorV: "bottom", anchorH: "center" },
+            "Estilo":     { scale: 1.12, panX: 0, panY: 15, anchorV: "center", anchorH: "center" },
+            "Gravação":   { scale: 0.92, panX: 0, panY: 0, anchorV: "center", anchorH: "center" }
         };
 
         try {
-            const saved = localStorage.getItem('mytype_camera_presets_v4');
+            const saved = localStorage.getItem('mytype_camera_presets_v5');
             if (saved) {
                 Object.assign(sessionCameraPresets, JSON.parse(saved));
             }
@@ -1682,6 +1640,13 @@
         function toggleDebugMode(e) {
             if (e) e.stopPropagation();
             isDebugMode = !isDebugMode;
+            
+            // Desativa as alças de redimensionamento da janela do OS durante a depuração para não conflitar
+            const resizeHandles = document.querySelectorAll('.win-resize-handle');
+            resizeHandles.forEach(h => {
+                h.style.display = isDebugMode ? 'none' : '';
+            });
+
             if (isDebugMode) {
                 if (btnDebugMode) btnDebugMode.classList.add('active');
                 if (cameraHudGroup) cameraHudGroup.classList.add('debug-visible');
@@ -1692,95 +1657,58 @@
             }
         }
 
-        // Calcula a posição perfeita da câmera respeitando as ÂNCORAS de topo/base/esquerda/direita
-        function calculateAnatomicalFraming(preset, customSheetH = null) {
-            const m = getAvatarLayoutMetrics();
-            const sheetH = customSheetH !== null ? customSheetH : (bottomSheet ? bottomSheet.clientHeight : getInitialHeight());
-            
-            // Área visível livre da tela acima da barra de configurações
-            const visibleH = Math.max(120, m.h - sheetH);
-            const zoom = Math.min(MAX_SCALE, Math.max(MIN_SCALE, preset.zoom || 1.0));
-            const anchorV = preset.anchorV || 'center'; // 'top', 'center', 'bottom'
-            const anchorH = preset.anchorH || 'center'; // 'left', 'center', 'right'
-
-            if (preset.isFullBody) {
-                const fullBodyScale = Math.min(1.0, Math.max(0.72, (visibleH * 0.94) / m.renderedH));
-                const panX = 0;
-                const panY = (visibleH / 2) - (m.h / 2);
-                const clamped = clampPan(panX, panY, fullBodyScale);
-                return { scale: fullBodyScale, panX: Math.round(clamped.x), panY: Math.round(clamped.y) };
-            }
-
-            let targetPanY = 0;
-            let targetPanX = 0;
-
-            // 1. ÂNCORA VERTICAL
-            if (anchorV === 'top') {
-                // Topo da cabeça fixo no topo da tela visível (cresce para baixo)
-                const desiredTop = 18;
-                const naturalTopPt = m.offsetY + (m.renderedH * (preset.focusY !== undefined ? preset.focusY : 0.02));
-                const unpannedTop = (naturalTopPt - (m.h / 2)) * zoom + (m.h / 2);
-                targetPanY = desiredTop - unpannedTop;
-            } else if (anchorV === 'bottom') {
-                // Base dos pés fixada rente à barra de configurações (cresce para cima)
-                const desiredBottom = visibleH - 14;
-                const naturalBottomPt = m.offsetY + (m.renderedH * (preset.focusY !== undefined ? preset.focusY : 0.98));
-                const unpannedBottom = (naturalBottomPt - (m.h / 2)) * zoom + (m.h / 2);
-                targetPanY = desiredBottom - unpannedBottom;
-            } else {
-                // Centro vertical: centraliza o ponto focal anatômico na área visível
-                const desiredCenterY = visibleH * 0.45;
-                const focusY = preset.focusY !== undefined ? preset.focusY : 0.50;
-                const naturalCenterPt = m.offsetY + (m.renderedH * focusY);
-                const unpannedCenter = (naturalCenterPt - (m.h / 2)) * zoom + (m.h / 2);
-                targetPanY = desiredCenterY - unpannedCenter;
-            }
-
-            // 2. ÂNCORA HORIZONTAL
-            if (anchorH === 'left') {
-                const desiredLeft = 16;
-                const naturalLeftPt = m.offsetX;
-                const unpannedLeft = (naturalLeftPt - (m.w / 2)) * zoom + (m.w / 2);
-                targetPanX = desiredLeft - unpannedLeft;
-            } else if (anchorH === 'right') {
-                const desiredRight = m.w - 16;
-                const naturalRightPt = m.offsetX + m.renderedW;
-                const unpannedRight = (naturalRightPt - (m.w / 2)) * zoom + (m.w / 2);
-                targetPanX = desiredRight - unpannedRight;
-            } else {
-                // Centro horizontal
-                targetPanX = 0;
-            }
-
-            const clamped = clampPan(targetPanX, targetPanY, zoom);
-            return {
-                scale: zoom,
-                panX: Math.round(clamped.x),
-                panY: Math.round(clamped.y)
-            };
-        }
-
         function setSessionAnchorV(anchor) {
             if (!sessionCameraPresets[activeSessionName]) {
-                sessionCameraPresets[activeSessionName] = { zoom: avatarScale, focusY: 0.5 };
+                sessionCameraPresets[activeSessionName] = { scale: avatarScale, panX: avatarPanX, panY: avatarPanY };
             }
             sessionCameraPresets[activeSessionName].anchorV = anchor;
+            
+            // Ajusta o Pan Y respeitando a âncora
+            const m = getAvatarLayoutMetrics();
+            const sheetH = bottomSheet ? bottomSheet.clientHeight : getInitialHeight();
+            const visibleH = Math.max(120, m.h - sheetH);
+
+            if (anchor === 'top') {
+                const desiredTop = 18;
+                const naturalTopPt = m.offsetY;
+                const unpannedTop = (naturalTopPt - (m.h / 2)) * avatarScale + (m.h / 2);
+                avatarPanY = Math.round(desiredTop - unpannedTop);
+            } else if (anchor === 'bottom') {
+                const desiredBottom = visibleH - 14;
+                const naturalBottomPt = m.offsetY + m.renderedH;
+                const unpannedBottom = (naturalBottomPt - (m.h / 2)) * avatarScale + (m.h / 2);
+                avatarPanY = Math.round(desiredBottom - unpannedBottom);
+            }
+
+            const clamped = clampPan(avatarPanX, avatarPanY, avatarScale);
+            avatarPanX = clamped.x;
+            avatarPanY = clamped.y;
+            sessionCameraPresets[activeSessionName].panX = avatarPanX;
+            sessionCameraPresets[activeSessionName].panY = avatarPanY;
+
             try {
-                localStorage.setItem('mytype_camera_presets_v4', JSON.stringify(sessionCameraPresets));
+                localStorage.setItem('mytype_camera_presets_v5', JSON.stringify(sessionCameraPresets));
             } catch(e) {}
-            applySessionCameraPreset(activeSessionName, 350);
+
+            updateAvatarTransform(true);
             updateCameraHudDOM();
         }
 
         function setSessionAnchorH(anchor) {
             if (!sessionCameraPresets[activeSessionName]) {
-                sessionCameraPresets[activeSessionName] = { zoom: avatarScale, focusY: 0.5 };
+                sessionCameraPresets[activeSessionName] = { scale: avatarScale, panX: avatarPanX, panY: avatarPanY };
             }
             sessionCameraPresets[activeSessionName].anchorH = anchor;
+            if (anchor === 'center') {
+                avatarPanX = 0;
+            }
+            sessionCameraPresets[activeSessionName].panX = avatarPanX;
+
             try {
-                localStorage.setItem('mytype_camera_presets_v4', JSON.stringify(sessionCameraPresets));
+                localStorage.setItem('mytype_camera_presets_v5', JSON.stringify(sessionCameraPresets));
             } catch(e) {}
-            applySessionCameraPreset(activeSessionName, 350);
+
+            updateAvatarTransform(true);
             updateCameraHudDOM();
         }
 
@@ -1788,12 +1716,11 @@
             if (activeSessionTitle) {
                 activeSessionTitle.innerText = `🎯 Sessão: ${activeSessionName}`;
             }
-            const preset = sessionCameraPresets[activeSessionName] || { zoom: avatarScale, focusY: 0.5, anchorV: 'center', anchorH: 'center' };
+            const preset = sessionCameraPresets[activeSessionName] || { scale: avatarScale, panX: avatarPanX, panY: avatarPanY, anchorV: 'center', anchorH: 'center' };
             if (liveCameraStatus) {
-                const fY = Math.round((preset.focusY || 0.5) * 100);
                 const aV = preset.anchorV || 'center';
                 const aH = preset.anchorH || 'center';
-                liveCameraStatus.innerText = `🔍 Zoom: ${Math.round(avatarScale * 100)}% | ⚓ Âncora: ${aV.toUpperCase()} / ${aH.toUpperCase()}`;
+                liveCameraStatus.innerText = `🔍 Zoom: ${Math.round(avatarScale * 100)}% | ↔️ X: ${Math.round(avatarPanX)} | ↕️ Y: ${Math.round(avatarPanY)} | ⚓ ${aV.toUpperCase()}`;
             }
             document.querySelectorAll('[data-camera-tab]').forEach(tag => {
                 if (tag.getAttribute('data-camera-tab') === activeSessionName) {
@@ -1826,11 +1753,17 @@
             }
         }
 
+        // Aplica a câmera gravada de forma 100% EXATA e fiel ao que o usuário configurou
         function applySessionCameraPreset(sessionName, duration = 450, customSheetH = null) {
             activeSessionName = sessionName;
             const preset = sessionCameraPresets[sessionName] || sessionCameraPresets["Identidade"];
-            const framing = calculateAnatomicalFraming(preset, customSheetH);
-            animateAvatarCamera(framing.scale, framing.panX, framing.panY, duration);
+            
+            let targetScale = preset.scale || DEFAULT_SCALE;
+            let targetPanX = preset.panX !== undefined ? preset.panX : 0;
+            let targetPanY = preset.panY !== undefined ? preset.panY : 0;
+
+            const clamped = clampPan(targetPanX, targetPanY, targetScale);
+            animateAvatarCamera(targetScale, clamped.x, clamped.y, duration);
             updateCameraHudDOM();
         }
 
@@ -1838,37 +1771,27 @@
             applySessionCameraPreset(sessionName, duration, customSheetH);
         }
 
-        // Gravação Universal: converte a posição atual da tela de qualquer aparelho em ponto anatômico e grava em tempo real no app
+        // Grava a posição EXATA e instantânea da tela na sessão e no localStorage
         function saveCurrentCameraToSession() {
-            const m = getAvatarLayoutMetrics();
-            const sheetH = bottomSheet ? bottomSheet.clientHeight : getInitialHeight();
-            const visibleH = Math.max(120, m.h - sheetH);
-            const desiredScreenY = visibleH * 0.45;
-
-            const unpannedScreenY = desiredScreenY - avatarPanY;
-            const avatarPtY = ((unpannedScreenY - (m.h / 2)) / avatarScale) + (m.h / 2);
-            const focusY = parseFloat(Math.max(0, Math.min(1, (avatarPtY - m.offsetY) / m.renderedH)).toFixed(3));
-            const zoom = parseFloat(avatarScale.toFixed(2));
-
             const prevAnchorV = (sessionCameraPresets[activeSessionName] && sessionCameraPresets[activeSessionName].anchorV) || 'center';
             const prevAnchorH = (sessionCameraPresets[activeSessionName] && sessionCameraPresets[activeSessionName].anchorH) || 'center';
 
             sessionCameraPresets[activeSessionName] = {
-                zoom: zoom,
-                focusY: focusY,
+                scale: parseFloat(avatarScale.toFixed(2)),
+                panX: Math.round(avatarPanX),
+                panY: Math.round(avatarPanY),
                 anchorV: prevAnchorV,
-                anchorH: prevAnchorH,
-                isFullBody: activeSessionName === 'Identidade' || activeSessionName === 'Gravação'
+                anchorH: prevAnchorH
             };
 
             try {
-                localStorage.setItem('mytype_camera_presets_v4', JSON.stringify(sessionCameraPresets));
+                localStorage.setItem('mytype_camera_presets_v5', JSON.stringify(sessionCameraPresets));
             } catch(e) {}
 
             const btn = document.getElementById('btnSaveCamera');
             if (btn) {
                 const prev = btn.innerHTML;
-                btn.innerHTML = `🟢 Salvo no App!`;
+                btn.innerHTML = `🟢 Posição Gravada!`;
                 btn.style.backgroundColor = '#10b981';
                 btn.style.color = '#ffffff';
                 setTimeout(() => {
@@ -1881,7 +1804,19 @@
         }
 
         function resetCameraToDefault() {
-            applySessionCameraPreset("Identidade", 400);
+            sessionCameraPresets["Identidade"] = { scale: 0.79, panX: 0, panY: 0, anchorV: "center", anchorH: "center" };
+            sessionCameraPresets["Aparência"]  = { scale: 2.85, panX: 0, panY: 480, anchorV: "top", anchorH: "center" };
+            sessionCameraPresets["Busto"]      = { scale: 3.53, panX: 0, panY: 260, anchorV: "center", anchorH: "center" };
+            sessionCameraPresets["Pernas"]     = { scale: 1.65, panX: 0, panY: -210, anchorV: "center", anchorH: "center" };
+            sessionCameraPresets["Pés"]        = { scale: 2.65, panX: 0, panY: -780, anchorV: "bottom", anchorH: "center" };
+            sessionCameraPresets["Estilo"]     = { scale: 1.12, panX: 0, panY: 15, anchorV: "center", anchorH: "center" };
+            sessionCameraPresets["Gravação"]   = { scale: 0.92, panX: 0, panY: 0, anchorV: "center", anchorH: "center" };
+            
+            try {
+                localStorage.setItem('mytype_camera_presets_v5', JSON.stringify(sessionCameraPresets));
+            } catch(e) {}
+
+            applySessionCameraPreset(activeSessionName, 400);
         }
 
         function exportCameraPresets() {
@@ -1934,8 +1869,8 @@
             let maxX = Math.max(m.w * 0.45, (scaledW - m.w) * 0.65 + (m.w * 0.35));
             let minX = -maxX;
 
-            let maxY = Math.max(m.h * 0.65, (scaledH - m.h) * 0.75 + (m.h * 0.55));
-            let minY = -Math.max(m.h * 0.65, (scaledH - m.h) * 0.75 + (m.h * 0.55));
+            let maxY = Math.max(m.h * 0.85, (scaledH - m.h) * 0.95 + (m.h * 0.75));
+            let minY = -Math.max(m.h * 0.85, (scaledH - m.h) * 0.95 + (m.h * 0.75));
 
             if (minX > maxX) [minX, maxX] = [maxX, minX];
             if (minY > maxY) [minY, maxY] = [maxY, minY];
