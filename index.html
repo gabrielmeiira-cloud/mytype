@@ -2418,11 +2418,11 @@
         /* --- FÓRMULA MATEMÁTICA ANATÔMICA CENTRALIZADORA --- */
         function calculatePanForAnatomicalPoint(focusY, targetScale, sheetHOverride = null) {
             const m = getAvatarLayoutMetrics();
-            const sheetH = sheetHOverride !== null ? sheetHOverride : (bottomSheet ? bottomSheet.clientHeight : getMinHeight());
-            const sheetLimitY = Math.max(80, m.h - sheetH);
+            const sheetH = sheetHOverride !== null ? sheetHOverride : (bottomSheet ? bottomSheet.clientHeight : getInitialHeight());
+            const sheetLimitY = Math.max(80, Math.round(m.h - sheetH));
             
-            // Centro exato: Ponto médio entre a linha azul (0px) e a linha vermelha da gaveta (sheetLimitY)
-            const viewCenterY = sheetLimitY / 2;
+            // Centro exato: Ponto médio exato entre a linha azul do topo (0px) e a linha vermelha da gaveta (sheetLimitY)
+            const viewCenterY = Math.round(sheetLimitY / 2);
 
             const modelPtY = m.offsetY + (m.renderedH * focusY);
             const unpannedY = (modelPtY - (m.h / 2)) * targetScale + (m.h / 2);
@@ -2551,10 +2551,10 @@
             // Atualização de Telemetria ao Vivo
             const m = getAvatarLayoutMetrics();
             const sheetH = bottomSheet ? bottomSheet.clientHeight : getInitialHeight();
-            const visibleH = Math.max(100, m.h - sheetH);
+            const sheetLimitY = Math.max(80, Math.round(m.h - sheetH));
             
-            // Centro 100% puro e geométrico do Viewport (50% da altura da tela)
-            const viewCenterY = Math.round(m.h * 0.50);
+            // Centro exato: Ponto médio exato entre a linha azul do topo (0px) e a linha vermelha da gaveta (sheetLimitY)
+            const viewCenterY = Math.round(sheetLimitY / 2);
 
             const tViewDim = document.getElementById('tViewportDim');
             const tModelDim = document.getElementById('tModelDim');
@@ -2569,7 +2569,7 @@
             if (tModelDim) tModelDim.innerText = `${Math.round(m.renderedW)} x ${Math.round(m.renderedH)} px`;
             if (tOffsetY) tOffsetY.innerText = `${Math.round(m.offsetY)} px`;
             if (tSheetH) tSheetH.innerText = `${Math.round(sheetH)} px`;
-            if (tViewCenterY) tViewCenterY.innerText = `${viewCenterY} px (50% Meio)`;
+            if (tViewCenterY) tViewCenterY.innerText = `${viewCenterY} px (Meio Azul/Vermelho)`;
             if (tFocus) tFocus.innerText = `${focusPercent}%`;
             if (tZoom) tZoom.innerText = `${zoomVal}x (${Math.round(avatarScale * 100)}%)`;
             if (tPan) tPan.innerText = `X: ${Math.round(avatarPanX)}px | Y: ${Math.round(avatarPanY)}px`;
@@ -2583,7 +2583,7 @@
             if (lineTop) lineTop.style.top = '0px';
             if (lineBottom) lineBottom.style.top = `${Math.max(0, Math.round(m.h - 2))}px`;
             if (lineCenter) lineCenter.style.top = `${viewCenterY}px`;
-            if (lineSheet) lineSheet.style.top = `${visibleH}px`;
+            if (lineSheet) lineSheet.style.top = `${sheetLimitY}px`;
 
             updateRulerMarkersDOM();
             const currentFocusMarker = document.getElementById('dbgCurrentFocusMarker');
