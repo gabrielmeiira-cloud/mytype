@@ -439,7 +439,7 @@
             display: block;
         }
 
-        /* HUD e Painel de Depuração Externo */
+        /* HUD e Painel de Depuração Externo (Responsivo com Scroll Moderno) */
         .camera-hud-group {
             display: flex;
             flex-direction: column;
@@ -448,7 +448,8 @@
             pointer-events: none;
             transform: translateY(-8px);
             transition: opacity 0.25s ease, transform 0.25s ease;
-            max-width: 280px;
+            width: clamp(280px, 32vw, 360px);
+            max-height: calc(100vh - 80px);
         }
 
         .camera-hud-group.debug-visible {
@@ -578,7 +579,7 @@
             flex-wrap: wrap;
             gap: 4px;
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
-            max-width: 280px;
+            width: 100%; box-sizing: border-box;
         }
 
         .debug-session-tag {
@@ -895,15 +896,37 @@
         }
 
 .green-dedicated-section {
-            background: rgba(16, 28, 22, 0.94);
-            border: 1px solid rgba(16, 185, 129, 0.4);
-            border-radius: 12px;
-            padding: 8px 10px;
+            background: rgba(12, 22, 17, 0.96);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(16, 185, 129, 0.45);
+            border-radius: 14px;
+            padding: 10px 12px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), 0 0 12px rgba(16, 185, 129, 0.2);
-            max-width: 280px;
+            gap: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8), 0 0 16px rgba(16, 185, 129, 0.25);
+            width: 100%;
+            max-height: calc(100vh - 90px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+
+        /* Scrollbar estilizada fina e moderna para o painel de debug */
+        .green-dedicated-section::-webkit-scrollbar {
+            width: 5px;
+        }
+        .green-dedicated-section::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+        }
+        .green-dedicated-section::-webkit-scrollbar-thumb {
+            background: #10b981;
+            border-radius: 4px;
+        }
+        .green-dedicated-section::-webkit-scrollbar-thumb:hover {
+            background: #34d399;
         }
 
         .green-section-header {
