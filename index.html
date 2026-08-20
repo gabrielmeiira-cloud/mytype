@@ -1631,21 +1631,28 @@
         }
         .dbg-sheet-limit {
             border-top: 2px solid #ef4444;
-            background: rgba(239, 68, 68, 0.08);
+            background: rgba(239, 68, 68, 0.15);
+            z-index: 95;
         }
         .dbg-line-label {
             position: absolute;
-            right: 8px;
-            top: -18px;
+            right: 10px;
             font-size: 9.5px;
             font-weight: 700;
-            padding: 1px 6px;
+            padding: 2px 7px;
             border-radius: 4px;
             color: #fff;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.8);
+            letter-spacing: 0.2px;
         }
-        .dbg-view-center .dbg-line-label { background: #10b981; }
-        .dbg-sheet-limit .dbg-line-label { background: #ef4444; }
+        .dbg-view-center .dbg-line-label { 
+            background: #10b981; 
+            top: -22px;
+        }
+        .dbg-sheet-limit .dbg-line-label { 
+            background: #dc2626 !important; 
+            top: -22px;
+        }
 
         /* Marcadores Anatômicos na Modelo */
         .dbg-anatomy-markers {
@@ -2411,15 +2418,11 @@
         /* --- FÓRMULA MATEMÁTICA ANATÔMICA CENTRALIZADORA --- */
         function calculatePanForAnatomicalPoint(focusY, targetScale, sheetHOverride = null) {
             const m = getAvatarLayoutMetrics();
+            const sheetH = sheetHOverride !== null ? sheetHOverride : (bottomSheet ? bottomSheet.clientHeight : getMinHeight());
+            const sheetLimitY = Math.max(80, m.h - sheetH);
             
-            /* --- [GAVETA DESATIVADA TEMPORARIAMENTE PARA AJUSTES BÁSICOS] ---
-            const sheetH = sheetHOverride !== null ? sheetHOverride : (bottomSheet ? bottomSheet.clientHeight : getInitialHeight());
-            const visibleH = Math.max(100, m.h - sheetH);
-            const viewCenterY = visibleH * 0.48;
-            ------------------------------------------------------------------- */
-            
-            // Centro 100% puro e geométrico do Viewport (sem influência da gaveta)
-            const viewCenterY = m.h * 0.50;
+            // Centro exato: Ponto médio entre a linha azul (0px) e a linha vermelha da gaveta (sheetLimitY)
+            const viewCenterY = sheetLimitY / 2;
 
             const modelPtY = m.offsetY + (m.renderedH * focusY);
             const unpannedY = (modelPtY - (m.h / 2)) * targetScale + (m.h / 2);
@@ -2637,14 +2640,11 @@
                     zoom: parseFloat(avatarScale.toFixed(2))
                 };
             } else {
-                // Modo B: Look-At Reverso (Centro Puro)
+                // Modo B: Look-At Reverso (Ponto Médio entre Azul e Vermelho)
                 const m = getAvatarLayoutMetrics();
-                /* GAVETA DESATIVADA TEMPORARIAMENTE:
-                const sheetH = bottomSheet ? bottomSheet.clientHeight : getInitialHeight();
-                const visibleH = Math.max(100, m.h - sheetH);
-                const viewCenterY = visibleH * 0.48;
-                */
-                const viewCenterY = m.h * 0.50;
+                const sheetH = bottomSheet ? bottomSheet.clientHeight : getMinHeight();
+                const sheetLimitY = Math.max(80, m.h - sheetH);
+                const viewCenterY = sheetLimitY / 2;
 
                 const unpannedY = viewCenterY - avatarPanY;
                 const modelPtY = ((unpannedY - (m.h / 2)) / avatarScale) + (m.h / 2);
