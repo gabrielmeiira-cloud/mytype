@@ -1413,101 +1413,49 @@
 </head>
 <body>
 
-    <!-- Painel de Depuração Flutuante Externo (Apenas Computador - Fora do Canvas) -->
+    <!-- Painel de Gravação e Depuração de Câmera (Desktop) -->
     <div class="desktop-debug-wrapper" id="desktopDebugWrapper">
-        <button class="desktop-debug-btn" id="btnDebugMode" title="Alternar Painel de Depuração" aria-label="Depuração" onclick="toggleDebugMode(event)">
-            <svg viewBox="0 0 24 24" width="22" height="22"><path fill="#ffffff" d="M19 8h-1.81a5.985 5.985 0 0 0-1.82-1.96l1.39-1.39a1 1 0 0 0-1.41-1.41l-1.83 1.83C12.94 5.03 12.48 5 12 5s-.94.03-1.52.07L8.65 3.24a1 1 0 0 0-1.41 1.41l1.39 1.39A5.985 5.985 0 0 0 6.81 8H5a1 1 0 0 0 0 2h1.09c-.05.33-.09.66-.09 1v1H5a1 1 0 0 0 0 2h1v1c0 .34.04.67.09 1H5a1 1 0 0 0 0 2h1.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H19a1 1 0 0 0 0-2h-1.09c.05-.33.09-.66.09-1v-1h1a1 1 0 0 0 0-2h-1v-1c0-.34-.04-.67-.09-1H19a1 1 0 0 0 0-2zm-6 8h-2v-2h2v2zm0-4h-2v-2h2v2z"/></svg>
+        <button class="desktop-debug-btn" id="btnDebugMode" title="Painel de Câmera e Gravação" aria-label="Câmera" onclick="toggleDebugMode(event)">
+            <svg viewBox="0 0 24 24" width="22" height="22"><path fill="#ffffff" d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm8-9h-3.17l-1.83-2H9L7.17 6H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 14H4V8h4.05l1.83-2h4.24l1.83 2H20v12z"/></svg>
         </button>
 
         <div class="camera-hud-group" id="cameraHudGroup">
-            
-            <!-- Seletor de Modo de Depuração Exclusivo: Verde vs Clássico -->
-            <div class="lock-toggles-row">
-                <button class="btn-lock-toggle btn-green-lock unlocked" id="btnModeGreen" onclick="setColliderMode('green')" title="Modo Verde: Colisão Universal na Imagem">
-                    <span id="labelModeGreen">🟢 Modo Verde (Universal)</span>
-                </button>
-                <button class="btn-lock-toggle btn-avatar-lock is-locked" id="btnModeClassic" onclick="setColliderMode('classic')" title="Modo Clássico: Vermelho e Azul">
-                    <span id="labelModeClassic">🔴 Clássico (Vermelho/Azul)</span>
-                </button>
-            </div>
-
-            <!-- Seção Exclusiva da Colisão Verde Universal (Anatomia do Avatar) -->
-            <div class="green-dedicated-section" id="greenDedicatedSection">
+            <div class="green-dedicated-section" id="cameraControlSection">
                 <div class="green-section-header">
                     <span class="green-dot-indicator"></span>
-                    <span class="green-section-title">Colisão Universal Verde (Imune a Zoom)</span>
+                    <span class="green-section-title">Controle de Câmera por Sessão</span>
                 </div>
-                <div class="hud-sub" id="greenCoordsText" style="color: #10b981; font-weight: 600;">📐 Verde: X: 35% | Y: 0% | L: 30% | A: 27%</div>
                 
+                <div class="camera-hud-badge" id="cameraHudBadge">
+                    <div class="hud-row">
+                        <span id="activeSessionTitle" style="color: #10b981; font-weight: 700;">🎯 Sessão: Identidade</span>
+                    </div>
+                    <div class="hud-sub" id="liveCameraStatus" style="font-family: monospace; font-size: 11px;">🔍 Zoom: 90% | ↔️ X: 0px | ↕️ Y: 0px</div>
+                </div>
+
                 <div class="pin-actions-row">
-                    <button class="pin-action-btn btn-green-action" onclick="focusCameraOnGreenBox()" title="Aproxima a câmera focando exatamente na área marcada pela caixa verde">
-                        🎯 Enquadrar Verde
+                    <button class="pin-action-btn btn-green-save" id="btnSaveCamera" onclick="saveCurrentCameraToSession()" title="Grava o Zoom e a Posição atuais para esta sessão">
+                        💾 Gravar Câmera
                     </button>
-                    <button class="pin-action-btn btn-green-save" id="btnSaveGreen" onclick="registerGreenBoxPreset()" title="Registra a caixa verde exclusivamente para a sessão selecionada">
-                        💾 Gravar Verde
+                    <button class="pin-action-btn btn-green-action" onclick="applySessionCameraPreset(activeSessionName)" title="Testa a posição gravada para a sessão ativa">
+                        🎯 Testar
                     </button>
-                    <button class="pin-action-btn btn-green-export" id="btnExportGreen" onclick="exportGreenBoxesConfig()" title="Exporta todas as 7 caixas verdes universais">
-                        📋 Exportar
-                    </button>
-                    <button class="pin-action-btn" onclick="resetAvatarToStandard()" title="Retorna a modelo para a visão padrão 100% de corpo inteiro">
+                    <button class="pin-action-btn" onclick="resetCameraToDefault()" title="Reseta para a visão padrão 100% de corpo inteiro">
                         🔄 Padrão
                     </button>
-                </div>
-
-                <div class="debug-sessions-bar green-sessions-bar" id="greenSessionsBar">
-                    <span class="debug-session-tag green-tag active" data-green-tab="Identidade" onclick="selectGreenSession('Identidade')">Identidade</span>
-                    <span class="debug-session-tag green-tag" data-green-tab="Aparência" onclick="selectGreenSession('Aparência')">Aparência</span>
-                    <span class="debug-session-tag green-tag" data-green-tab="Busto" onclick="selectGreenSession('Busto')">Busto</span>
-                    <span class="debug-session-tag green-tag" data-green-tab="Pernas" onclick="selectGreenSession('Pernas')">Pernas</span>
-                    <span class="debug-session-tag green-tag" data-green-tab="Pés" onclick="selectGreenSession('Pés')">Pés</span>
-                    <span class="debug-session-tag green-tag" data-green-tab="Estilo" onclick="selectGreenSession('Estilo')">Estilo</span>
-                    <span class="debug-session-tag green-tag" data-green-tab="Gravação" onclick="selectGreenSession('Gravação')">Gravação</span>
-                </div>
-            </div>
-
-            <!-- Seção do Modo Clássico (Vermelho e Azul) - Ocultada no Modo Verde -->
-            <div id="classicDebugSection" style="display: none; flex-direction: column; gap: 8px; width: 100%;">
-                <div class="camera-hud-badge" id="cameraHudBadge" title="Clique para copiar os valores de Zoom e Coordenadas">
-                    <div class="hud-row">
-                        <svg viewBox="0 0 24 24"><path d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M19,5V19H5V5H19Z"/></svg>
-                        <span id="zoomLevelText">Zoom: 90%</span>
-                    </div>
-                    <div class="hud-sub" id="coordsText">X: 0 | Y: 0</div>
-                    <div class="hud-sub" id="boxInfoText" style="color: var(--primary); font-weight: 600;">📐 Caixa: L: 30% | A: 20%</div>
-                </div>
-
-                <!-- Botões de Travar/Destravar Colisores Independentes -->
-                <div class="lock-toggles-row">
-                    <button class="btn-lock-toggle btn-avatar-lock unlocked" id="btnLockAvatar" onclick="toggleLockAvatarBox()" title="Clique para travar/destravar o Colisor Vermelho">
-                        <span id="labelLockAvatar">🔓 Vermelho (Editando)</span>
-                    </button>
-                    <button class="btn-lock-toggle btn-viewport-lock is-locked" id="btnLockViewport" onclick="toggleLockViewportBox()" title="Clique para travar/destravar o Colisor Azul">
-                        <span id="labelLockViewport">🔒 Azul (Travado)</span>
-                    </button>
-                </div>
-
-                <!-- Ações Rápidas da Caixa de Colisão -->
-                <div class="pin-actions-row">
-                    <button class="pin-action-btn" id="btnFocusBox" onclick="focusCameraOnCurrentBox()" title="Enquadrar e dar Zoom baseado na Caixa de Colisão">
-                        🎯 Enquadrar Caixa
-                    </button>
-                    <button class="pin-action-btn btn-register-action" id="btnRegisterBox" onclick="registerCurrentBoxPreset()" title="Registrar a Caixa de Colisão para a sessão atual">
-                        💾 Registrar Colisor
-                    </button>
-                    <button class="pin-action-btn" id="btnExportFixed" onclick="exportFixedBoxesConfig()" title="Copiar todas as caixas de colisão salvas">
+                    <button class="pin-action-btn btn-green-export" id="btnExportCamera" onclick="exportCameraPresets()" title="Copia o JSON com todas as 7 posições de câmera">
                         📋 Exportar
                     </button>
                 </div>
 
-                <!-- Barra de Navegação Rápida entre Todas as Sessões -->
-                <div class="debug-sessions-bar" id="debugSessionsBar">
-                    <span class="debug-session-tag active" data-tab="Identidade" onclick="testResponsiveSession('Identidade')">Identidade</span>
-                    <span class="debug-session-tag" data-tab="Aparência" onclick="testResponsiveSession('Aparência')">Aparência</span>
-                    <span class="debug-session-tag" data-tab="Busto" onclick="testResponsiveSession('Busto')">Busto</span>
-                    <span class="debug-session-tag" data-tab="Pernas" onclick="testResponsiveSession('Pernas')">Pernas</span>
-                    <span class="debug-session-tag" data-tab="Pés" onclick="testResponsiveSession('Pés')">Pés</span>
-                    <span class="debug-session-tag" data-tab="Estilo" onclick="testResponsiveSession('Estilo')">Estilo</span>
-                    <span class="debug-session-tag" data-tab="Gravação" onclick="testResponsiveSession('Gravação')">Gravação</span>
+                <div class="debug-sessions-bar green-sessions-bar" id="cameraSessionsBar">
+                    <span class="debug-session-tag green-tag active" data-camera-tab="Identidade" onclick="selectCameraSession('Identidade')">Identidade</span>
+                    <span class="debug-session-tag green-tag" data-camera-tab="Aparência" onclick="selectCameraSession('Aparência')">Aparência</span>
+                    <span class="debug-session-tag green-tag" data-camera-tab="Busto" onclick="selectCameraSession('Busto')">Busto</span>
+                    <span class="debug-session-tag green-tag" data-camera-tab="Pernas" onclick="selectCameraSession('Pernas')">Pernas</span>
+                    <span class="debug-session-tag green-tag" data-camera-tab="Pés" onclick="selectCameraSession('Pés')">Pés</span>
+                    <span class="debug-session-tag green-tag" data-camera-tab="Estilo" onclick="selectCameraSession('Estilo')">Estilo</span>
+                    <span class="debug-session-tag green-tag" data-camera-tab="Gravação" onclick="selectCameraSession('Gravação')">Gravação</span>
                 </div>
             </div>
 
@@ -1552,53 +1500,13 @@
                 
                 <!-- Viewport / Canvas Interativo da Modelo -->
                 <div class="viewport" id="viewportCanvas">
-                    
-                    <!-- Caixa de Colisão da Área Útil do Canvas (Colisor Azul Interativo) -->
-                    <div class="debug-viewport-box" id="debugViewportBox" title="Arraste ou use as alças azuis para redimensionar a Área Útil do Canvas">
-                        <div class="viewport-box-tag" id="viewportBoxTag">Área Útil do Canvas (Colisor Azul)</div>
-                        <div class="vp-handle vp-handle-nw" data-vp-handle="nw"></div>
-                        <div class="vp-handle vp-handle-ne" data-vp-handle="ne"></div>
-                        <div class="vp-handle vp-handle-sw" data-vp-handle="sw"></div>
-                        <div class="vp-handle vp-handle-se" data-vp-handle="se"></div>
-                        <div class="vp-handle vp-handle-n" data-vp-handle="n"></div>
-                        <div class="vp-handle vp-handle-s" data-vp-handle="s"></div>
-                        <div class="vp-handle vp-handle-w" data-vp-handle="w"></div>
-                        <div class="vp-handle vp-handle-e" data-vp-handle="e"></div>
-                    </div>
-
-                    <!-- Caixa de Colisão Universal Verde (Acompanha o Zoom da Imagem, Mantém Aparência Intacta e Trava nas Bordas da Tela) -->
-                    <div class="debug-green-box" id="debugGreenBox" title="Use os 4 cantos e as 4 arestas para redimensionar">
-                        <div class="green-badge-tag" id="greenBadgeTag">Verde Universal: Identidade</div>
-                        <div class="green-handle handle-nw" data-handle="nw"></div>
-                        <div class="green-handle handle-ne" data-handle="ne"></div>
-                        <div class="green-handle handle-sw" data-handle="sw"></div>
-                        <div class="green-handle handle-se" data-handle="se"></div>
-                        <div class="green-handle handle-n" data-handle="n"></div>
-                        <div class="green-handle handle-s" data-handle="s"></div>
-                        <div class="green-handle handle-w" data-handle="w"></div>
-                        <div class="green-handle handle-e" data-handle="e"></div>
-                    </div>
-
                     <div class="avatar-container" id="avatarContainer">
                         <div class="infinite-gradient-backdrop" id="infiniteBackdrop"></div>
                         <img src="avatar.webp" alt="Base Avatar" class="avatar-layer avatar-base" id="layerBase">
                         <img src="assets/outfit_casual.png" alt="Outfit Layer" class="avatar-layer hidden" id="layerOutfit">
                         <img src="assets/hair_curly_dark.png" alt="Hair Layer" class="avatar-layer hidden" id="layerHair">
-                        
-                        <!-- Caixa de Colisão / Enquadramento Interativo no Avatar -->
-                        <div class="debug-collision-box" id="debugCollisionBox" title="Arraste para mover ou use as alças nos cantos para redimensionar a caixa de colisão">
-                            <div class="box-badge-tag" id="boxBadgeTag">Sessão: Aparência</div>
-                            <div class="box-crosshair-center"></div>
-                            <div class="box-handle handle-nw" data-handle="nw"></div>
-                            <div class="box-handle handle-ne" data-handle="ne"></div>
-                            <div class="box-handle handle-sw" data-handle="sw"></div>
-                            <div class="box-handle handle-se" data-handle="se"></div>
-                            <div class="box-handle handle-n" data-handle="n"></div>
-                            <div class="box-handle handle-s" data-handle="s"></div>
-                            <div class="box-handle handle-w" data-handle="w"></div>
-                            <div class="box-handle handle-e" data-handle="e"></div>
-                        </div>
                     </div>
+                </div>
                 </div>
 
                 <div class="side-menu" id="sideMenu"></div>
@@ -1734,367 +1642,52 @@
             return { w, h, renderedW, renderedH, offsetX, offsetY };
         }
 
+        /* --- MOTOR DIRETO DE CÂMERA POR SESSÃO --- */
+        const sessionCameraPresets = {
+            "Identidade": { scale: 0.90, panX: 0, panY: 0 },
+            "Aparência":  { scale: 2.25, panX: 0, panY: 200 },
+            "Busto":      { scale: 1.75, panX: 0, panY: 100 },
+            "Pernas":     { scale: 1.40, panX: 0, panY: -90 },
+            "Pés":        { scale: 1.90, panX: 0, panY: -220 },
+            "Estilo":     { scale: 1.05, panX: 0, panY: 15 },
+            "Gravação":   { scale: 0.90, panX: 0, panY: 0 }
+        };
+
+        try {
+            const savedCam = localStorage.getItem('mytype_camera_presets');
+            if (savedCam) {
+                Object.assign(sessionCameraPresets, JSON.parse(savedCam));
+            }
+        } catch(e) {}
+
         const btnDebugMode = document.getElementById('btnDebugMode');
         const cameraHudGroup = document.getElementById('cameraHudGroup');
-        const debugCollisionBox = document.getElementById('debugCollisionBox');
-        const debugViewportBox = document.getElementById('debugViewportBox');
-        const boxBadgeTag = document.getElementById('boxBadgeTag');
-        const boxInfoText = document.getElementById('boxInfoText');
-        const debugSessionsBar = document.getElementById('debugSessionsBar');
-
-        /* --- MODO DE DEPURAÇÃO E CAIXA DE COLISÃO INTERATIVA --- */
+        const activeSessionTitle = document.getElementById('activeSessionTitle');
+        const liveCameraStatus = document.getElementById('liveCameraStatus');
         let isDebugMode = false;
 
-        // Caixas de Colisão Normalizadas (0.0 a 1.0) para cada Sessão
-        const sessionBoundingBoxes = {
-            "Identidade": { x: 0.05, y: 0.011, w: 0.90, h: 0.989 }, // Corpo Inteiro
-            "Aparência":  { x: 0.35, y: 0.000, w: 0.297, h: 0.270 }, // Cabeça e Rosto
-            "Busto":      { x: 0.375, y: 0.175, w: 0.248, h: 0.164 }, // Busto e Cintura
-            "Pernas":     { x: 0.20, y: 0.380, w: 0.600, h: 0.440 }, // Pernas e Joelhos
-            "Pés":        { x: 0.24, y: 0.800, w: 0.520, h: 0.200 }, // Tornozelos e Pés
-            "Estilo":     { x: 0.10, y: 0.040, w: 0.800, h: 0.900 }, // Moda Geral
-            "Gravação":   { x: 0.05, y: 0.000, w: 0.900, h: 1.000 }  // Estúdio
-        };
-
-        // Carrega caixas de colisão salvas localmente
-        try {
-            const savedBoxes = localStorage.getItem('mytype_collision_boxes');
-            if (savedBoxes) {
-                const parsed = JSON.parse(savedBoxes);
-                Object.assign(sessionBoundingBoxes, parsed);
-            }
-        } catch(e) {}
-
-        // Configuração de Margens do Colisor Azul da Área Útil (em proporção 0.0 a 0.5 da tela)
-        let customViewportCollider = {
-            marginLeft: 0.02210982658959538,
-            marginRight: 0.027890173410404624,
-            marginTop: 0.015910020449897755,
-            marginBottom: 0.005685071574642124
-        };
-
-        // Carrega colisor azul customizado salvo
-        try {
-            const savedVp = localStorage.getItem('mytype_viewport_collider');
-            if (savedVp) {
-                Object.assign(customViewportCollider, JSON.parse(savedVp));
-            }
-        } catch(e) {}
-
-        // Sincronização em Nuvem Global: Busca as configurações do servidor ao carregar
-        async function fetchGlobalCloudPresets() {
-            try {
-                const res = await fetch('/api/presets');
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data && typeof data === 'object') {
-                        if (data.collisionBoxes) {
-                            Object.assign(sessionBoundingBoxes, data.collisionBoxes);
-                        } else if (data.Identidade) {
-                            Object.assign(sessionBoundingBoxes, data);
-                        }
-                        if (data.viewportCollider) {
-                            Object.assign(customViewportCollider, data.viewportCollider);
-                        }
-                        if (sessionBoundingBoxes[activeSessionName]) {
-                            currentBox = { ...sessionBoundingBoxes[activeSessionName] };
-                            renderCollisionBoxDOM();
-                            renderViewportBoxDOM();
-                        }
-                    }
-                }
-            } catch(err) {
-                // Modo offline ou desenvolvimento local
-            }
-        }
-        fetchGlobalCloudPresets();
-
-        // Caixa de Colisão Atualmente Editada
-        let currentBox = { ...sessionBoundingBoxes["Identidade"] };
-
-        /* --- CONTROLE DE TRAVAMENTO INDEPENDENTE DOS COLISORES --- */
-        let isAvatarBoxLocked = false;
-        let isViewportBoxLocked = true; // Por padrão o azul começa travado para não cobrir o vermelho
-
-        /* --- MODO DE DEPURAÇÃO: VERDE (UNIVERSAL) VS CLÁSSICO (VERMELHO/AZUL) --- */
-        let debugActiveMode = 'green'; // 'green' ou 'classic'
-
-        function setColliderMode(mode) {
-            debugActiveMode = mode;
-            const btnGr = document.getElementById('btnModeGreen');
-            const btnCl = document.getElementById('btnModeClassic');
-            const greenSec = document.getElementById('greenDedicatedSection');
-            const classicSec = document.getElementById('classicDebugSection');
-
-            if (mode === 'green') {
-                if (btnGr) { btnGr.classList.add('unlocked'); btnGr.classList.remove('is-locked'); }
-                if (btnCl) { btnCl.classList.remove('unlocked'); btnCl.classList.add('is-locked'); }
-                if (greenSec) greenSec.style.display = 'flex';
-                if (classicSec) classicSec.style.display = 'none';
-
-                // Mostra apenas o verde e desliga vermelho e azul
-                if (debugGreenBox) debugGreenBox.classList.add('debug-visible');
-                if (debugCollisionBox) debugCollisionBox.classList.remove('debug-visible');
-                if (debugViewportBox) debugViewportBox.classList.remove('debug-visible');
-                renderGreenBoxDOM();
-            } else {
-                if (btnGr) { btnGr.classList.remove('unlocked'); btnGr.classList.add('is-locked'); }
-                if (btnCl) { btnCl.classList.add('unlocked'); btnCl.classList.remove('is-locked'); }
-                if (greenSec) greenSec.style.display = 'none';
-                if (classicSec) classicSec.style.display = 'flex';
-
-                // Mostra vermelho e azul e desliga o verde
-                if (debugGreenBox) debugGreenBox.classList.remove('debug-visible');
-                if (debugCollisionBox) debugCollisionBox.classList.add('debug-visible');
-                if (debugViewportBox) debugViewportBox.classList.add('debug-visible');
-                renderCollisionBoxDOM();
-                renderViewportBoxDOM();
-            }
-        }
-
-        function updateLockStatesDOM() {
-            const btnAv = document.getElementById('btnLockAvatar');
-            const lblAv = document.getElementById('labelLockAvatar');
-            const btnVp = document.getElementById('btnLockViewport');
-            const lblVp = document.getElementById('labelLockViewport');
-
-            if (debugCollisionBox) {
-                if (isAvatarBoxLocked) {
-                    debugCollisionBox.classList.add('is-locked');
-                } else {
-                    debugCollisionBox.classList.remove('is-locked');
-                }
-            }
-
-            if (debugViewportBox) {
-                if (isViewportBoxLocked) {
-                    debugViewportBox.classList.add('is-locked');
-                } else {
-                    debugViewportBox.classList.remove('is-locked');
-                }
-            }
-
-            if (btnAv && lblAv) {
-                if (isAvatarBoxLocked) {
-                    btnAv.classList.remove('unlocked');
-                    btnAv.classList.add('is-locked');
-                    lblAv.innerText = "🔒 Vermelho (Travado)";
-                } else {
-                    btnAv.classList.add('unlocked');
-                    btnAv.classList.remove('is-locked');
-                    lblAv.innerText = "🔓 Vermelho (Editando)";
-                }
-            }
-
-            if (btnVp && lblVp) {
-                if (isViewportBoxLocked) {
-                    btnVp.classList.remove('unlocked');
-                    btnVp.classList.add('is-locked');
-                    lblVp.innerText = "🔒 Azul (Travado)";
-                } else {
-                    btnVp.classList.add('unlocked');
-                    btnVp.classList.remove('is-locked');
-                    lblVp.innerText = "🔓 Azul (Editando)";
-                }
-            }
-        }
-
-        function toggleLockAvatarBox() {
-            isAvatarBoxLocked = !isAvatarBoxLocked;
-            updateLockStatesDOM();
-        }
-
-        function toggleLockViewportBox() {
-            isViewportBoxLocked = !isViewportBoxLocked;
-            updateLockStatesDOM();
-        }
-
         function toggleDebugMode(e) {
-            if (e) {
-                e.stopPropagation();
-            }
+            if (e) e.stopPropagation();
             isDebugMode = !isDebugMode;
             if (isDebugMode) {
                 if (btnDebugMode) btnDebugMode.classList.add('active');
                 if (cameraHudGroup) cameraHudGroup.classList.add('debug-visible');
-                setColliderMode(debugActiveMode);
+                updateCameraHudDOM();
             } else {
                 if (btnDebugMode) btnDebugMode.classList.remove('active');
                 if (cameraHudGroup) cameraHudGroup.classList.remove('debug-visible');
-                if (debugCollisionBox) debugCollisionBox.classList.remove('debug-visible');
-                if (debugViewportBox) debugViewportBox.classList.remove('debug-visible');
-                if (debugGreenBox) debugGreenBox.classList.remove('debug-visible');
             }
         }
 
-        /* --- MOTOR DE ENQUADRAMENTO: ÁREA AZUL FIXA (CANVAS TOTAL ATÉ O TOPO DA ABA DE CONFIGURAÇÕES) --- */
-        function getSafeViewportBounds(customSheetH = null) {
-            const m = getAvatarLayoutMetrics();
-            
-            // Área Azul Fixa (Canvas Útil):
-            const top = 0;
-            const left = 0;
-            const right = m.w;
-            
-            const vpRect = viewportCanvas ? viewportCanvas.getBoundingClientRect() : null;
-            const sheetEl = document.getElementById('bottomSheet');
-            const sheetRect = sheetEl ? sheetEl.getBoundingClientRect() : null;
-            
-            let bottomLimitPx = m.h - 100;
-            if (customSheetH !== null) {
-                bottomLimitPx = m.h - Math.max(0, customSheetH - 84);
-            } else if (vpRect && sheetRect && sheetRect.top > vpRect.top) {
-                bottomLimitPx = sheetRect.top - vpRect.top;
+        function updateCameraHudDOM() {
+            if (activeSessionTitle) {
+                activeSessionTitle.innerText = `🎯 Sessão: ${activeSessionName}`;
             }
-            
-            const bottom = Math.max(80, Math.min(m.h, bottomLimitPx));
-            
-            const width = Math.max(80, right - left);
-            const height = Math.max(80, bottom - top);
-            const centerY = top + (height / 2);
-            const centerX = left + (width / 2);
-
-            return { left, top, width, height, centerX, centerY, right, bottom };
-        }
-
-        function renderViewportBoxDOM() {
-            if (!debugViewportBox) return;
-            const vb = getSafeViewportBounds();
-            debugViewportBox.style.left = `${vb.left}px`;
-            debugViewportBox.style.top = `${vb.top}px`;
-            debugViewportBox.style.width = `${vb.width}px`;
-            debugViewportBox.style.height = `${vb.height}px`;
-
-            const vpTag = document.getElementById('viewportBoxTag');
-            if (vpTag) {
-                const wP = Math.round((vb.width / (viewportCanvas ? viewportCanvas.clientWidth : 350)) * 100);
-                const hP = Math.round((vb.height / (viewportCanvas ? viewportCanvas.clientHeight : 600)) * 100);
-                vpTag.innerText = `Área Útil do Canvas (${wP}% × ${hP}%)`;
+            if (liveCameraStatus) {
+                liveCameraStatus.innerText = `🔍 Zoom: ${Math.round(avatarScale * 100)}% | ↔️ X: ${Math.round(avatarPanX)}px | ↕️ Y: ${Math.round(avatarPanY)}px`;
             }
-        }
-
-        function calculateFramingFromBoundingBox(box, customSheetH = null) {
-            const m = getAvatarLayoutMetrics();
-            const vb = getSafeViewportBounds(customSheetH);
-
-            // Largura e altura da caixa verde em pixels na tela do aparelho (escala base 1.0)
-            const boxPixelW = Math.max(20, m.w * box.w);
-            const boxPixelH = Math.max(20, m.h * box.h);
-
-            // Estica ao máximo para travar nas bordas da tela (topo, baixo, laterais):
-            const scaleX = vb.width / boxPixelW;
-            const scaleY = vb.height / boxPixelH;
-            const targetScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, Math.min(scaleX, scaleY)));
-
-            // Centro da caixa verde na tela do aparelho
-            const centerPtX = m.w * (box.x + box.w / 2);
-            const centerPtY = m.h * (box.y + box.h / 2);
-
-            // Centraliza o ponto focal exatamente no centro da área útil da tela
-            const targetPanX = (vb.centerX - (m.w / 2)) - (centerPtX - (m.w / 2)) * targetScale;
-            const targetPanY = (vb.centerY - (m.h / 2)) - (centerPtY - (m.h / 2)) * targetScale;
-
-            const clamped = clampPan(targetPanX, targetPanY, targetScale);
-
-            return {
-                scale: targetScale,
-                x: clamped.x,
-                y: clamped.y
-            };
-        }
-
-        // Função de atualização contínua e em tempo real da câmera conforme o menu é arrastado
-        function updateCameraFramingRealtime(targetDuration = 0, customSheetH = null) {
-            const framing = calculateFramingFromBoundingBox(currentBox, customSheetH);
-            if (targetDuration > 0) {
-                animateAvatarCamera(framing.scale, framing.x, framing.y, targetDuration);
-            } else {
-                avatarContainer.style.transition = 'none';
-                avatarScale = framing.scale;
-                avatarPanX = framing.x;
-                avatarPanY = framing.y;
-                updateAvatarTransform(false);
-            }
-            renderViewportBoxDOM();
-        }
-
-        function renderCollisionBoxDOM() {
-            if (!debugCollisionBox) return;
-            const m = getAvatarLayoutMetrics();
-
-            const leftPx = m.offsetX + (m.renderedW * currentBox.x);
-            const topPx = m.offsetY + (m.renderedH * currentBox.y);
-            const widthPx = m.renderedW * currentBox.w;
-            const heightPx = m.renderedH * currentBox.h;
-
-            debugCollisionBox.style.left = `${leftPx}px`;
-            debugCollisionBox.style.top = `${topPx}px`;
-            debugCollisionBox.style.width = `${widthPx}px`;
-            debugCollisionBox.style.height = `${heightPx}px`;
-
-            const wPercent = (currentBox.w * 100).toFixed(0);
-            const hPercent = (currentBox.h * 100).toFixed(0);
-            const xPercent = (currentBox.x * 100).toFixed(0);
-            const yPercent = (currentBox.y * 100).toFixed(0);
-
-            if (boxBadgeTag) boxBadgeTag.innerText = `Sessão: ${activeSessionName} (${wPercent}% × ${hPercent}%)`;
-            if (boxInfoText) boxInfoText.innerText = `📐 [${activeSessionName}] X:${xPercent}% Y:${yPercent}% | L:${wPercent}% A:${hPercent}%`;
-        }
-
-        function updateAvatarTransform(smooth = false) {
-            if (smooth) {
-                avatarContainer.style.transition = 'transform 0.35s cubic-bezier(0.25, 1, 0.5, 1)';
-            } else {
-                avatarContainer.style.transition = 'none';
-            }
-            avatarContainer.style.transform = `translate3d(${avatarPanX}px, ${avatarPanY}px, 0px) scale(${avatarScale})`;
-            updateHudDisplay();
-        }
-
-        function updateHudDisplay() {
-            if (zoomLevelText) {
-                zoomLevelText.innerText = `Zoom: ${Math.round(avatarScale * 100)}%`;
-            }
-            if (coordsText) {
-                coordsText.innerText = `X: ${Math.round(avatarPanX)} | Y: ${Math.round(avatarPanY)}`;
-            }
-            renderCollisionBoxDOM();
-            renderGreenBoxDOM();
-        }
-
-        function animateAvatarCamera(targetScale, targetX, targetY, duration = 480) {
-            isCameraAnimating = true;
-            avatarContainer.style.transition = `transform ${duration}ms cubic-bezier(0.22, 1, 0.36, 1)`;
-            avatarScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, targetScale));
-            avatarPanX = targetX;
-            avatarPanY = targetY;
-            avatarContainer.style.transform = `translate(${avatarPanX}px, ${avatarPanY}px) scale(${avatarScale})`;
-            updateHudDisplay();
-
-            setTimeout(() => {
-                isCameraAnimating = false;
-                avatarContainer.style.transition = 'none';
-            }, duration);
-        }
-
-        function applyResponsivePreset(sessionName, duration = 480) {
-            activeSessionName = sessionName;
-            const box = sessionBoundingBoxes[sessionName] || sessionBoundingBoxes["Identidade"];
-            currentBox = { ...box };
-            renderCollisionBoxDOM();
-
-            if (isDebugMode) {
-                selectGreenSession(sessionName);
-            }
-
-            const framing = calculateFramingFromBoundingBox(currentBox);
-            animateAvatarCamera(framing.scale, framing.x, framing.y, duration);
-            updateDebugSessionTags(sessionName);
-        }
-
-        function updateDebugSessionTags(activeName) {
-            document.querySelectorAll('.debug-session-tag').forEach(tag => {
-                if (tag.getAttribute('data-tab') === activeName) {
+            document.querySelectorAll('[data-camera-tab]').forEach(tag => {
+                if (tag.getAttribute('data-camera-tab') === activeSessionName) {
                     tag.classList.add('active');
                 } else {
                     tag.classList.remove('active');
@@ -2102,318 +1695,43 @@
             });
         }
 
-        function testResponsiveSession(sessionName) {
-            applyResponsivePreset(sessionName, 480);
-            const footerBtn = document.querySelector(`.nav-item[data-tab="${sessionName}"]`);
-            if (footerBtn) {
+        function selectCameraSession(sessionName) {
+            activeSessionName = sessionName;
+            applySessionCameraPreset(sessionName, 450);
+            updateCameraHudDOM();
+
+            // Sincroniza com o menu inferior
+            const navBtn = document.querySelector(`.nav-item[data-tab="${sessionName}"]`);
+            if (navBtn) {
                 document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-                footerBtn.classList.add('active');
+                navBtn.classList.add('active');
                 loadTabContent(sessionName);
             }
         }
 
-        function focusCameraOnCurrentBox() {
-            const framing = calculateFramingFromBoundingBox(currentBox);
-            animateAvatarCamera(framing.scale, framing.x, framing.y, 450);
+        function applySessionCameraPreset(sessionName, duration = 450) {
+            activeSessionName = sessionName;
+            const preset = sessionCameraPresets[sessionName] || sessionCameraPresets["Identidade"];
+            animateAvatarCamera(preset.scale, preset.panX, preset.panY, duration);
+            updateCameraHudDOM();
         }
 
-        /* --- REGISTRAR CAIXA DE COLISÃO DA SESSÃO COM SINCRONIZAÇÃO GLOBAL --- */
-        async function registerCurrentBoxPreset() {
-            sessionBoundingBoxes[activeSessionName] = {
-                x: parseFloat(currentBox.x.toFixed(3)),
-                y: parseFloat(currentBox.y.toFixed(3)),
-                w: parseFloat(currentBox.w.toFixed(3)),
-                h: parseFloat(currentBox.h.toFixed(3))
-            };
-
-            // Salva no armazenamento local do navegador
-            try {
-                localStorage.setItem('mytype_collision_boxes', JSON.stringify(sessionBoundingBoxes));
-                localStorage.setItem('mytype_viewport_collider', JSON.stringify(customViewportCollider));
-            } catch(e) {}
-
-            // Envia para a Nuvem Global na Vercel (muda para todo mundo automaticamente)
-            try {
-                fetch('/api/presets', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        collisionBoxes: sessionBoundingBoxes,
-                        viewportCollider: customViewportCollider
-                    })
-                }).catch(() => {});
-            } catch(e) {}
-
-            const btn = document.getElementById('btnRegisterBox');
-            if (btn) {
-                const prev = btn.innerHTML;
-                btn.innerHTML = `🌐 Salvo Global!`;
-                btn.style.backgroundColor = '#2ecc71';
-                btn.style.borderColor = '#ffffff';
-                setTimeout(() => {
-                    btn.innerHTML = prev;
-                    btn.style.backgroundColor = '';
-                    btn.style.borderColor = '';
-                }, 1800);
-            }
-
-            if (boxInfoText) {
-                boxInfoText.innerText = `🌐 Colisores salvos globalmente!`;
-                setTimeout(() => {
-                    renderCollisionBoxDOM();
-                }, 2200);
-            }
+        function applyResponsivePreset(sessionName, duration = 450) {
+            applySessionCameraPreset(sessionName, duration);
         }
 
-        function exportFixedBoxesConfig() {
-            const exportData = {
-                collisionBoxes: sessionBoundingBoxes,
-                viewportCollider: customViewportCollider
-            };
-            const jsonText = JSON.stringify(exportData, null, 4);
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(jsonText);
-            }
-            if (boxInfoText) {
-                boxInfoText.innerText = "📋 Colisores copiados! Cole aqui no chat!";
-                setTimeout(() => {
-                    renderCollisionBoxDOM();
-                }, 3000);
-            }
-            const btn = document.getElementById('btnExportFixed');
-            if (btn) {
-                const prev = btn.innerHTML;
-                btn.innerHTML = `✅ Copiado!`;
-                setTimeout(() => { btn.innerHTML = prev; }, 2000);
-            }
-        }
-
-        /* --- INTERAÇÃO DIRETA: ARRASTAR E REDIMENSIONAR O COLISOR AZUL DA ÁREA ÚTIL --- */
-        let vpDragMode = null; // 'move' ou 'nw', 'ne', 'sw', 'se', 'n', 's', 'w', 'e'
-        let vpDragStartMouseX = 0;
-        let vpDragStartMouseY = 0;
-        let vpDragStartMargins = null;
-
-        if (debugViewportBox) {
-            debugViewportBox.addEventListener('pointerdown', (e) => {
-                e.stopPropagation();
-                const handle = e.target.getAttribute('data-vp-handle');
-                vpDragMode = handle ? handle : 'move';
-
-                vpDragStartMouseX = e.clientX;
-                vpDragStartMouseY = e.clientY;
-                vpDragStartMargins = { ...customViewportCollider };
-
-                try { debugViewportBox.setPointerCapture(e.pointerId); } catch(err){}
-            });
-
-            debugViewportBox.addEventListener('pointermove', (e) => {
-                if (!vpDragMode || !vpDragStartMargins) return;
-                const m = getAvatarLayoutMetrics();
-
-                const deltaRatioX = (e.clientX - vpDragStartMouseX) / m.w;
-                const deltaRatioY = (e.clientY - vpDragStartMouseY) / m.h;
-
-                if (vpDragMode === 'move') {
-                    customViewportCollider.marginLeft = Math.max(0, Math.min(0.40, vpDragStartMargins.marginLeft + deltaRatioX));
-                    customViewportCollider.marginRight = Math.max(0, Math.min(0.40, vpDragStartMargins.marginRight - deltaRatioX));
-                    customViewportCollider.marginTop = Math.max(0, Math.min(0.40, vpDragStartMargins.marginTop + deltaRatioY));
-                    customViewportCollider.marginBottom = Math.max(0, Math.min(0.40, vpDragStartMargins.marginBottom - deltaRatioY));
-                } else {
-                    if (vpDragMode.includes('w')) {
-                        customViewportCollider.marginLeft = Math.max(0, Math.min(0.45, vpDragStartMargins.marginLeft + deltaRatioX));
-                    }
-                    if (vpDragMode.includes('e')) {
-                        customViewportCollider.marginRight = Math.max(0, Math.min(0.45, vpDragStartMargins.marginRight - deltaRatioX));
-                    }
-                    if (vpDragMode.includes('n')) {
-                        customViewportCollider.marginTop = Math.max(0, Math.min(0.45, vpDragStartMargins.marginTop + deltaRatioY));
-                    }
-                    if (vpDragMode.includes('s')) {
-                        customViewportCollider.marginBottom = Math.max(0, Math.min(0.45, vpDragStartMargins.marginBottom - deltaRatioY));
-                    }
-                }
-
-                try {
-                    localStorage.setItem('mytype_viewport_collider', JSON.stringify(customViewportCollider));
-                } catch(err){}
-
-                renderViewportBoxDOM();
-                updateCameraFramingRealtime(0);
-            });
-
-            debugViewportBox.addEventListener('pointerup', (e) => {
-                vpDragMode = null;
-                vpDragStartMargins = null;
-                try { debugViewportBox.releasePointerCapture(e.pointerId); } catch(err){}
-            });
-        }
-
-        /* --- INTERAÇÃO DIRETA: ARRASTAR E REDIMENSIONAR A CAIXA DE COLISÃO --- */
-        let boxDragMode = null; // 'move' ou 'nw', 'ne', 'sw', 'se', 'n', 's', 'w', 'e'
-        let dragStartMouseX = 0;
-        let dragStartMouseY = 0;
-        let dragStartBox = null;
-
-        if (debugCollisionBox) {
-            debugCollisionBox.addEventListener('pointerdown', (e) => {
-                e.stopPropagation();
-                const handle = e.target.getAttribute('data-handle');
-                boxDragMode = handle ? handle : 'move';
-
-                dragStartMouseX = e.clientX;
-                dragStartMouseY = e.clientY;
-                dragStartBox = { ...currentBox };
-
-                try { debugCollisionBox.setPointerCapture(e.pointerId); } catch(err){}
-            });
-
-            debugCollisionBox.addEventListener('pointermove', (e) => {
-                if (!boxDragMode || !dragStartBox) return;
-                const m = getAvatarLayoutMetrics();
-
-                const deltaNormX = (e.clientX - dragStartMouseX) / (m.renderedW * avatarScale);
-                const deltaNormY = (e.clientY - dragStartMouseY) / (m.renderedH * avatarScale);
-
-                if (boxDragMode === 'move') {
-                    currentBox.x = Math.max(0, Math.min(1 - dragStartBox.w, dragStartBox.x + deltaNormX));
-                    currentBox.y = Math.max(0, Math.min(1 - dragStartBox.h, dragStartBox.y + deltaNormY));
-                } else {
-                    let newX = dragStartBox.x;
-                    let newY = dragStartBox.y;
-                    let newW = dragStartBox.w;
-                    let newH = dragStartBox.h;
-
-                    if (boxDragMode.includes('e')) {
-                        newW = Math.max(0.06, Math.min(1 - dragStartBox.x, dragStartBox.w + deltaNormX));
-                    }
-                    if (boxDragMode.includes('s')) {
-                        newH = Math.max(0.06, Math.min(1 - dragStartBox.y, dragStartBox.h + deltaNormY));
-                    }
-                    if (boxDragMode.includes('w')) {
-                        const right = dragStartBox.x + dragStartBox.w;
-                        newX = Math.max(0, Math.min(right - 0.06, dragStartBox.x + deltaNormX));
-                        newW = right - newX;
-                    }
-                    if (boxDragMode.includes('n')) {
-                        const bottom = dragStartBox.y + dragStartBox.h;
-                        newY = Math.max(0, Math.min(bottom - 0.06, dragStartBox.y + deltaNormY));
-                        newH = bottom - newY;
-                    }
-
-                    currentBox = { x: newX, y: newY, w: newW, h: newH };
-                }
-
-                renderCollisionBoxDOM();
-            });
-
-            debugCollisionBox.addEventListener('pointerup', (e) => {
-                boxDragMode = null;
-                dragStartBox = null;
-                try { debugCollisionBox.releasePointerCapture(e.pointerId); } catch(err){}
-            });
-        }
-
-        /* --- CAIXA DE COLISÃO UNIVERSAL VERDE (ACOPLADA AO AVATAR - SEGUE O ZOOM E TRAVA NAS BORDAS) --- */
-        const debugGreenBox = document.getElementById('debugGreenBox');
-        const greenBadgeTag = document.getElementById('greenBadgeTag');
-        const greenCoordsText = document.getElementById('greenCoordsText');
-
-        const universalGreenBoxes = {
-            "Identidade": { x: 0.10, y: 0.05, w: 0.80, h: 0.90 },
-            "Aparência":  { x: 0.35, y: 0.00, w: 0.30, h: 0.27 },
-            "Busto":      { x: 0.35, y: 0.18, w: 0.30, h: 0.22 },
-            "Pernas":     { x: 0.25, y: 0.40, w: 0.50, h: 0.42 },
-            "Pés":        { x: 0.28, y: 0.78, w: 0.44, h: 0.22 },
-            "Estilo":     { x: 0.15, y: 0.08, w: 0.70, h: 0.84 },
-            "Gravação":   { x: 0.10, y: 0.05, w: 0.80, h: 0.90 }
-        };
-
-        try {
-            const savedGreen = localStorage.getItem('mytype_green_universal_boxes');
-            if (savedGreen) {
-                Object.assign(universalGreenBoxes, JSON.parse(savedGreen));
-            }
-        } catch(e) {}
-
-        let selectedGreenTab = "Identidade";
-        let currentGreenBox = { ...(universalGreenBoxes["Identidade"] || { x: 0.10, y: 0.05, w: 0.80, h: 0.90 }) };
-        let isGreenBoxLocked = false;
-
-        function toggleLockGreenBox() {
-            isGreenBoxLocked = !isGreenBoxLocked;
-            updateLockStatesDOM();
-        }
-
-        function renderGreenBoxDOM() {
-            if (!debugGreenBox) return;
-            const m = getAvatarLayoutMetrics();
-
-            // Mapeado na tela total do aparelho (permite ir de 0% a 100% da tela do aparelho):
-            const ptLeft = m.w * currentGreenBox.x;
-            const ptTop = m.h * currentGreenBox.y;
-            const ptW = m.w * currentGreenBox.w;
-            const ptH = m.h * currentGreenBox.h;
-
-            // Projeção na tela acompanhando o zoom e pan da modelo em tempo real:
-            const screenLeft = (ptLeft - m.w / 2) * avatarScale + (m.w / 2) + avatarPanX;
-            const screenTop = (ptTop - m.h / 2) * avatarScale + (m.h / 2) + avatarPanY;
-            const screenW = ptW * avatarScale;
-            const screenH = ptH * avatarScale;
-
-            debugGreenBox.style.left = `${screenLeft}px`;
-            debugGreenBox.style.top = `${screenTop}px`;
-            debugGreenBox.style.width = `${screenW}px`;
-            debugGreenBox.style.height = `${screenH}px`;
-
-            const wPercent = (currentGreenBox.w * 100).toFixed(0);
-            const hPercent = (currentGreenBox.h * 100).toFixed(0);
-            const xPercent = (currentGreenBox.x * 100).toFixed(0);
-            const yPercent = (currentGreenBox.y * 100).toFixed(0);
-
-            if (greenBadgeTag) greenBadgeTag.innerText = `Verde: ${selectedGreenTab} (${wPercent}% × ${hPercent}%)`;
-            if (greenCoordsText) greenCoordsText.innerText = `📐 [${selectedGreenTab}] X:${xPercent}% Y:${yPercent}% | L:${wPercent}% A:${hPercent}%`;
-        }
-
-        function selectGreenSession(sessionName) {
-            selectedGreenTab = sessionName;
-            currentGreenBox = { ...(universalGreenBoxes[sessionName] || { x: 0.10, y: 0.05, w: 0.80, h: 0.90 }) };
-            renderGreenBoxDOM();
-
-            document.querySelectorAll('.green-tag').forEach(tag => {
-                if (tag.getAttribute('data-green-tab') === sessionName) {
-                    tag.classList.add('active');
-                } else {
-                    tag.classList.remove('active');
-                }
-            });
-
-            // Enquadra automaticamente travando nas bordas da tela
-            focusCameraOnGreenBox();
-        }
-
-        function focusCameraOnGreenBox() {
-            const framing = calculateFramingFromBoundingBox(currentGreenBox);
-            animateAvatarCamera(framing.scale, framing.x, framing.y, 480);
-        }
-
-        function resetAvatarToStandard() {
-            animateAvatarCamera(DEFAULT_SCALE, 0, 0, 400);
-        }
-
-        function registerGreenBoxPreset() {
-            universalGreenBoxes[selectedGreenTab] = {
-                x: parseFloat(currentGreenBox.x.toFixed(3)),
-                y: parseFloat(currentGreenBox.y.toFixed(3)),
-                w: parseFloat(currentGreenBox.w.toFixed(3)),
-                h: parseFloat(currentGreenBox.h.toFixed(3))
+        function saveCurrentCameraToSession() {
+            sessionCameraPresets[activeSessionName] = {
+                scale: parseFloat(avatarScale.toFixed(2)),
+                panX: Math.round(avatarPanX),
+                panY: Math.round(avatarPanY)
             };
 
             try {
-                localStorage.setItem('mytype_green_universal_boxes', JSON.stringify(universalGreenBoxes));
+                localStorage.setItem('mytype_camera_presets', JSON.stringify(sessionCameraPresets));
             } catch(e) {}
 
-            const btn = document.getElementById('btnSaveGreen');
+            const btn = document.getElementById('btnSaveCamera');
             if (btn) {
                 const prev = btn.innerHTML;
                 btn.innerHTML = `🟢 Gravado!`;
@@ -2425,148 +1743,70 @@
                     btn.style.color = '';
                 }, 1800);
             }
-
-            if (greenCoordsText) {
-                greenCoordsText.innerText = `🟢 Gravado para ${selectedGreenTab}!`;
-                setTimeout(() => {
-                    renderGreenBoxDOM();
-                }, 2000);
-            }
+            updateCameraHudDOM();
         }
 
-        function exportGreenBoxesConfig() {
+        function resetCameraToDefault() {
+            animateAvatarCamera(DEFAULT_SCALE, 0, 0, 400);
+        }
+
+        function exportCameraPresets() {
             const exportData = {
-                universalGreenBoxes: universalGreenBoxes
+                cameraPresets: sessionCameraPresets
             };
             const jsonText = JSON.stringify(exportData, null, 4);
             if (navigator.clipboard) {
                 navigator.clipboard.writeText(jsonText);
             }
-            const btn = document.getElementById('btnExportGreen');
+            const btn = document.getElementById('btnExportCamera');
             if (btn) {
                 const prev = btn.innerHTML;
                 btn.innerHTML = `✅ Copiado!`;
                 setTimeout(() => { btn.innerHTML = prev; }, 2000);
             }
-            if (greenCoordsText) {
-                greenCoordsText.innerText = "📋 JSON das 7 Caixas Verdes Copiado!";
-                setTimeout(() => {
-                    renderGreenBoxDOM();
-                }, 3000);
+        }
+
+        function updateAvatarTransform(smooth = false) {
+            if (smooth) {
+                avatarContainer.style.transition = 'transform 0.35s cubic-bezier(0.25, 1, 0.5, 1)';
+            } else {
+                avatarContainer.style.transition = 'none';
             }
+            avatarContainer.style.transform = `translate3d(${avatarPanX}px, ${avatarPanY}px, 0px) scale(${avatarScale})`;
+            updateCameraHudDOM();
         }
 
-        /* --- INTERAÇÃO DIRETA: REDIMENSIONAR A CAIXA VERDE PELOS CANTOS E ARESTAS --- */
-        let greenDragMode = null;
-        let greenStartMouseX = 0;
-        let greenStartMouseY = 0;
-        let greenStartBox = null;
+        function animateAvatarCamera(targetScale, targetX, targetY, duration = 480) {
+            isCameraAnimating = true;
+            avatarContainer.style.transition = `transform ${duration}ms cubic-bezier(0.22, 1, 0.36, 1)`;
+            avatarScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, targetScale));
+            avatarPanX = targetX;
+            avatarPanY = targetY;
+            avatarContainer.style.transform = `translate(${avatarPanX}px, ${avatarPanY}px) scale(${avatarScale})`;
+            updateCameraHudDOM();
 
-        if (debugGreenBox) {
-            debugGreenBox.addEventListener('pointerdown', (e) => {
-                const handle = e.target.getAttribute('data-handle');
-                if (!handle) return; // Centro sem movimentação
-                e.stopPropagation();
-                greenDragMode = handle;
-
-                greenStartMouseX = e.clientX;
-                greenStartMouseY = e.clientY;
-                greenStartBox = { ...currentGreenBox };
-
-                try { e.target.setPointerCapture(e.pointerId); } catch(err){}
-            });
-
-            window.addEventListener('pointermove', (e) => {
-                if (!greenDragMode || !greenStartBox) return;
-                const m = getAvatarLayoutMetrics();
-
-                // Normalizado pela escala da tela do aparelho
-                const effScale = Math.max(0.1, avatarScale);
-                const deltaNormX = (e.clientX - greenStartMouseX) / (m.w * effScale);
-                const deltaNormY = (e.clientY - greenStartMouseY) / (m.h * effScale);
-
-                let newX = greenStartBox.x;
-                let newY = greenStartBox.y;
-                let newW = greenStartBox.w;
-                let newH = greenStartBox.h;
-
-                if (greenDragMode.includes('e')) {
-                    newW = Math.max(0.04, Math.min(1.0 - greenStartBox.x, greenStartBox.w + deltaNormX));
-                }
-                if (greenDragMode.includes('s')) {
-                    newH = Math.max(0.04, Math.min(1.0 - greenStartBox.y, greenStartBox.h + deltaNormY));
-                }
-                if (greenDragMode.includes('w')) {
-                    const right = greenStartBox.x + greenStartBox.w;
-                    newX = Math.max(0.0, Math.min(right - 0.04, greenStartBox.x + deltaNormX));
-                    newW = right - newX;
-                }
-                if (greenDragMode.includes('n')) {
-                    const bottom = greenStartBox.y + greenStartBox.h;
-                    newY = Math.max(0.0, Math.min(bottom - 0.04, greenStartBox.y + deltaNormY));
-                    newH = bottom - newY;
-                }
-
-                newX = Math.max(0.0, Math.min(1.0 - newW, newX));
-                newY = Math.max(0.0, Math.min(1.0 - newH, newY));
-
-                currentGreenBox = { x: newX, y: newY, w: newW, h: newH };
-                renderGreenBoxDOM();
-            });
-
-            window.addEventListener('pointerup', (e) => {
-                greenDragMode = null;
-                greenStartBox = null;
-            });
+            setTimeout(() => {
+                isCameraAnimating = false;
+                avatarContainer.style.transition = 'none';
+            }, duration);
         }
 
-        // Registrar ao clicar no badge HUD
-        if (cameraHudBadge) {
-            cameraHudBadge.addEventListener('click', (e) => {
-                e.stopPropagation();
-                registerCurrentBoxPreset();
-            });
-        }
-
-        /* --- LIMITES RÍGIDOS DE COLISÃO: A ÁREA VERDE COLIDE FISICAMENTE COM A TELA DO APARELHO --- */
+        /* --- LIMITES SEGUROS DE MOVIMENTO DA CÂMERA --- */
         function getStrictPanBounds(scale = avatarScale) {
             const m = getAvatarLayoutMetrics();
-            const vb = getSafeViewportBounds();
+            const scaledW = m.renderedW * scale;
+            const scaledH = m.renderedH * scale;
 
-            const ptLeft = m.w * currentGreenBox.x;
-            const ptTop = m.h * currentGreenBox.y;
-            const ptW = m.w * currentGreenBox.w;
-            const ptH = m.h * currentGreenBox.h;
+            let maxX = Math.max(m.w * 0.45, (scaledW - m.w) * 0.65 + (m.w * 0.35));
+            let minX = -maxX;
 
-            const baseScreenLeft = (ptLeft - m.w / 2) * scale + (m.w / 2);
-            const baseScreenTop = (ptTop - m.h / 2) * scale + (m.h / 2);
-            const screenW = ptW * scale;
-            const screenH = ptH * scale;
+            let maxY = Math.max(m.h * 0.65, (scaledH - m.h) * 0.75 + (m.h * 0.55));
+            let minY = -Math.max(m.h * 0.65, (scaledH - m.h) * 0.75 + (m.h * 0.55));
 
-            let minPanX, maxPanX, minPanY, maxPanY;
+            if (minX > maxX) [minX, maxX] = [maxX, minX];
+            if (minY > maxY) [minY, maxY] = [maxY, minY];
 
-            // Colisão Horizontal com a Área da Tela:
-            if (screenW <= vb.width) {
-                minPanX = vb.left - baseScreenLeft;
-                maxPanX = (vb.right - screenW) - baseScreenLeft;
-            } else {
-                minPanX = (vb.right - screenW) - baseScreenLeft;
-                maxPanX = vb.left - baseScreenLeft;
-            }
-
-            // Colisão Vertical com a Área da Tela:
-            if (screenH <= vb.height) {
-                minPanY = vb.top - baseScreenTop;
-                maxPanY = (vb.bottom - screenH) - baseScreenTop;
-            } else {
-                minPanY = (vb.bottom - screenH) - baseScreenTop;
-                maxPanY = vb.top - baseScreenTop;
-            }
-
-            if (minPanX > maxPanX) [minPanX, maxPanX] = [maxPanX, minPanX];
-            if (minPanY > maxPanY) [minPanY, maxPanY] = [maxPanY, minPanY];
-
-            return { minX: minPanX, maxX: maxPanX, minY: minPanY, maxY: maxPanY };
+            return { minX, maxX, minY, maxY };
         }
 
         function clampPan(x, y, scale = avatarScale) {
@@ -3076,9 +2316,6 @@
 
             bottomSheet.style.height = newHeight + 'px';
             updateSheetState(newHeight);
-            
-            // Ajusta o enquadramento da câmera em tempo real durante o arraste!
-            updateCameraFramingRealtime(0, newHeight);
         });
 
         sheetHeader.addEventListener('pointerup', (e) => {
@@ -3433,12 +2670,11 @@
             const tabName = el.getAttribute('data-tab');
             loadTabContent(tabName);
 
-            // Aumenta o menu para 40% de abertura ao clicar nas opções
+            // Aumenta o menu para a altura padrão ao clicar nas opções
             const targetH = getInitialHeight();
             bottomSheet.style.transition = 'height 0.32s cubic-bezier(0.22, 1, 0.36, 1)';
             bottomSheet.style.height = targetH + 'px';
             updateSheetState(targetH);
-            updateCameraFramingRealtime(320, targetH);
         }
 
         // Recalcula o enquadramento responsivo em rotação ou redimensionamento de janela
