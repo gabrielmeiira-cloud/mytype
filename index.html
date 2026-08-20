@@ -1609,13 +1609,13 @@
         }
 
         /* --- MOTOR DE CÂMERA RESPONSIVO (PROPORÇÃO NORMALIZADA DE CORPO) --- */
-        const DEFAULT_SCALE = 0.79;
+        const DEFAULT_SCALE = 0.76;
         const MIN_SCALE = 0.55;
         const MAX_SCALE = 4.0;
 
         let avatarScale = DEFAULT_SCALE;
-        let avatarPanX = -2;
-        let avatarPanY = -53;
+        let avatarPanX = 0;
+        let avatarPanY = 0;
         let isCameraAnimating = false;
         let activeSessionName = "Identidade";
 
@@ -1646,13 +1646,41 @@
         // Cada preset guarda a escala e o ponto focal anatômico normalizado na modelo (0.0 a 1.0)
         // Isso garante que no Celular, PC ou Tablet, a câmera sempre enquadre o ponto exato da modelo!
         const sessionCameraPresets = {
-            "Identidade": { scale: 0.85, targetX: 0.50, targetY: 0.50 }, // Corpo Inteiro
-            "Aparência":  { scale: 2.85, targetX: 0.50, targetY: 0.09 }, // Rosto & Cabeça
-            "Busto":      { scale: 2.90, targetX: 0.50, targetY: 0.28 }, // Busto & Cintura
-            "Pernas":     { scale: 1.45, targetX: 0.50, targetY: 0.65 }, // Pernas & Joelhos
-            "Pés":        { scale: 2.80, targetX: 0.50, targetY: 0.94 }, // Pés & Sapatos
-            "Estilo":     { scale: 1.05, targetX: 0.50, targetY: 0.45 }, // Moda Geral
-            "Gravação":   { scale: 0.90, targetX: 0.50, targetY: 0.50 }  // Estúdio
+            "Identidade": {
+                "scale": 0.76,
+                "targetX": 0.505,
+                "targetY": 0.422
+            },
+            "Aparência": {
+                "scale": 2.85,
+                "targetX": 0.497,
+                "targetY": 0.037
+            },
+            "Busto": {
+                "scale": 3.31,
+                "targetX": 0.501,
+                "targetY": 0.222
+            },
+            "Pernas": {
+                "scale": 1.45,
+                "targetX": 0.522,
+                "targetY": 0.53
+            },
+            "Pés": {
+                "scale": 2.8,
+                "targetX": 0.5,
+                "targetY": 0.94
+            },
+            "Estilo": {
+                "scale": 1.05,
+                "targetX": 0.5,
+                "targetY": 0.45
+            },
+            "Gravação": {
+                "scale": 0.9,
+                "targetX": 0.5,
+                "targetY": 0.5
+            }
         };
 
         try {
