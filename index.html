@@ -1609,13 +1609,13 @@
         }
 
         /* --- MOTOR DE CÂMERA RESPONSIVO (PROPORÇÃO NORMALIZADA DE CORPO) --- */
-        const DEFAULT_SCALE = 0.90;
+        const DEFAULT_SCALE = 0.79;
         const MIN_SCALE = 0.55;
         const MAX_SCALE = 4.0;
 
         let avatarScale = DEFAULT_SCALE;
-        let avatarPanX = 0;
-        let avatarPanY = 0;
+        let avatarPanX = -2;
+        let avatarPanY = -53;
         let isCameraAnimating = false;
         let activeSessionName = "Identidade";
 
@@ -1644,13 +1644,41 @@
 
         /* --- MOTOR DIRETO DE CÂMERA POR SESSÃO --- */
         const sessionCameraPresets = {
-            "Identidade": { scale: 0.90, panX: 0, panY: 0 },
-            "Aparência":  { scale: 2.25, panX: 0, panY: 200 },
-            "Busto":      { scale: 1.75, panX: 0, panY: 100 },
-            "Pernas":     { scale: 1.40, panX: 0, panY: -90 },
-            "Pés":        { scale: 1.90, panX: 0, panY: -220 },
-            "Estilo":     { scale: 1.05, panX: 0, panY: 15 },
-            "Gravação":   { scale: 0.90, panX: 0, panY: 0 }
+            "Identidade": {
+                "scale": 0.79,
+                "panX": -2,
+                "panY": -53
+            },
+            "Aparência": {
+                "scale": 2.95,
+                "panX": 6,
+                "panY": 498
+            },
+            "Busto": {
+                "scale": 3.11,
+                "panX": 5,
+                "panY": 269
+            },
+            "Pernas": {
+                "scale": 1.4,
+                "panX": -1,
+                "panY": -209
+            },
+            "Pés": {
+                "scale": 2.82,
+                "panX": 7,
+                "panY": -808
+            },
+            "Estilo": {
+                "scale": 1.05,
+                "panX": 0,
+                "panY": 15
+            },
+            "Gravação": {
+                "scale": 0.9,
+                "panX": 0,
+                "panY": 0
+            }
         };
 
         try {
@@ -1747,7 +1775,8 @@
         }
 
         function resetCameraToDefault() {
-            animateAvatarCamera(DEFAULT_SCALE, 0, 0, 400);
+            const def = sessionCameraPresets["Identidade"] || { scale: 0.79, panX: -2, panY: -53 };
+            animateAvatarCamera(def.scale, def.panX, def.panY, 400);
         }
 
         function exportCameraPresets() {
