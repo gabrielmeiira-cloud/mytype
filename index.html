@@ -1642,47 +1642,21 @@
             return { w, h, renderedW, renderedH, offsetX, offsetY };
         }
 
-        /* --- MOTOR DIRETO DE CÂMERA POR SESSÃO --- */
+        /* --- MOTOR UNIVERSAL DE CÂMERA (ANATÔMICO & INDEPENDENTE DE DISPOSITIVO) --- */
+        // Cada preset guarda a escala e o ponto focal anatômico normalizado na modelo (0.0 a 1.0)
+        // Isso garante que no Celular, PC ou Tablet, a câmera sempre enquadre o ponto exato da modelo!
         const sessionCameraPresets = {
-            "Identidade": {
-                "scale": 0.79,
-                "panX": -2,
-                "panY": -53
-            },
-            "Aparência": {
-                "scale": 2.95,
-                "panX": 6,
-                "panY": 498
-            },
-            "Busto": {
-                "scale": 3.11,
-                "panX": 5,
-                "panY": 269
-            },
-            "Pernas": {
-                "scale": 1.4,
-                "panX": -1,
-                "panY": -209
-            },
-            "Pés": {
-                "scale": 2.82,
-                "panX": 7,
-                "panY": -808
-            },
-            "Estilo": {
-                "scale": 1.05,
-                "panX": 0,
-                "panY": 15
-            },
-            "Gravação": {
-                "scale": 0.9,
-                "panX": 0,
-                "panY": 0
-            }
+            "Identidade": { scale: 0.85, targetX: 0.50, targetY: 0.50 }, // Corpo Inteiro
+            "Aparência":  { scale: 2.85, targetX: 0.50, targetY: 0.09 }, // Rosto & Cabeça
+            "Busto":      { scale: 2.90, targetX: 0.50, targetY: 0.28 }, // Busto & Cintura
+            "Pernas":     { scale: 1.45, targetX: 0.50, targetY: 0.65 }, // Pernas & Joelhos
+            "Pés":        { scale: 2.80, targetX: 0.50, targetY: 0.94 }, // Pés & Sapatos
+            "Estilo":     { scale: 1.05, targetX: 0.50, targetY: 0.45 }, // Moda Geral
+            "Gravação":   { scale: 0.90, targetX: 0.50, targetY: 0.50 }  // Estúdio
         };
 
         try {
-            const savedCam = localStorage.getItem('mytype_camera_presets');
+            const savedCam = localStorage.getItem('mytype_camera_presets_universal');
             if (savedCam) {
                 Object.assign(sessionCameraPresets, JSON.parse(savedCam));
             }
@@ -1707,12 +1681,44 @@
             }
         }
 
+        // Calcula dinamicamente o Pan (X, Y) exato para o tamanho de tela de qualquer aparelho
+        function calculateUniversalCameraFraming(preset, customSheetH = null) {
+            const m = getAvatarLayoutMetrics();
+            const sheetH = customSheetH !== null ? customSheetH : (bottomSheet ? bottomSheet.clientHeight : getInitialHeight());
+            const visibleH = Math.max(100, m.h - sheetH);
+            
+            const viewCenterX = m.w / 2;
+            const viewCenterY = visibleH / 2;
+
+            const scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, preset.scale || 1.0));
+            const tX = preset.targetX !== undefined ? preset.targetX : 0.50;
+            const tY = preset.targetY !== undefined ? preset.targetY : 0.50;
+
+            const modelPtX = m.offsetX + (m.renderedW * tX);
+            const modelPtY = m.offsetY + (m.renderedH * tY);
+
+            const targetPanX = (viewCenterX - (m.w / 2)) - (modelPtX - (m.w / 2)) * scale;
+            const targetPanY = (viewCenterY - (m.h / 2)) - (modelPtY - (m.h / 2)) * scale;
+
+            const clamped = clampPan(targetPanX, targetPanY, scale);
+            return {
+                scale: scale,
+                panX: Math.round(clamped.x),
+                panY: Math.round(clamped.y),
+                targetX: tX,
+                targetY: tY
+            };
+        }
+
         function updateCameraHudDOM() {
             if (activeSessionTitle) {
                 activeSessionTitle.innerText = `🎯 Sessão: ${activeSessionName}`;
             }
             if (liveCameraStatus) {
-                liveCameraStatus.innerText = `🔍 Zoom: ${Math.round(avatarScale * 100)}% | ↔️ X: ${Math.round(avatarPanX)}px | ↕️ Y: ${Math.round(avatarPanY)}px`;
+                const preset = sessionCameraPresets[activeSessionName] || { targetX: 0.5, targetY: 0.5 };
+                const tX = preset.targetX !== undefined ? Math.round(preset.targetX * 100) : 50;
+                const tY = preset.targetY !== undefined ? Math.round(preset.targetY * 100) : 50;
+                liveCameraStatus.innerText = `🔍 Zoom: ${Math.round(avatarScale * 100)}% | 📍 Foco: X:${tX}% Y:${tY}%`;
             }
             document.querySelectorAll('[data-camera-tab]').forEach(tag => {
                 if (tag.getAttribute('data-camera-tab') === activeSessionName) {
@@ -1737,32 +1743,43 @@
             }
         }
 
-        function applySessionCameraPreset(sessionName, duration = 450) {
+        function applySessionCameraPreset(sessionName, duration = 450, customSheetH = null) {
             activeSessionName = sessionName;
             const preset = sessionCameraPresets[sessionName] || sessionCameraPresets["Identidade"];
-            animateAvatarCamera(preset.scale, preset.panX, preset.panY, duration);
+            const framing = calculateUniversalCameraFraming(preset, customSheetH);
+            animateAvatarCamera(framing.scale, framing.panX, framing.panY, duration);
             updateCameraHudDOM();
         }
 
-        function applyResponsivePreset(sessionName, duration = 450) {
-            applySessionCameraPreset(sessionName, duration);
+        function applyResponsivePreset(sessionName, duration = 450, customSheetH = null) {
+            applySessionCameraPreset(sessionName, duration, customSheetH);
         }
 
+        // Gravação Universal: converte o enquadramento atual de qualquer aparelho em ponto focal anatômico
         function saveCurrentCameraToSession() {
-            sessionCameraPresets[activeSessionName] = {
-                scale: parseFloat(avatarScale.toFixed(2)),
-                panX: Math.round(avatarPanX),
-                panY: Math.round(avatarPanY)
-            };
+            const m = getAvatarLayoutMetrics();
+            const sheetH = bottomSheet ? bottomSheet.clientHeight : getInitialHeight();
+            const visibleH = Math.max(100, m.h - sheetH);
+            const viewCenterX = m.w / 2;
+            const viewCenterY = visibleH / 2;
+
+            const modelPtX = ((viewCenterX - avatarPanX - (m.w / 2)) / avatarScale) + (m.w / 2);
+            const modelPtY = ((viewCenterY - avatarPanY - (m.h / 2)) / avatarScale) + (m.h / 2);
+
+            const targetX = parseFloat(Math.max(0, Math.min(1, (modelPtX - m.offsetX) / m.renderedW)).toFixed(3));
+            const targetY = parseFloat(Math.max(0, Math.min(1, (modelPtY - m.offsetY) / m.renderedH)).toFixed(3));
+            const scale = parseFloat(avatarScale.toFixed(2));
+
+            sessionCameraPresets[activeSessionName] = { scale, targetX, targetY };
 
             try {
-                localStorage.setItem('mytype_camera_presets', JSON.stringify(sessionCameraPresets));
+                localStorage.setItem('mytype_camera_presets_universal', JSON.stringify(sessionCameraPresets));
             } catch(e) {}
 
             const btn = document.getElementById('btnSaveCamera');
             if (btn) {
                 const prev = btn.innerHTML;
-                btn.innerHTML = `🟢 Gravado!`;
+                btn.innerHTML = `🟢 Gravado Universal!`;
                 btn.style.backgroundColor = '#10b981';
                 btn.style.color = '#ffffff';
                 setTimeout(() => {
@@ -1775,13 +1792,12 @@
         }
 
         function resetCameraToDefault() {
-            const def = sessionCameraPresets["Identidade"] || { scale: 0.79, panX: -2, panY: -53 };
-            animateAvatarCamera(def.scale, def.panX, def.panY, 400);
+            applySessionCameraPreset("Identidade", 400);
         }
 
         function exportCameraPresets() {
             const exportData = {
-                cameraPresets: sessionCameraPresets
+                universalCameraPresets: sessionCameraPresets
             };
             const jsonText = JSON.stringify(exportData, null, 4);
             if (navigator.clipboard) {
@@ -1790,7 +1806,7 @@
             const btn = document.getElementById('btnExportCamera');
             if (btn) {
                 const prev = btn.innerHTML;
-                btn.innerHTML = `✅ Copiado!`;
+                btn.innerHTML = `✅ Copiado Universal!`;
                 setTimeout(() => { btn.innerHTML = prev; }, 2000);
             }
         }
@@ -1846,7 +1862,7 @@
             };
         }
 
-        /* --- ZOOM COM SCROLL DO MOUSE (FOCO NO CURSOR) --- */
+                /* --- ZOOM COM SCROLL DO MOUSE (FOCO NO CURSOR) --- */
         if (viewportCanvas) {
             viewportCanvas.addEventListener('wheel', (e) => {
                 e.preventDefault();
@@ -2345,6 +2361,7 @@
 
             bottomSheet.style.height = newHeight + 'px';
             updateSheetState(newHeight);
+            applySessionCameraPreset(activeSessionName, 0, newHeight);
         });
 
         sheetHeader.addEventListener('pointerup', (e) => {
@@ -2384,7 +2401,7 @@
             bottomSheet.style.transition = 'height 0.28s cubic-bezier(0.22, 1, 0.36, 1)';
             bottomSheet.style.height = targetH + 'px';
             updateSheetState(targetH);
-            updateCameraFramingRealtime(280, targetH);
+            applySessionCameraPreset(activeSessionName, 280, targetH);
         });
 
         sheetHeader.addEventListener('pointercancel', (e) => {
