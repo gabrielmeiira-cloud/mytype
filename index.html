@@ -1402,6 +1402,60 @@
                 display: none !important;
             }
         }
+    
+        /* --- VISUAL CROP BOX (MODO 2 RECORTE MANUAL) --- */
+        .visual-crop-box {
+            position: absolute;
+            display: none;
+            border: 2px dashed #10b981;
+            background: rgba(16, 185, 129, 0.16);
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.52);
+            border-radius: 8px;
+            z-index: 100;
+            cursor: move;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .visual-crop-box.active {
+            display: block;
+        }
+        .crop-header-badge {
+            position: absolute;
+            top: -26px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #10b981;
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 6px;
+            white-space: nowrap;
+            pointer-events: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            letter-spacing: 0.3px;
+        }
+        .crop-handle {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: #10b981;
+            border: 2px solid #ffffff;
+            border-radius: 4px;
+            z-index: 102;
+            touch-action: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+        }
+        .crop-handle.crop-nw { top: -8px; left: -8px; cursor: nwse-resize; }
+        .crop-handle.crop-ne { top: -8px; right: -8px; cursor: nesw-resize; }
+        .crop-handle.crop-sw { bottom: -8px; left: -8px; cursor: nesw-resize; }
+        .crop-handle.crop-se { bottom: -8px; right: -8px; cursor: nwse-resize; }
+        .crop-handle.crop-n { top: -8px; left: calc(50% - 8px); cursor: ns-resize; }
+        .crop-handle.crop-s { bottom: -8px; left: calc(50% - 8px); cursor: ns-resize; }
+        .crop-handle.crop-w { top: calc(50% - 8px); left: -8px; cursor: ew-resize; }
+        .crop-handle.crop-e { top: calc(50% - 8px); right: -8px; cursor: ew-resize; }
+
     </style>
 </head>
 <body>
@@ -1504,16 +1558,17 @@
                 <!-- Viewport / Canvas Interativo da Modelo -->
                 <div class="viewport" id="viewportCanvas">
                     <!-- Caixa de Enquadramento por Colisão (Bounding Box) -->
-                    <div class="debug-box-frame" id="debugBoxFrame" title="Arraste as alças para ajustar a área de enquadramento">
-                        <div class="debug-box-badge" id="debugBoxBadge">Enquadramento: Aparência</div>
-                        <div class="dbg-handle handle-nw" data-handle="nw"></div>
-                        <div class="dbg-handle handle-ne" data-handle="ne"></div>
-                        <div class="dbg-handle handle-sw" data-handle="sw"></div>
-                        <div class="dbg-handle handle-se" data-handle="se"></div>
-                        <div class="dbg-handle handle-n" data-handle="n"></div>
-                        <div class="dbg-handle handle-s" data-handle="s"></div>
-                        <div class="dbg-handle handle-w" data-handle="w"></div>
-                        <div class="dbg-handle handle-e" data-handle="e"></div>
+                    <!-- Caixa de Recorte Visual da Câmera (Crop Box) -->
+                    <div class="visual-crop-box" id="visualCropBox">
+                        <div class="crop-header-badge" id="cropHeaderBadge">✂️ Área de Foco</div>
+                        <div class="crop-handle crop-nw" data-handle="nw"></div>
+                        <div class="crop-handle crop-ne" data-handle="ne"></div>
+                        <div class="crop-handle crop-sw" data-handle="sw"></div>
+                        <div class="crop-handle crop-se" data-handle="se"></div>
+                        <div class="crop-handle crop-n" data-handle="n"></div>
+                        <div class="crop-handle crop-s" data-handle="s"></div>
+                        <div class="crop-handle crop-w" data-handle="w"></div>
+                        <div class="crop-handle crop-e" data-handle="e"></div>
                     </div>
 
                     <div class="avatar-container" id="avatarContainer">
@@ -1658,8 +1713,6 @@
         }
 
         /* --- MOTOR DE CÂMERA UNIVERSAL (PONTO FOCAL & CAIXA DE RECORTE) --- */
-        // Cada sessão armazena: mode ('auto' | 'crop'), targetY (0.0 a 1.0), zoom
-        // Ou no caso de 'crop': cropY, cropH
         const sessionCameraPresets = {
             "Identidade": { mode: 'auto', targetY: 0.50, zoom: 0.8 },
             "Aparência":  { mode: 'auto', targetY: 0.08, zoom: 2.85 },
@@ -1681,12 +1734,10 @@
         const cameraHudGroup = document.getElementById('cameraHudGroup');
         const activeSessionTitle = document.getElementById('activeSessionTitle');
         const liveCameraStatus = document.getElementById('liveCameraStatus');
+        const visualCropBox = document.getElementById('visualCropBox');
         
         let isDebugMode = false;
         let currentBoxMode = 'auto'; // 'auto' ou 'crop'
-
-        // Elementos da Crop Box
-        const visualCropBox = document.getElementById('visualCropBox');
 
         function toggleDebugMode(e) {
             if (e) e.stopPropagation();
@@ -1710,17 +1761,20 @@
 
         function setBoxMode(mode) {
             currentBoxMode = mode;
-            document.getElementById('btnModeAuto').classList.toggle('active', mode === 'auto');
-            document.getElementById('btnModeCrop').classList.toggle('active', mode === 'crop');
+            const btnAuto = document.getElementById('btnModeAuto');
+            const btnCrop = document.getElementById('btnModeCrop');
+            if (btnAuto) btnAuto.classList.toggle('active', mode === 'auto');
+            if (btnCrop) btnCrop.classList.toggle('active', mode === 'crop');
             
             if (mode === 'crop') {
-                initCropBox();
-                visualCropBox.classList.add('active');
-                // Centraliza a câmera inteira primeiro para o usuário recortar
-                applySessionCameraPreset("Gravação", 300);
+                if (visualCropBox) {
+                    positionCropBoxOverCurrentView();
+                    visualCropBox.classList.add('active');
+                }
             } else {
-                visualCropBox.classList.remove('active');
+                if (visualCropBox) visualCropBox.classList.remove('active');
             }
+            updateCameraHudDOM();
         }
 
         /* --- INTEGRAÇÃO EM TEMPO REAL COM O GOOGLE FIREBASE FIRESTORE --- */
@@ -1788,13 +1842,11 @@
                 localStorage.setItem('mytype_camera_presets_v6', JSON.stringify(sessionCameraPresets));
             } catch(e) {}
 
-            let firestoreSuccess = false;
             if (presetsDoc) {
                 try {
                     const savePromise = presetsDoc.set({ [sessionName]: presetData }, { merge: true });
-                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Firestore pendente (ative o banco nas regras)")), 3000));
+                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout no Firestore")), 3000));
                     await Promise.race([savePromise, timeoutPromise]);
-                    firestoreSuccess = true;
                     console.log(`🔥 [Firebase] Posição "${sessionName}" salva e replicada!`);
                     setConnectionStatus("online", "🟢 Gravado no Firebase: " + sessionName);
                 } catch(e) {
@@ -1809,7 +1861,7 @@
         function updateCameraHudDOM() {
             if (activeSessionTitle) activeSessionTitle.innerText = `🎯 Sessão: ${activeSessionName}`;
             if (liveCameraStatus) {
-                liveCameraStatus.innerText = `🔍 Zoom: ${Math.round(avatarScale * 100)}% | Modo: ${currentBoxMode.toUpperCase()}`;
+                liveCameraStatus.innerText = `🔍 Zoom: ${Math.round(avatarScale * 100)}% | Modo: ${currentBoxMode === 'crop' ? '✂️ RECORTE' : '⚡ AUTO'}`;
             }
             document.querySelectorAll('[data-camera-tab]').forEach(tag => {
                 if (tag.getAttribute('data-camera-tab') === activeSessionName) {
@@ -1818,6 +1870,10 @@
                     tag.classList.remove('active');
                 }
             });
+            const cropBadge = document.getElementById('cropHeaderBadge');
+            if (cropBadge) {
+                cropBadge.innerText = `✂️ Foco: ${activeSessionName}`;
+            }
         }
 
         function selectCameraSession(sessionName) {
@@ -1830,6 +1886,9 @@
                 document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
                 navBtn.classList.add('active');
                 loadTabContent(sessionName);
+            }
+            if (currentBoxMode === 'crop' && visualCropBox && visualCropBox.classList.contains('active')) {
+                setTimeout(positionCropBoxOverCurrentView, 460);
             }
         }
 
@@ -1847,14 +1906,11 @@
             let targetPanX = 0;
 
             if (preset.mode === 'crop' && preset.cropH) {
-                // Modo 2: Caixa Visual
-                // A altura do crop na tela do usuário dita o zoom.
-                // Zoom necessário para fazer o cropH (em %) caber na tela visível (visibleH)
+                // Modo 2: Caixa Visual de Recorte
                 const cropPixelsH = preset.cropH * m.renderedH;
-                targetScale = (visibleH * 0.85) / cropPixelsH; // Encaixa ocupando 85% da tela visível
+                targetScale = (visibleH * 0.85) / cropPixelsH;
                 targetScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, targetScale));
 
-                // O centro do crop no corpo é cropY + (cropH/2)
                 const targetY = preset.cropY + (preset.cropH / 2);
                 const modelPtY = m.offsetY + (m.renderedH * targetY);
                 const unpannedY = (modelPtY - (m.h / 2)) * targetScale + (m.h / 2);
@@ -1877,7 +1933,6 @@
         }
 
         // --- SALVAMENTO REVERSO ---
-        // Calcula o ponto anatômico exato que o usuário focou (targetY)
         function saveCurrentCameraToSession() {
             const m = getAvatarLayoutMetrics();
             const sheetH = bottomSheet ? bottomSheet.clientHeight : getInitialHeight();
@@ -1886,41 +1941,34 @@
 
             let sessionData = {};
 
-            if (currentBoxMode === 'crop') {
-                // Se está usando a caixa visual, salva os dados relativos dela
+            if (currentBoxMode === 'crop' && visualCropBox && visualCropBox.classList.contains('active')) {
+                // Modo 2: Salva exatamente a caixa desenhada na tela
+                const vRect = viewportCanvas.getBoundingClientRect();
                 const boxRect = visualCropBox.getBoundingClientRect();
-                const appRect = document.querySelector('.app-container').getBoundingClientRect();
                 
-                // Em relação à tela do app
-                const boxTop = boxRect.top - appRect.top;
-                const boxH = boxRect.height;
+                // Posição da caixa no viewport
+                const boxTopInViewport = boxRect.top - vRect.top;
+                const boxHeight = boxRect.height;
                 
-                // Converte posição na tela -> posição no corpo panned -> desfaz o pan -> desfaz a escala -> Y real na imagem
-                const unpannedTop = boxTop - avatarPanY;
-                const unscaledTop = ((unpannedTop - (m.h/2)) / avatarScale) + (m.h/2);
+                // Desfaz pan e zoom da câmera para achar o ponto real na modelo
+                const unpannedTop = boxTopInViewport - avatarPanY;
+                const unscaledTop = ((unpannedTop - (m.h / 2)) / avatarScale) + (m.h / 2);
                 const relativeY = (unscaledTop - m.offsetY) / m.renderedH;
 
-                const unscaledH = boxH / avatarScale;
+                const unscaledH = boxHeight / avatarScale;
                 const relativeH = unscaledH / m.renderedH;
 
                 sessionData = {
                     mode: 'crop',
-                    cropY: relativeY,
-                    cropH: relativeH,
-                    zoom: parseFloat(avatarScale.toFixed(2)) // Usado como fallback
+                    cropY: parseFloat(Math.max(0, Math.min(1, relativeY)).toFixed(4)),
+                    cropH: parseFloat(Math.max(0.05, Math.min(1, relativeH)).toFixed(4)),
+                    zoom: parseFloat(avatarScale.toFixed(2))
                 };
-                
-                visualCropBox.classList.remove('active');
-                document.getElementById('btnModeAuto').click();
-                
             } else {
-                // Modo Automático (Calcula de trás pra frente)
-                // Que ponto do avatar está em viewCenterY?
+                // Modo 1: Automático
                 const unpannedY = viewCenterY - avatarPanY;
                 const modelPtY = ((unpannedY - (m.h / 2)) / avatarScale) + (m.h / 2);
                 let targetY = (modelPtY - m.offsetY) / m.renderedH;
-                
-                // Limita entre 0 e 1 (Cabeça e pé)
                 targetY = Math.max(0, Math.min(1, targetY));
 
                 sessionData = {
@@ -1948,61 +1996,114 @@
             updateCameraHudDOM();
         }
 
-        // --- CROP BOX INTERACTION SCRIPT ---
-        let isDraggingCrop = false;
-        let cropStartY = 0;
-        let cropStartTop = 0;
-        
-        function initCropBox() {
-            if (!visualCropBox) return;
-            visualCropBox.style.width = '240px';
-            visualCropBox.style.height = '180px';
-            visualCropBox.style.left = '50%';
-            visualCropBox.style.top = '25%';
-            visualCropBox.style.transform = 'translate(-50%, -50%)';
+        // --- SISTEMA INTERATIVO DE RECORTE (CROP BOX ENGINE) ---
+        function positionCropBoxOverCurrentView() {
+            if (!visualCropBox || !viewportCanvas) return;
+            const vRect = viewportCanvas.getBoundingClientRect();
+            const sheetH = bottomSheet ? bottomSheet.clientHeight : getInitialHeight();
+            const visibleH = Math.max(120, vRect.height - sheetH);
             
-            // Drag Simples
-            visualCropBox.onmousedown = (e) => {
-                isDraggingCrop = true;
-                cropStartY = e.clientY;
-                const rect = visualCropBox.getBoundingClientRect();
-                const appRect = document.querySelector('.app-container').getBoundingClientRect();
-                cropStartTop = rect.top - appRect.top + (rect.height/2); // Centro atual
-                e.stopPropagation();
-            };
-            
-            window.addEventListener('mousemove', (e) => {
-                if(isDraggingCrop) {
-                    const deltaY = e.clientY - cropStartY;
-                    visualCropBox.style.top = (cropStartTop + deltaY) + 'px';
-                }
-            });
-            
-            window.addEventListener('mouseup', () => {
-                isDraggingCrop = false;
-            });
-            
-            // Suporte a Touch
-            visualCropBox.ontouchstart = (e) => {
-                isDraggingCrop = true;
-                cropStartY = e.touches[0].clientY;
-                const rect = visualCropBox.getBoundingClientRect();
-                const appRect = document.querySelector('.app-container').getBoundingClientRect();
-                cropStartTop = rect.top - appRect.top + (rect.height/2); 
-                e.stopPropagation();
-            };
-            
-            window.addEventListener('touchmove', (e) => {
-                if(isDraggingCrop) {
-                    const deltaY = e.touches[0].clientY - cropStartY;
-                    visualCropBox.style.top = (cropStartTop + deltaY) + 'px';
-                }
-            }, {passive: false});
-            
-            window.addEventListener('touchend', () => {
-                isDraggingCrop = false;
-            });
+            const boxW = Math.min(vRect.width * 0.72, 280);
+            const boxH = Math.min(visibleH * 0.65, 240);
+            const boxLeft = (vRect.width - boxW) / 2;
+            const boxTop = (visibleH - boxH) * 0.35;
+
+            visualCropBox.style.width = `${Math.round(boxW)}px`;
+            visualCropBox.style.height = `${Math.round(boxH)}px`;
+            visualCropBox.style.left = `${Math.round(boxLeft)}px`;
+            visualCropBox.style.top = `${Math.round(boxTop)}px`;
+            visualCropBox.style.transform = 'none';
         }
+
+        let cropAction = null; // 'drag' ou handle ('nw', 'se', etc.)
+        let cropStartX = 0, cropStartY = 0;
+        let cropStartLeft = 0, cropStartTop = 0, cropStartWidth = 0, cropStartHeight = 0;
+
+        function initCropBoxInteraction() {
+            if (!visualCropBox || !viewportCanvas) return;
+
+            function onCropPointerDown(e) {
+                const handle = e.target.getAttribute('data-handle');
+                cropAction = handle ? handle : 'drag';
+                
+                cropStartX = e.clientX;
+                cropStartY = e.clientY;
+                cropStartLeft = parseFloat(visualCropBox.style.left) || visualCropBox.offsetLeft;
+                cropStartTop = parseFloat(visualCropBox.style.top) || visualCropBox.offsetTop;
+                cropStartWidth = visualCropBox.offsetWidth;
+                cropStartHeight = visualCropBox.offsetHeight;
+
+                e.stopPropagation();
+                e.preventDefault();
+                try { e.target.setPointerCapture(e.pointerId); } catch(err) {}
+            }
+
+            function onCropPointerMove(e) {
+                if (!cropAction) return;
+                e.stopPropagation();
+                e.preventDefault();
+
+                const dx = e.clientX - cropStartX;
+                const dy = e.clientY - cropStartY;
+                const vRect = viewportCanvas.getBoundingClientRect();
+                const minSize = 60;
+
+                if (cropAction === 'drag') {
+                    let nextLeft = cropStartLeft + dx;
+                    let nextTop = cropStartTop + dy;
+                    nextLeft = Math.max(0, Math.min(vRect.width - cropStartWidth, nextLeft));
+                    nextTop = Math.max(0, Math.min(vRect.height - cropStartHeight, nextTop));
+                    visualCropBox.style.left = `${nextLeft}px`;
+                    visualCropBox.style.top = `${nextTop}px`;
+                } else {
+                    let newL = cropStartLeft;
+                    let newT = cropStartTop;
+                    let newW = cropStartWidth;
+                    let newH = cropStartHeight;
+
+                    if (cropAction.includes('e')) {
+                        newW = Math.max(minSize, Math.min(vRect.width - cropStartLeft, cropStartWidth + dx));
+                    }
+                    if (cropAction.includes('s')) {
+                        newH = Math.max(minSize, Math.min(vRect.height - cropStartTop, cropStartHeight + dy));
+                    }
+                    if (cropAction.includes('w')) {
+                        const rawW = cropStartWidth - dx;
+                        if (rawW >= minSize) {
+                            newL = Math.max(0, cropStartLeft + dx);
+                            newW = cropStartWidth + (cropStartLeft - newL);
+                        }
+                    }
+                    if (cropAction.includes('n')) {
+                        const rawH = cropStartHeight - dy;
+                        if (rawH >= minSize) {
+                            newT = Math.max(0, cropStartTop + dy);
+                            newH = cropStartHeight + (cropStartTop - newT);
+                        }
+                    }
+
+                    visualCropBox.style.left = `${newL}px`;
+                    visualCropBox.style.top = `${newT}px`;
+                    visualCropBox.style.width = `${newW}px`;
+                    visualCropBox.style.height = `${newH}px`;
+                }
+            }
+
+            function onCropPointerUp(e) {
+                if (cropAction) {
+                    cropAction = null;
+                    try { e.target.releasePointerCapture(e.pointerId); } catch(err) {}
+                }
+            }
+
+            visualCropBox.addEventListener('pointerdown', onCropPointerDown);
+            window.addEventListener('pointermove', onCropPointerMove);
+            window.addEventListener('pointerup', onCropPointerUp);
+            window.addEventListener('pointercancel', onCropPointerUp);
+        }
+
+        // Inicializa listeners do crop box
+        initCropBoxInteraction();
 
         function resetCameraToDefault() {
             sessionCameraPresets["Identidade"] = { mode: 'auto', targetY: 0.50, zoom: 0.79 };
@@ -2049,7 +2150,7 @@
             }, duration);
         }
 
-        /* --- LIMITES SEGUROS DE MOVIMENTO DA CÂMERA --- */
+                /* --- LIMITES SEGUROS DE MOVIMENTO DA CÂMERA --- */
         function getStrictPanBounds(scale = avatarScale) {
             const m = getAvatarLayoutMetrics();
             const scaledW = m.renderedW * scale;
