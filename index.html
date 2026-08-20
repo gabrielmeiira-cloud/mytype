@@ -1657,6 +1657,33 @@
             }
         }
 
+        // Sincronização automática com o Servidor em Tempo Real
+        async function fetchServerPresets() {
+            try {
+                const res = await fetch('/api/presets');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && typeof data === 'object') {
+                        Object.assign(sessionCameraPresets, data);
+                        try { localStorage.setItem('mytype_camera_presets_v5', JSON.stringify(sessionCameraPresets)); } catch(e){}
+                        if (activeSessionName) {
+                            applySessionCameraPreset(activeSessionName, 0);
+                        }
+                    }
+                }
+            } catch(e) {}
+        }
+
+        async function syncPresetToServer(sessionName, presetData) {
+            try {
+                await fetch('/api/presets', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ [sessionName]: presetData })
+                });
+            } catch(e) {}
+        }
+
         function setSessionAnchorV(anchor) {
             if (!sessionCameraPresets[activeSessionName]) {
                 sessionCameraPresets[activeSessionName] = { scale: avatarScale, panX: avatarPanX, panY: avatarPanY };
@@ -1689,6 +1716,7 @@
             try {
                 localStorage.setItem('mytype_camera_presets_v5', JSON.stringify(sessionCameraPresets));
             } catch(e) {}
+            syncPresetToServer(activeSessionName, sessionCameraPresets[activeSessionName]);
 
             updateAvatarTransform(true);
             updateCameraHudDOM();
@@ -1707,6 +1735,7 @@
             try {
                 localStorage.setItem('mytype_camera_presets_v5', JSON.stringify(sessionCameraPresets));
             } catch(e) {}
+            syncPresetToServer(activeSessionName, sessionCameraPresets[activeSessionName]);
 
             updateAvatarTransform(true);
             updateCameraHudDOM();
@@ -1771,7 +1800,7 @@
             applySessionCameraPreset(sessionName, duration, customSheetH);
         }
 
-        // Grava a posição EXATA e instantânea da tela na sessão e no localStorage
+        // Grava a posição EXATA e instantânea da tela na sessão, no localStorage e no servidor
         function saveCurrentCameraToSession() {
             const prevAnchorV = (sessionCameraPresets[activeSessionName] && sessionCameraPresets[activeSessionName].anchorV) || 'center';
             const prevAnchorH = (sessionCameraPresets[activeSessionName] && sessionCameraPresets[activeSessionName].anchorH) || 'center';
@@ -1787,6 +1816,7 @@
             try {
                 localStorage.setItem('mytype_camera_presets_v5', JSON.stringify(sessionCameraPresets));
             } catch(e) {}
+            syncPresetToServer(activeSessionName, sessionCameraPresets[activeSessionName]);
 
             const btn = document.getElementById('btnSaveCamera');
             if (btn) {
@@ -2760,12 +2790,19 @@
         syncSheetLayout();
 
         // Garante sincronização perfeita no iPhone após pintura do layout e Safe-Area
-        window.addEventListener('load', syncSheetLayout);
-        window.addEventListener('pageshow', syncSheetLayout);
+        window.addEventListener('load', () => {
+            syncSheetLayout();
+            fetchServerPresets();
+        });
+        window.addEventListener('pageshow', () => {
+            syncSheetLayout();
+            fetchServerPresets();
+        });
         window.addEventListener('orientationchange', () => setTimeout(syncSheetLayout, 120));
         setTimeout(syncSheetLayout, 60);
         setTimeout(syncSheetLayout, 200);
         setTimeout(syncSheetLayout, 500);
+        setTimeout(fetchServerPresets, 100);
     </script>
 </body>
 </html>
