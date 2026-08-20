@@ -1765,6 +1765,9 @@
                 sessionCameraPresets[activeSessionName] = { zoom: avatarScale, focusY: 0.5 };
             }
             sessionCameraPresets[activeSessionName].anchorV = anchor;
+            try {
+                localStorage.setItem('mytype_camera_presets_v4', JSON.stringify(sessionCameraPresets));
+            } catch(e) {}
             applySessionCameraPreset(activeSessionName, 350);
             updateCameraHudDOM();
         }
@@ -1774,6 +1777,9 @@
                 sessionCameraPresets[activeSessionName] = { zoom: avatarScale, focusY: 0.5 };
             }
             sessionCameraPresets[activeSessionName].anchorH = anchor;
+            try {
+                localStorage.setItem('mytype_camera_presets_v4', JSON.stringify(sessionCameraPresets));
+            } catch(e) {}
             applySessionCameraPreset(activeSessionName, 350);
             updateCameraHudDOM();
         }
@@ -1832,7 +1838,7 @@
             applySessionCameraPreset(sessionName, duration, customSheetH);
         }
 
-        // Gravação Universal: converte a posição atual da tela de qualquer aparelho em ponto anatômico
+        // Gravação Universal: converte a posição atual da tela de qualquer aparelho em ponto anatômico e grava em tempo real no app
         function saveCurrentCameraToSession() {
             const m = getAvatarLayoutMetrics();
             const sheetH = bottomSheet ? bottomSheet.clientHeight : getInitialHeight();
@@ -1862,7 +1868,7 @@
             const btn = document.getElementById('btnSaveCamera');
             if (btn) {
                 const prev = btn.innerHTML;
-                btn.innerHTML = `🟢 Gravado!`;
+                btn.innerHTML = `🟢 Salvo no App!`;
                 btn.style.backgroundColor = '#10b981';
                 btn.style.color = '#ffffff';
                 setTimeout(() => {
