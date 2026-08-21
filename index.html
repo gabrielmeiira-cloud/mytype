@@ -1617,22 +1617,14 @@
         .debug-visual-overlays * {
             pointer-events: none !important;
         }
-        /* Assegura que os marcadores visuais fiquem 100% visíveis no Desktop e no modo Debug */
-        @media (min-width: 850px) {
-            .debug-visual-overlays,
-            #debugVisualOverlays {
-                display: block !important;
-            }
-            .dbg-anatomy-ruler {
-                display: block !important;
-            }
+        /* Exibição EXCLUSIVA no Modo de Depuração */
+        body:not(.debug-visible-overlays) .debug-visual-overlays,
+        body:not(.debug-visible-overlays) #debugVisualOverlays,
+        body:not(.debug-visible-overlays) .dbg-anatomy-ruler {
+            display: none !important;
         }
-        .desktop-debug-wrapper.debug-active ~ .phone-wrapper #debugVisualOverlays,
-        .debug-visible-overlays #debugVisualOverlays,
+        body.debug-visible-overlays .debug-visual-overlays,
         body.debug-visible-overlays #debugVisualOverlays,
-        body.debug-visible-overlays .debug-visual-overlays {
-            display: block !important;
-        }
         body.debug-visible-overlays .dbg-anatomy-ruler {
             display: block !important;
         }
@@ -2220,9 +2212,8 @@
         let isDebugMode = false;
         let currentMethod = 'sliders'; // 'sliders' ou 'lookAt'
 
-        function toggleDebugMode(e) {
-            if (e) e.stopPropagation();
-            isDebugMode = !isDebugMode;
+        function setDebugModeState(enable) {
+            isDebugMode = enable;
             
             const resizeHandles = document.querySelectorAll('.win-resize-handle');
             resizeHandles.forEach(h => {
@@ -2230,14 +2221,21 @@
             });
 
             if (isDebugMode) {
-                if (btnDebugMode) btnDebugMode.classList.add('active'); document.body.classList.add('debug-visible-overlays');
+                if (btnDebugMode) btnDebugMode.classList.add('active');
+                document.body.classList.add('debug-visible-overlays');
                 if (cameraHudGroup) cameraHudGroup.classList.add('debug-visible');
                 updateCameraHudDOM();
                 syncSlidersWithActivePreset();
             } else {
-                if (btnDebugMode) btnDebugMode.classList.remove('active'); document.body.classList.remove('debug-visible-overlays');
+                if (btnDebugMode) btnDebugMode.classList.remove('active');
+                document.body.classList.remove('debug-visible-overlays');
                 if (cameraHudGroup) cameraHudGroup.classList.remove('debug-visible');
             }
+        }
+
+        function toggleDebugMode(e) {
+            if (e) e.stopPropagation();
+            setDebugModeState(!isDebugMode);
         }
 
         function setCameraMethod(method) {
@@ -3673,8 +3671,7 @@
 
         // Inicia carregando a aba "Identidade" e com as configurações fechadas perfeitamente sincronizadas
         if (window.innerWidth > 850) {
-            document.body.classList.add('debug-visible-overlays');
-            if (btnDebugMode) btnDebugMode.classList.add('active');
+            setDebugModeState(true);
         }
         loadTabContent("Identidade");
         applySessionCameraPreset("Identidade", 0);
