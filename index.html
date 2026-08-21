@@ -1609,6 +1609,7 @@
 
         /* 1. Topo da Tela Útil (Azul Ciano) */
         .dbg-screen-top {
+            top: 38px;
             border-top: 3px solid #06b6d4 !important;
             background: rgba(6, 182, 212, 0.3) !important;
             z-index: 96;
@@ -1621,30 +1622,33 @@
 
         /* 2. Meio da Tela Útil (Verde Esmeralda - Ponto Médio) */
         .dbg-view-center {
+            top: 50%;
             border-top: 3px dashed #10b981 !important;
             background: rgba(16, 185, 129, 0.25) !important;
             z-index: 95;
             display: block !important;
         }
         .dbg-view-center .dbg-line-label {
-            top: -22px !important;
+            top: 5px !important;
             background: #059669 !important;
         }
 
         /* 3. Limite da Gaveta (Vermelho - Topo da Aba) */
         .dbg-sheet-limit {
+            top: calc(100% - 110px);
             border-top: 3px solid #ef4444 !important;
             background: rgba(239, 68, 68, 0.35) !important;
             z-index: 96;
             display: block !important;
         }
         .dbg-sheet-limit .dbg-line-label {
-            top: -22px !important;
+            top: -24px !important;
             background: #dc2626 !important;
         }
 
         /* 4. Fundo da Tela Útil / Base (Azul Ciano) */
         .dbg-screen-bottom {
+            top: calc(100% - 2px);
             border-top: 3px solid #06b6d4 !important;
             background: rgba(6, 182, 212, 0.3) !important;
             z-index: 96;
@@ -2614,18 +2618,22 @@
             if (lineTop) {
                 lineTop.style.top = `${blueTop}px`;
                 lineTop.style.display = 'block';
+                lineTop.style.visibility = 'visible';
             }
             if (lineCenter) {
                 lineCenter.style.top = `${greenTop}px`;
                 lineCenter.style.display = 'block';
+                lineCenter.style.visibility = 'visible';
             }
             if (lineSheet) {
                 lineSheet.style.top = `${redTop}px`;
                 lineSheet.style.display = 'block';
+                lineSheet.style.visibility = 'visible';
             }
             if (lineBottom) {
                 lineBottom.style.top = `${bottomTop}px`;
                 lineBottom.style.display = 'block';
+                lineBottom.style.visibility = 'visible';
             }
 
             updateRulerMarkersDOM();
