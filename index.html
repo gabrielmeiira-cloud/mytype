@@ -3214,8 +3214,6 @@
 
             bottomSheet.style.height = newHeight + 'px';
             updateSheetState(newHeight);
-            applySessionCameraPreset(activeSessionName, 0, newHeight);
-            updateCameraHudDOM(newHeight);
         });
 
         sheetHeader.addEventListener('pointerup', (e) => {
@@ -3255,7 +3253,6 @@
             bottomSheet.style.transition = 'height 0.28s cubic-bezier(0.22, 1, 0.36, 1)';
             bottomSheet.style.height = targetH + 'px';
             updateSheetState(targetH);
-            applySessionCameraPreset(activeSessionName, 280, targetH);
         });
 
         sheetHeader.addEventListener('pointercancel', (e) => {
