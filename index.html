@@ -1617,6 +1617,16 @@
         .debug-visual-overlays * {
             pointer-events: none !important;
         }
+        /* Assegura que os marcadores visuais fiquem 100% visíveis no Desktop e no modo Debug */
+        @media (min-width: 850px) {
+            .debug-visual-overlays,
+            #debugVisualOverlays {
+                display: block !important;
+            }
+            .dbg-anatomy-ruler {
+                display: block !important;
+            }
+        }
         .desktop-debug-wrapper.debug-active ~ .phone-wrapper #debugVisualOverlays,
         .debug-visible-overlays #debugVisualOverlays,
         body.debug-visible-overlays #debugVisualOverlays,
@@ -3662,6 +3672,10 @@
         });
 
         // Inicia carregando a aba "Identidade" e com as configurações fechadas perfeitamente sincronizadas
+        if (window.innerWidth > 850) {
+            document.body.classList.add('debug-visible-overlays');
+            if (btnDebugMode) btnDebugMode.classList.add('active');
+        }
         loadTabContent("Identidade");
         applySessionCameraPreset("Identidade", 0);
         syncSheetLayout();
