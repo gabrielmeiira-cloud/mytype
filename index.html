@@ -1804,143 +1804,54 @@
             <div class="green-dedicated-section" id="cameraControlSection">
                 <div class="green-section-header">
                     <span class="green-dot-indicator"></span>
-                    <span class="green-section-title">Controle de Câmera por Sessão</span>
+                    <span class="green-section-title">Controle de Câmera</span>
                 
-                    <div class="server-status-badge" id="serverStatusBadge" title="Status de Sincronização em Tempo Real">
+                    <div class="server-status-badge" id="serverStatusBadge" title="Status do Firebase em Tempo Real">
                         <span class="status-dot-pulse" id="statusDotPulse"></span>
                         <span id="serverStatusText">🟢 Conectando...</span>
-                    </div></div>
+                    </div>
+                </div>
                 
                 <div class="camera-hud-badge" id="cameraHudBadge">
                     <div class="hud-row">
-                        <span id="activeSessionTitle" style="color: #10b981; font-weight: 700;">🎯 Sessão: Identidade</span>
-                        <span id="dbgMethodBadge" style="background:#10b981; color:#fff; font-size:9px; padding:2px 6px; border-radius:4px; font-weight:bold;">MODO A</span>
+                        <span id="activeSessionTitle" style="color: #10b981; font-weight: 700; font-size: 11px;">🎯 Sessão: Identidade</span>
                     </div>
-                    <div class="hud-sub" id="liveCameraStatus" style="font-family: monospace; font-size: 11px; color:#10b981;">🔍 Zoom: 90% | Foco: 50%</div>
+                    <div class="hud-sub" id="liveCameraStatus" style="font-family: monospace; font-size: 10px; color:#10b981;">🔍 Zoom: 1.00x | 🎯 Foco: 50%</div>
                 </div>
 
-                <!-- Painel Expansível de Telemetria e Coordenadas Vivas -->
+                <!-- Painel Limpo de Telemetria em Tempo Real -->
                 <div class="debug-telemetry-card" id="debugTelemetryCard">
-                    <div class="telemetry-title">📊 Variáveis & Telemetria em Tempo Real</div>
+                    <div class="telemetry-title">📊 Telemetria ao Vivo</div>
                     <div class="telemetry-grid">
-                        <div class="telem-item"><span class="t-lbl">📱 Viewport (LxA):</span> <b id="tViewportDim">390 x 720 px</b></div>
-                        <div class="telem-item"><span class="t-lbl">🖼️ Modelo Render:</span> <b id="tModelDim">390 x 693 px</b></div>
-                        <div class="telem-item"><span class="t-lbl">📐 Offset Topo (Y):</span> <b id="tOffsetY">27 px</b></div>
-                        <div class="telem-item"><span class="t-lbl">📂 Altura Gaveta:</span> <b id="tSheetHeight">320 px</b></div>
-                        <div class="telem-item"><span class="t-lbl">🎯 Centro Útil (Y):</span> <b id="tViewCenterY">192 px</b></div>
-                        <div class="telem-item"><span class="t-lbl">📍 Foco Anatômico:</span> <b id="tFocusPercent">50.0%</b></div>
-                        <div class="telem-item"><span class="t-lbl">🔍 Zoom Atual:</span> <b id="tCurrentZoom">1.00x</b></div>
-                        <div class="telem-item"><span class="t-lbl">↔️ Pan X / Pan Y:</span> <b id="tCurrentPan">0px / 0px</b></div>
+                        <div class="telem-item"><span class="t-lbl">📱 Viewport:</span> <b id="tViewportDim">274 x 561 px</b></div>
+                        <div class="telem-item"><span class="t-lbl">🖼️ Modelo:</span> <b id="tModelDim">274 x 548 px</b></div>
+                        <div class="telem-item"><span class="t-lbl">📂 Gaveta:</span> <b id="tSheetHeight">106 px</b></div>
+                        <div class="telem-item"><span class="t-lbl">🎯 Centro Útil:</span> <b id="tViewCenterY">228 px</b></div>
+                        <div class="telem-item"><span class="t-lbl">🔍 Zoom:</span> <b id="tCurrentZoom">1.00x</b></div>
+                        <div class="telem-item"><span class="t-lbl">↔️ Pan (X/Y):</span> <b id="tCurrentPan">0px / 0px</b></div>
                     </div>
                 </div>
 
-                <!-- Seletor de Metodologia -->
-                <div class="hud-row" style="margin-bottom: 8px;">
-                    <button class="anchor-btn active" id="btnMethodSliders" style="flex:1" onclick="setCameraMethod('sliders')">📐 Modo A: Sliders</button>
-                    <button class="anchor-btn" id="btnMethodLookAt" style="flex:1" onclick="setCameraMethod('lookAt')">🖐️ Modo B: Arraste Livre</button>
-                </div>
-
-                <!-- Painel do Modo A: Sliders Anatômicos -->
-                <div id="methodSlidersPanel" class="method-panel" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px;">
-                    <div class="slider-control-group">
-                        <div style="display:flex; justify-content:space-between; font-size:10.5px; color:#e0e0e0; margin-bottom:2px;">
-                            <span>🎯 Foco Corporal:</span>
-                            <span id="lblFocusY" style="color:#10b981; font-weight:bold;">50% (Centro)</span>
-                        </div>
-                        <input type="range" id="sliderFocusY" min="0" max="100" value="50" step="1" style="width:100%; accent-color:#10b981;" oninput="onFocusSliderChange(this.value)">
-                    </div>
-
-                    <!-- Atalhos Rápidos Anatômicos -->
-                    <div class="quick-anatomical-bar" style="display:flex; gap:3px; justify-content:space-between;">
-                        <button class="quick-pos-btn" onclick="setQuickAnatomicalFocus('rosto', 2.85)">👤 Rosto (10%)</button>
-                        <button class="quick-pos-btn" onclick="setQuickAnatomicalFocus('busto', 3.20)">👕 Busto (28%)</button>
-                        <button class="quick-pos-btn" onclick="setQuickAnatomicalFocus('pernas', 1.65)">👖 Pernas (65%)</button>
-                        <button class="quick-pos-btn" onclick="setQuickAnatomicalFocus('pes', 2.65)">👠 Pés (95%)</button>
-                        <button class="quick-pos-btn" onclick="setQuickAnatomicalFocus('centro', 0.85)">🧍 Geral (50%)</button>
-                    </div>
-
-                    <div class="slider-control-group">
-                        <div style="display:flex; justify-content:space-between; font-size:10.5px; color:#e0e0e0; margin-bottom:2px;">
-                            <span>🔍 Zoom:</span>
-                            <span id="lblZoom" style="color:#10b981; font-weight:bold;">1.00x</span>
-                        </div>
-                        <input type="range" id="sliderZoom" min="55" max="400" value="100" step="5" style="width:100%; accent-color:#10b981;" oninput="onZoomSliderChange(this.value)">
-                    </div>
-                </div>
-
-                <!-- Painel do Modo B: Look-At / Arraste Livre -->
-                <div id="methodLookAtPanel" class="method-panel" style="display: none; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 6px 8px; margin-bottom: 8px; font-size: 10.5px; color: #a7f3d0;">
-                    <div>🖐️ <b>Arraste a modelo e dê zoom livremente.</b></div>
-                    <div style="font-size: 9.5px; color: #9ca3af; margin-top: 2px;">O ponto central da sua visão é fixado automaticamente para todos os aparelhos ao gravar.</div>
-                </div>
-                
-                <!-- Seção de Calibração Manual dos Marcos da Modelo -->
-                <div class="landmark-calibration-card" id="landmarkCalibrationCard" style="background: rgba(0,0,0,0.4); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 8px; padding: 8px; margin-bottom: 8px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; cursor:pointer;" onclick="toggleLandmarkCalibrator()">
-                        <span style="font-size:10px; font-weight:700; color:#f59e0b;">📍 Calibrar Régua da Modelo</span>
-                        <span id="landmarkToggleIcon" style="font-size:10px; color:#f59e0b;">▼</span>
-                    </div>
-                    <div id="landmarkSlidersGroup" style="display:none; flex-direction:column; gap:6px;">
-                        <div class="slider-control-group">
-                            <div style="display:flex; justify-content:space-between; font-size:9.5px; color:#d1d5db;">
-                                <span>👤 Rosto / Cabeça:</span> <b id="lblLandmarkRosto" style="color:#f59e0b;">10%</b>
-                            </div>
-                            <input type="range" id="sliderLM_rosto" min="0" max="100" value="10" step="1" style="accent-color:#f59e0b;" oninput="onLandmarkChange('rosto', this.value)">
-                        </div>
-                        <div class="slider-control-group">
-                            <div style="display:flex; justify-content:space-between; font-size:9.5px; color:#d1d5db;">
-                                <span>👕 Busto / Tronco:</span> <b id="lblLandmarkBusto" style="color:#f59e0b;">28%</b>
-                            </div>
-                            <input type="range" id="sliderLM_busto" min="0" max="100" value="28" step="1" style="accent-color:#f59e0b;" oninput="onLandmarkChange('busto', this.value)">
-                        </div>
-                        <div class="slider-control-group">
-                            <div style="display:flex; justify-content:space-between; font-size:9.5px; color:#d1d5db;">
-                                <span>🧍 Centro / Cintura:</span> <b id="lblLandmarkCentro" style="color:#f59e0b;">50%</b>
-                            </div>
-                            <input type="range" id="sliderLM_centro" min="0" max="100" value="50" step="1" style="accent-color:#f59e0b;" oninput="onLandmarkChange('centro', this.value)">
-                        </div>
-                        <div class="slider-control-group">
-                            <div style="display:flex; justify-content:space-between; font-size:9.5px; color:#d1d5db;">
-                                <span>👖 Pernas / Joelhos:</span> <b id="lblLandmarkPernas" style="color:#f59e0b;">65%</b>
-                            </div>
-                            <input type="range" id="sliderLM_pernas" min="0" max="100" value="65" step="1" style="accent-color:#f59e0b;" oninput="onLandmarkChange('pernas', this.value)">
-                        </div>
-                        <div class="slider-control-group">
-                            <div style="display:flex; justify-content:space-between; font-size:9.5px; color:#d1d5db;">
-                                <span>👠 Pés / Base:</span> <b id="lblLandmarkPes" style="color:#f59e0b;">95%</b>
-                            </div>
-                            <input type="range" id="sliderLM_pes" min="0" max="100" value="95" step="1" style="accent-color:#f59e0b;" oninput="onLandmarkChange('pes', this.value)">
-                        </div>
-                        <button class="pin-action-btn" style="background:#f59e0b; color:#000; font-weight:bold; font-size:9.5px; margin-top:4px;" onclick="saveLandmarksToCloud()">
-                            💾 Gravar Posições da Régua
-                        </button>
-                    </div>
-                </div>
-
-                <div class="pin-actions-row">
-
-                    <button class="pin-action-btn btn-green-save" id="btnSaveCamera" onclick="saveCurrentCameraToSession()" title="Grava o Zoom e a Posição atuais para esta sessão">
-                        💾 Gravar Câmera
-                    </button>
-                    <button class="pin-action-btn btn-green-action" onclick="applySessionCameraPreset(activeSessionName)" title="Testa a posição gravada para a sessão ativa">
-                        🎯 Testar
-                    </button>
-                    <button class="pin-action-btn" onclick="resetCameraToDefault()" title="Reseta para a visão padrão 100% de corpo inteiro">
-                        🔄 Padrão
-                    </button>
-                    <button class="pin-action-btn btn-green-export" id="btnExportCamera" onclick="exportCameraPresets()" title="Copia o JSON com todas as 7 posições de câmera">
-                        📋 Exportar
-                    </button>
-                </div>
-
-                <div class="debug-sessions-bar green-sessions-bar" id="cameraSessionsBar">
+                <!-- Barra de Sessões: 5 Sessões Oficiais -->
+                <div class="debug-sessions-bar green-sessions-bar" id="cameraSessionsBar" style="display: flex; gap: 4px; margin-bottom: 8px; overflow-x: auto; scrollbar-width: none;">
                     <span class="debug-session-tag green-tag active" data-camera-tab="Identidade" onclick="selectCameraSession('Identidade')">Identidade</span>
                     <span class="debug-session-tag green-tag" data-camera-tab="Aparência" onclick="selectCameraSession('Aparência')">Aparência</span>
                     <span class="debug-session-tag green-tag" data-camera-tab="Busto" onclick="selectCameraSession('Busto')">Busto</span>
                     <span class="debug-session-tag green-tag" data-camera-tab="Pernas" onclick="selectCameraSession('Pernas')">Pernas</span>
                     <span class="debug-session-tag green-tag" data-camera-tab="Pés" onclick="selectCameraSession('Pés')">Pés</span>
-                    <span class="debug-session-tag green-tag" data-camera-tab="Estilo" onclick="selectCameraSession('Estilo')">Estilo</span>
-                    <span class="debug-session-tag green-tag" data-camera-tab="Gravação" onclick="selectCameraSession('Gravação')">Gravação</span>
+                </div>
+
+                <!-- 3 Botões Principais: Registrar, Testar e Padrão -->
+                <div class="pin-actions-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
+                    <button class="pin-action-btn btn-green-save" id="btnSaveCamera" onclick="saveCurrentCameraToSession()" title="Registra a posição e o zoom atuais para a sessão ativa" style="padding: 8px 4px; font-weight: 700;">
+                        💾 Registrar
+                    </button>
+                    <button class="pin-action-btn btn-green-action" onclick="applySessionCameraPreset(activeSessionName, 350)" title="Testa a posição gravada da sessão ativa" style="padding: 8px 4px; font-weight: 700;">
+                        🎯 Testar
+                    </button>
+                    <button class="pin-action-btn" onclick="resetCameraToDefault()" title="Restaura a visão padrão de corpo inteiro" style="padding: 8px 4px; font-weight: 700;">
+                        🔄 Padrão
+                    </button>
                 </div>
             </div>
 
@@ -2181,13 +2092,11 @@
         /* --- MOTOR DE CÂMERA DUPLO DEFINITIVO (SLIDERS & LOOK-AT) --- */
         // Cada sessão armazena a posição ideal calibrada
         const sessionCameraPresets = {
-            "Identidade": { method: 'sliders', focusY: 0.50, zoom: 0.85 },
-            "Aparência":  { method: 'sliders', focusY: 0.10, zoom: 2.85 },
-            "Busto":      { method: 'sliders', focusY: 0.28, zoom: 3.20 },
-            "Pernas":     { method: 'sliders', focusY: 0.65, zoom: 1.65 },
-            "Pés":        { method: 'sliders', focusY: 0.95, zoom: 2.65 },
-            "Estilo":     { method: 'sliders', focusY: 0.50, zoom: 1.15 },
-            "Gravação":   { method: 'sliders', focusY: 0.50, zoom: 0.95 }
+            "Identidade": { focusY: 0.50, zoom: 0.85 },
+            "Aparência":  { focusY: 0.10, zoom: 2.85 },
+            "Busto":      { focusY: 0.28, zoom: 3.20 },
+            "Pernas":     { focusY: 0.65, zoom: 1.65 },
+            "Pés":        { focusY: 0.95, zoom: 2.65 }
         };
 
         try {
@@ -2223,7 +2132,7 @@
                 if (overlays) overlays.style.display = 'block';
                 if (ruler) ruler.style.display = 'block';
                 updateCameraHudDOM();
-                syncSlidersWithActivePreset();
+                // syncSliders
             } else {
                 if (btnDebugMode) btnDebugMode.classList.remove('active');
                 document.body.classList.remove('debug-visible-overlays');
@@ -2251,7 +2160,7 @@
             if (panelLookAt) panelLookAt.style.display = method === 'lookAt' ? 'block' : 'none';
 
             if (method === 'sliders') {
-                syncSlidersWithActivePreset();
+                // syncSliders
             }
             updateCameraHudDOM();
         }
@@ -2507,7 +2416,7 @@
                             applySessionCameraPreset(activeSessionName, 350);
                         }
                         updateCameraHudDOM();
-                        syncSlidersWithActivePreset();
+                        // syncSliders
                     } else {
                         presetsDoc.set(sessionCameraPresets);
                     }
@@ -2655,7 +2564,7 @@
             activeSessionName = sessionName;
             applySessionCameraPreset(sessionName, 450);
             updateCameraHudDOM();
-            syncSlidersWithActivePreset();
+            // syncSliders
 
             const navBtn = document.querySelector(`.nav-item[data-tab="${sessionName}"]`);
             if (navBtn) {
@@ -2681,64 +2590,63 @@
             applySessionCameraPreset(sessionName, duration);
         }
 
-        /* --- GRAVAÇÃO DA CÂMERA (MODO A OU MODO B) --- */
+        /* --- REGISTRO UNIFICADO DA CÂMERA (DIRETO E EFICIENTE) --- */
         function saveCurrentCameraToSession() {
-            let sessionData = {};
+            const m = getAvatarLayoutMetrics();
+            const isMobile = window.innerWidth <= 500;
+            const titlebar = document.getElementById('desktopTitlebar');
+            const titlebarH = (!isMobile && titlebar && window.getComputedStyle(titlebar).display !== 'none') ? titlebar.offsetHeight : 0;
+            const totalH = appContainer ? appContainer.clientHeight : (m.h + titlebarH);
+            const sheetH = bottomSheet ? bottomSheet.offsetHeight : 106;
 
-            if (currentMethod === 'sliders') {
-                // Modo A: Grava os valores dos Sliders
-                const focusY = getActiveFocusY();
-                sessionData = {
-                    method: 'sliders',
-                    focusY: parseFloat(focusY.toFixed(4)),
-                    zoom: parseFloat(avatarScale.toFixed(2))
-                };
-            } else {
-                // Modo B: Look-At Reverso (Ponto Médio entre Azul e Vermelho)
-                const m = getAvatarLayoutMetrics();
-                const sheetH = bottomSheet ? bottomSheet.clientHeight : getInitialHeight();
-                const appH = appContainer ? appContainer.clientHeight : (m.h + 38);
-                const isMobile = window.innerWidth <= 500;
-                const titlebarH = (!isMobile && document.getElementById('desktopTitlebar')) ? 38 : 0;
-                const availableH = Math.max(80, (appH - sheetH) - titlebarH);
-                const viewCenterY = Math.round(availableH / 2);
+            const blueTop = titlebarH;
+            const redTop = Math.max(blueTop + 60, totalH - sheetH);
+            const greenTop = Math.round((blueTop + redTop) / 2);
+            const viewCenterY = greenTop - blueTop;
 
-                const unpannedY = viewCenterY - avatarPanY;
-                const modelPtY = ((unpannedY - (m.h / 2)) / avatarScale) + (m.h / 2);
-                let targetY = (modelPtY - m.offsetY) / m.renderedH;
-                targetY = Math.max(0, Math.min(1, targetY));
+            // Calcula qual ponto anatômico da modelo está centralizado sob a linha verde
+            const unpannedY = viewCenterY - avatarPanY;
+            const modelPtY = ((unpannedY - (m.h / 2)) / avatarScale) + (m.h / 2);
+            let targetY = (modelPtY - m.offsetY) / m.renderedH;
+            targetY = Math.max(0, Math.min(1, targetY));
 
-                sessionData = {
-                    method: 'lookAt',
-                    focusY: parseFloat(targetY.toFixed(4)),
-                    zoom: parseFloat(avatarScale.toFixed(2))
-                };
-            }
+            const sessionData = {
+                focusY: parseFloat(targetY.toFixed(4)),
+                zoom: parseFloat(avatarScale.toFixed(2))
+            };
 
             sessionCameraPresets[activeSessionName] = sessionData;
-            syncPresetToCloud(activeSessionName, sessionCameraPresets[activeSessionName]);
+            syncPresetToCloud(activeSessionName, sessionData);
 
             const btn = document.getElementById('btnSaveCamera');
             if (btn) {
                 const prev = btn.innerHTML;
-                btn.innerHTML = `🟢 Posição Gravada!`;
+                btn.innerHTML = `✅ Registrado!`;
                 btn.style.backgroundColor = '#10b981';
                 btn.style.color = '#ffffff';
                 setTimeout(() => {
                     btn.innerHTML = prev;
                     btn.style.backgroundColor = '';
                     btn.style.color = '';
-                }, 1800);
+                }, 1600);
             }
             updateCameraHudDOM();
-            syncSlidersWithActivePreset();
         }
 
         function resetCameraToDefault() {
-            sessionCameraPresets["Identidade"] = { method: 'sliders', focusY: 0.50, zoom: 0.85 };
-            syncPresetToCloud("Identidade", sessionCameraPresets["Identidade"]);
-            applySessionCameraPreset("Identidade", 400);
-            syncSlidersWithActivePreset();
+            const defaultPresets = {
+                "Identidade": { focusY: 0.50, zoom: 0.85 },
+                "Aparência":  { focusY: 0.10, zoom: 2.85 },
+                "Busto":      { focusY: 0.28, zoom: 3.20 },
+                "Pernas":     { focusY: 0.65, zoom: 1.65 },
+                "Pés":        { focusY: 0.95, zoom: 2.65 }
+            };
+
+            const resetVal = defaultPresets[activeSessionName] || { focusY: 0.50, zoom: 0.85 };
+            sessionCameraPresets[activeSessionName] = resetVal;
+            syncPresetToCloud(activeSessionName, resetVal);
+            applySessionCameraPreset(activeSessionName, 350);
+            updateCameraHudDOM();
         }
 
         function exportCameraPresets() {
