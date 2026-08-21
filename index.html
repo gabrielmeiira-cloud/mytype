@@ -1609,8 +1609,10 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 90;
+            z-index: 65;
             display: none;
+            overflow: hidden;
+            border-radius: 36px;
         }
         .desktop-debug-wrapper.debug-active ~ .phone-wrapper #debugVisualOverlays,
         .debug-visible-overlays #debugVisualOverlays {
@@ -2042,6 +2044,29 @@
                     </div>
                 </div>
 
+                                <!-- HUD DE TELEMETRIA E SOBREPOSIÇÃO VISUAL (ACIMA DE TODAS AS CAMADAS: Z-INDEX 65) -->
+                <div class="debug-visual-overlays" id="debugVisualOverlays">
+                    <!-- Linha de Topo da Tela Útil (Azul) -->
+                    <div class="dbg-line dbg-screen-top" id="dbgScreenTopLine">
+                        <span class="dbg-line-label">🔝 Topo da Tela Útil</span>
+                    </div>
+
+                    <!-- Linha de Centro da Visão Atual (Verde - Ponto Médio) -->
+                    <div class="dbg-line dbg-view-center" id="dbgViewCenterLine">
+                        <span class="dbg-line-label">🎯 Centro Útil (Meio)</span>
+                    </div>
+
+                    <!-- Linha de Fundo / Base do Aparelho (Azul Base) -->
+                    <div class="dbg-line dbg-screen-bottom" id="dbgScreenBottomLine">
+                        <span class="dbg-line-label">🔚 Fundo do Aparelho</span>
+                    </div>
+                    
+                    <!-- Linha do Limite Superior da Gaveta (Vermelho - Por Cima da Gaveta) -->
+                    <div class="dbg-line dbg-sheet-limit" id="dbgSheetLimitLine">
+                        <span class="dbg-line-label">⬆️ Limite da Gaveta</span>
+                    </div>
+                </div>
+                
                 <div class="side-menu" id="sideMenu"></div>
 
                 <!-- Linha Fina Indicadora do Limite Superior das Configurações -->
@@ -2419,10 +2444,13 @@
         function calculatePanForAnatomicalPoint(focusY, targetScale, sheetHOverride = null) {
             const m = getAvatarLayoutMetrics();
             const sheetH = sheetHOverride !== null ? sheetHOverride : (bottomSheet ? bottomSheet.clientHeight : getInitialHeight());
-            const sheetLimitY = Math.max(80, Math.round(m.h - sheetH));
+            const appH = appContainer ? appContainer.clientHeight : (m.h + 38);
+            const isMobile = window.innerWidth <= 500;
+            const titlebarH = (!isMobile && document.getElementById('desktopTitlebar')) ? 38 : 0;
             
-            // Centro exato: Ponto médio exato entre a linha azul do topo (0px) e a linha vermelha da gaveta (sheetLimitY)
-            const viewCenterY = Math.round(sheetLimitY / 2);
+            // Altura do espaço útil visível entre a barra de título e o topo da gaveta
+            const availableH = Math.max(80, (appH - sheetH) - titlebarH);
+            const viewCenterY = Math.round(availableH / 2);
 
             const modelPtY = m.offsetY + (m.renderedH * focusY);
             const unpannedY = (modelPtY - (m.h / 2)) * targetScale + (m.h / 2);
@@ -2551,10 +2579,21 @@
             // Atualização de Telemetria ao Vivo
             const m = getAvatarLayoutMetrics();
             const sheetH = bottomSheet ? bottomSheet.clientHeight : getInitialHeight();
-            const sheetLimitY = Math.max(80, Math.round(m.h - sheetH));
+            const appH = appContainer ? appContainer.clientHeight : (m.h + 38);
+            const isMobile = window.innerWidth <= 500;
+            const titlebarH = (!isMobile && document.getElementById('desktopTitlebar')) ? 38 : 0;
             
-            // Centro exato: Ponto médio exato entre a linha azul do topo (0px) e a linha vermelha da gaveta (sheetLimitY)
-            const viewCenterY = Math.round(sheetLimitY / 2);
+            // Posição Y da Linha Azul (Topo do Canvas no appContainer)
+            const blueTop = titlebarH;
+            
+            // Posição Y da Linha Vermelha (Topo da Gaveta no appContainer)
+            const redTop = Math.max(blueTop + 60, Math.round(appH - sheetH));
+            
+            // Posição Y da Linha Verde (Ponto Médio Exato entre Linha Azul e Linha Vermelha)
+            const greenTop = Math.round((blueTop + redTop) / 2);
+            
+            // Centro de câmera relativo ao viewportCanvas
+            const viewCenterY = greenTop - titlebarH;
 
             const tViewDim = document.getElementById('tViewportDim');
             const tModelDim = document.getElementById('tModelDim');
@@ -2569,21 +2608,21 @@
             if (tModelDim) tModelDim.innerText = `${Math.round(m.renderedW)} x ${Math.round(m.renderedH)} px`;
             if (tOffsetY) tOffsetY.innerText = `${Math.round(m.offsetY)} px`;
             if (tSheetH) tSheetH.innerText = `${Math.round(sheetH)} px`;
-            if (tViewCenterY) tViewCenterY.innerText = `${viewCenterY} px (Meio Azul/Vermelho)`;
+            if (tViewCenterY) tViewCenterY.innerText = `${viewCenterY} px (Meio Exato)`;
             if (tFocus) tFocus.innerText = `${focusPercent}%`;
             if (tZoom) tZoom.innerText = `${zoomVal}x (${Math.round(avatarScale * 100)}%)`;
             if (tPan) tPan.innerText = `X: ${Math.round(avatarPanX)}px | Y: ${Math.round(avatarPanY)}px`;
 
-            // Atualização dos Overlays Visuais na Tela da Modelo
+            // Atualização dos Overlays Visuais na Tela da Modelo (Sobrepostos por Cima com Z-INDEX 65)
             const lineTop = document.getElementById('dbgScreenTopLine');
             const lineBottom = document.getElementById('dbgScreenBottomLine');
             const lineCenter = document.getElementById('dbgViewCenterLine');
             const lineSheet = document.getElementById('dbgSheetLimitLine');
 
-            if (lineTop) lineTop.style.top = '0px';
-            if (lineBottom) lineBottom.style.top = `${Math.max(0, Math.round(m.h - 2))}px`;
-            if (lineCenter) lineCenter.style.top = `${viewCenterY}px`;
-            if (lineSheet) lineSheet.style.top = `${sheetLimitY}px`;
+            if (lineTop) lineTop.style.top = `${blueTop}px`;
+            if (lineBottom) lineBottom.style.top = `${Math.max(0, Math.round(appH - 2))}px`;
+            if (lineCenter) lineCenter.style.top = `${greenTop}px`;
+            if (lineSheet) lineSheet.style.top = `${redTop}px`;
 
             updateRulerMarkersDOM();
             const currentFocusMarker = document.getElementById('dbgCurrentFocusMarker');
@@ -2642,9 +2681,12 @@
             } else {
                 // Modo B: Look-At Reverso (Ponto Médio entre Azul e Vermelho)
                 const m = getAvatarLayoutMetrics();
-                const sheetH = bottomSheet ? bottomSheet.clientHeight : getMinHeight();
-                const sheetLimitY = Math.max(80, m.h - sheetH);
-                const viewCenterY = sheetLimitY / 2;
+                const sheetH = bottomSheet ? bottomSheet.clientHeight : getInitialHeight();
+                const appH = appContainer ? appContainer.clientHeight : (m.h + 38);
+                const isMobile = window.innerWidth <= 500;
+                const titlebarH = (!isMobile && document.getElementById('desktopTitlebar')) ? 38 : 0;
+                const availableH = Math.max(80, (appH - sheetH) - titlebarH);
+                const viewCenterY = Math.round(availableH / 2);
 
                 const unpannedY = viewCenterY - avatarPanY;
                 const modelPtY = ((unpannedY - (m.h / 2)) / avatarScale) + (m.h / 2);
