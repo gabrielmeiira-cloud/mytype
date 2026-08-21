@@ -1556,51 +1556,6 @@
         }
 
         
-        .dbg-screen-top {
-            top: 0px;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            border-top: 2px solid #06b6d4;
-            background: rgba(6, 182, 212, 0.25);
-            z-index: 95;
-        }
-        .dbg-screen-top .dbg-line-label {
-            position: absolute;
-            top: 5px !important;
-            right: 10px !important;
-            background: #0891b2 !important;
-            color: #ffffff !important;
-            font-size: 9.5px;
-            font-weight: 700;
-            padding: 2px 7px;
-            border-radius: 4px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.8);
-            letter-spacing: 0.2px;
-        }
-
-        .dbg-screen-bottom {
-            left: 0;
-            width: 100%;
-            height: 2px;
-            border-top: 2px solid #06b6d4;
-            background: rgba(6, 182, 212, 0.15);
-            z-index: 95;
-        }
-        .dbg-screen-bottom .dbg-line-label {
-            position: absolute;
-            top: -22px !important;
-            right: 10px !important;
-            background: #0891b2 !important;
-            color: #ffffff !important;
-            font-size: 9.5px;
-            font-weight: 700;
-            padding: 2px 7px;
-            border-radius: 4px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.8);
-            letter-spacing: 0.2px;
-        }
-
         /* --- TELEMETRIA & SOBREPOSIÇÃO VISUAL DE DEPURAÇÃO --- */
         .debug-visual-overlays {
             position: absolute;
@@ -1611,12 +1566,13 @@
             pointer-events: none !important;
             z-index: 65;
             display: none;
-            overflow: hidden;
+            overflow: visible;
             border-radius: 36px;
         }
         .debug-visual-overlays * {
             pointer-events: none !important;
         }
+        
         /* Exibição EXCLUSIVA no Modo de Depuração */
         body:not(.debug-visible-overlays) .debug-visual-overlays,
         body:not(.debug-visible-overlays) #debugVisualOverlays,
@@ -1635,35 +1591,63 @@
             width: 100%;
             height: 2px;
             z-index: 92;
-            transition: top 0.15s ease;
-        }
-        .dbg-view-center {
-            border-top: 2px dashed #10b981;
-            background: rgba(16, 185, 129, 0.08);
-        }
-        .dbg-sheet-limit {
-            border-top: 2px solid #ef4444;
-            background: rgba(239, 68, 68, 0.15);
-            z-index: 95;
+            pointer-events: none !important;
         }
         .dbg-line-label {
             position: absolute;
-            right: 10px;
+            right: 12px;
             font-size: 9.5px;
             font-weight: 700;
-            padding: 2px 7px;
+            padding: 2px 8px;
             border-radius: 4px;
-            color: #fff;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.8);
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.85);
             letter-spacing: 0.2px;
+            white-space: nowrap;
         }
-        .dbg-view-center .dbg-line-label { 
-            background: #10b981; 
-            top: -22px;
+
+        /* 1. Topo da Tela Útil (Azul Ciano) */
+        .dbg-screen-top {
+            border-top: 2px solid #06b6d4 !important;
+            background: rgba(6, 182, 212, 0.25) !important;
+            z-index: 96;
         }
-        .dbg-sheet-limit .dbg-line-label { 
-            background: #dc2626 !important; 
-            top: -22px;
+        .dbg-screen-top .dbg-line-label {
+            top: 5px !important;
+            background: #0891b2 !important;
+        }
+
+        /* 2. Meio da Tela Útil (Verde Esmeralda) */
+        .dbg-view-center {
+            border-top: 2px dashed #10b981 !important;
+            background: rgba(16, 185, 129, 0.15) !important;
+            z-index: 95;
+        }
+        .dbg-view-center .dbg-line-label {
+            top: -22px !important;
+            background: #059669 !important;
+        }
+
+        /* 3. Limite da Gaveta (Vermelho) */
+        .dbg-sheet-limit {
+            border-top: 2px solid #ef4444 !important;
+            background: rgba(239, 68, 68, 0.2) !important;
+            z-index: 96;
+        }
+        .dbg-sheet-limit .dbg-line-label {
+            top: -22px !important;
+            background: #dc2626 !important;
+        }
+
+        /* 4. Fundo da Tela Útil / Base (Azul Ciano) */
+        .dbg-screen-bottom {
+            border-top: 2px solid #06b6d4 !important;
+            background: rgba(6, 182, 212, 0.25) !important;
+            z-index: 96;
+        }
+        .dbg-screen-bottom .dbg-line-label {
+            top: -24px !important;
+            background: #0891b2 !important;
         }
 
         /* Marcadores Anatômicos na Modelo */
@@ -2026,26 +2010,26 @@
                     </div>
                 </div>
 
-                                                <!-- HUD DE TELEMETRIA E SOBREPOSIÇÃO VISUAL (Z-INDEX 65 - VISÍVEL POR CIMA DE TUDO) -->
+                                                <!-- HUD DE TELEMETRIA E SOBREPOSIÇÃO VISUAL (Z-INDEX 65 - VISÍVEL POR CIMA DE TUDO NO MODO DEBUG) -->
                 <div class="debug-visual-overlays" id="debugVisualOverlays">
-                    <!-- Linha de Topo da Tela Útil (Azul) -->
+                    <!-- Linha 1: Topo da Tela Útil (Azul Ciano) -->
                     <div class="dbg-line dbg-screen-top" id="dbgScreenTopLine">
-                        <span class="dbg-line-label">🔝 Topo da Tela Útil</span>
+                        <span class="dbg-line-label">🔝 Topo da Tela Útil (0px)</span>
                     </div>
 
-                    <!-- Linha de Centro da Visão Atual (Verde - Ponto Médio Exato) -->
+                    <!-- Linha 2: Meio da Tela Útil (Verde Esmeralda - Ponto Médio Exato) -->
                     <div class="dbg-line dbg-view-center" id="dbgViewCenterLine">
-                        <span class="dbg-line-label">🎯 Centro Útil (Meio)</span>
+                        <span class="dbg-line-label">🎯 Meio da Tela Útil (50%)</span>
                     </div>
 
-                    <!-- Linha de Fundo / Base do Aparelho (Azul Base) -->
-                    <div class="dbg-line dbg-screen-bottom" id="dbgScreenBottomLine">
-                        <span class="dbg-line-label">🔚 Fundo do Aparelho</span>
-                    </div>
-                    
-                    <!-- Linha do Limite Superior da Gaveta (Vermelho - Por Cima da Borda da Gaveta) -->
+                    <!-- Linha 3: Limite Superior da Gaveta (Vermelho - Por Cima da Borda da Gaveta) -->
                     <div class="dbg-line dbg-sheet-limit" id="dbgSheetLimitLine">
-                        <span class="dbg-line-label">⬆️ Limite da Gaveta (Topo)</span>
+                        <span class="dbg-line-label">⬆️ Limite da Gaveta (Sheet Top)</span>
+                    </div>
+
+                    <!-- Linha 4: Fundo da Tela Útil / Base do Aparelho (Azul Ciano) -->
+                    <div class="dbg-line dbg-screen-bottom" id="dbgScreenBottomLine">
+                        <span class="dbg-line-label">🔚 Fundo da Tela Útil (Base)</span>
                     </div>
                 </div>
                 <div class="side-menu" id="sideMenu"></div>
