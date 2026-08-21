@@ -1994,35 +1994,6 @@
                         <div class="crop-handle crop-s" data-handle="s"></div>
                         <div class="crop-handle crop-w" data-handle="w"></div>
                         <div class="crop-handle crop-e" data-handle="e"></div>
-                    </div>
-
-                    
-                    <!-- HUD DE TELEMETRIA E SOBREPOSIÇÃO VISUAL (APENAS DEBUG) -->
-                    <div class="debug-visual-overlays" id="debugVisualOverlays">
-                        <!-- Linha de Topo da Tela Útil -->
-                        <div class="dbg-line dbg-screen-top" id="dbgScreenTopLine">
-                            <span class="dbg-line-label" style="background:#06b6d4;">🔝 Topo da Tela Útil (0px)</span>
-                        </div>
-
-                        <!-- Linha de Centro da Visão Atual -->
-                        <div class="dbg-line dbg-view-center" id="dbgViewCenterLine">
-                            <span class="dbg-line-label">🎯 Centro da Tela (50%)</span>
-                        </div>
-
-                        <!-- Linha de Fundo / Base da Tela Útil -->
-                        <div class="dbg-line dbg-screen-bottom" id="dbgScreenBottomLine">
-                            <span class="dbg-line-label" style="background:#06b6d4;">🔚 Fundo da Tela Útil (Base)</span>
-                        </div>
-                        
-                        <!-- Linha de Topo da Gaveta (Bottom Sheet Limit) -->
-                        <div class="dbg-line dbg-sheet-limit" id="dbgSheetLimitLine">
-                            <span class="dbg-line-label">⬆️ Limite da Gaveta (Sheet Top)</span>
-                        </div>
-
-    
-
-
-                    </div>
                     <div class="avatar-container" id="avatarContainer">
                         <!-- Marcadores Anatômicos 100% Ancorados na Modelo (Escala 1:1) -->
                         <div class="dbg-anatomy-ruler" id="dbgAnatomyRuler">
@@ -2044,14 +2015,14 @@
                     </div>
                 </div>
 
-                                <!-- HUD DE TELEMETRIA E SOBREPOSIÇÃO VISUAL (ACIMA DE TODAS AS CAMADAS: Z-INDEX 65) -->
+                                                <!-- HUD DE TELEMETRIA E SOBREPOSIÇÃO VISUAL (Z-INDEX 65 - VISÍVEL POR CIMA DE TUDO) -->
                 <div class="debug-visual-overlays" id="debugVisualOverlays">
                     <!-- Linha de Topo da Tela Útil (Azul) -->
                     <div class="dbg-line dbg-screen-top" id="dbgScreenTopLine">
                         <span class="dbg-line-label">🔝 Topo da Tela Útil</span>
                     </div>
 
-                    <!-- Linha de Centro da Visão Atual (Verde - Ponto Médio) -->
+                    <!-- Linha de Centro da Visão Atual (Verde - Ponto Médio Exato) -->
                     <div class="dbg-line dbg-view-center" id="dbgViewCenterLine">
                         <span class="dbg-line-label">🎯 Centro Útil (Meio)</span>
                     </div>
@@ -2061,12 +2032,11 @@
                         <span class="dbg-line-label">🔚 Fundo do Aparelho</span>
                     </div>
                     
-                    <!-- Linha do Limite Superior da Gaveta (Vermelho - Por Cima da Gaveta) -->
+                    <!-- Linha do Limite Superior da Gaveta (Vermelho - Por Cima da Borda da Gaveta) -->
                     <div class="dbg-line dbg-sheet-limit" id="dbgSheetLimitLine">
-                        <span class="dbg-line-label">⬆️ Limite da Gaveta</span>
+                        <span class="dbg-line-label">⬆️ Limite da Gaveta (Topo)</span>
                     </div>
                 </div>
-                
                 <div class="side-menu" id="sideMenu"></div>
 
                 <!-- Linha Fina Indicadora do Limite Superior das Configurações -->
@@ -2443,14 +2413,16 @@
         /* --- FÓRMULA MATEMÁTICA ANATÔMICA CENTRALIZADORA --- */
         function calculatePanForAnatomicalPoint(focusY, targetScale, sheetHOverride = null) {
             const m = getAvatarLayoutMetrics();
-            const sheetH = sheetHOverride !== null ? sheetHOverride : (bottomSheet ? bottomSheet.clientHeight : getInitialHeight());
-            const appH = appContainer ? appContainer.clientHeight : (m.h + 38);
-            const isMobile = window.innerWidth <= 500;
-            const titlebarH = (!isMobile && document.getElementById('desktopTitlebar')) ? 38 : 0;
+            const vRect = viewportCanvas ? viewportCanvas.getBoundingClientRect() : { top: 38, height: m.h };
+            const aRect = appContainer ? appContainer.getBoundingClientRect() : { top: 0, height: m.h + 38 };
+            const sRect = bottomSheet ? bottomSheet.getBoundingClientRect() : { top: aRect.top + aRect.height - 106 };
+
+            const blueTop = Math.max(0, vRect.top - aRect.top);
+            const redTop = Math.max(blueTop + 60, sRect.top - aRect.top);
+            const greenTop = Math.round((blueTop + redTop) / 2);
             
-            // Altura do espaço útil visível entre a barra de título e o topo da gaveta
-            const availableH = Math.max(80, (appH - sheetH) - titlebarH);
-            const viewCenterY = Math.round(availableH / 2);
+            // Centro de visão da câmera dentro do viewportCanvas
+            const viewCenterY = greenTop - blueTop;
 
             const modelPtY = m.offsetY + (m.renderedH * focusY);
             const unpannedY = (modelPtY - (m.h / 2)) * targetScale + (m.h / 2);
@@ -2576,24 +2548,23 @@
                 }
             });
 
-            // Atualização de Telemetria ao Vivo
+            // Atualização de Telemetria ao Vivo (Coordenadas Reais do Navegador)
             const m = getAvatarLayoutMetrics();
-            const sheetH = bottomSheet ? bottomSheet.clientHeight : getInitialHeight();
-            const appH = appContainer ? appContainer.clientHeight : (m.h + 38);
-            const isMobile = window.innerWidth <= 500;
-            const titlebarH = (!isMobile && document.getElementById('desktopTitlebar')) ? 38 : 0;
+            const vRect = viewportCanvas ? viewportCanvas.getBoundingClientRect() : { top: 38, height: m.h };
+            const aRect = appContainer ? appContainer.getBoundingClientRect() : { top: 0, height: m.h + 38 };
+            const sRect = bottomSheet ? bottomSheet.getBoundingClientRect() : { top: aRect.top + aRect.height - 106 };
+
+            // Posição Y Real da Linha Azul (Topo do Canvas no appContainer)
+            const blueTop = Math.max(0, Math.round(vRect.top - aRect.top));
             
-            // Posição Y da Linha Azul (Topo do Canvas no appContainer)
-            const blueTop = titlebarH;
+            // Posição Y Real da Linha Vermelha (Topo Exato da Gaveta no appContainer)
+            const redTop = Math.max(blueTop + 60, Math.round(sRect.top - aRect.top));
             
-            // Posição Y da Linha Vermelha (Topo da Gaveta no appContainer)
-            const redTop = Math.max(blueTop + 60, Math.round(appH - sheetH));
-            
-            // Posição Y da Linha Verde (Ponto Médio Exato entre Linha Azul e Linha Vermelha)
+            // Posição Y Real da Linha Verde (Ponto Médio Exato entre Azul e Vermelho)
             const greenTop = Math.round((blueTop + redTop) / 2);
             
             // Centro de câmera relativo ao viewportCanvas
-            const viewCenterY = greenTop - titlebarH;
+            const viewCenterY = greenTop - blueTop;
 
             const tViewDim = document.getElementById('tViewportDim');
             const tModelDim = document.getElementById('tModelDim');
