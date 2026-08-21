@@ -2336,17 +2336,18 @@
             }
         } catch(e) {}
 
-        /* --- FÓRMULA MATEMÁTICA ANATÔMICA CENTRALIZADORA --- */
-        function calculatePanForAnatomicalPoint(focusY, targetScale, sheetHOverride = null) {
+        /* --- FÓRMULA MATEMÁTICA ANATÔMICA CENTRALIZADORA (IMUNE À GAVETA) --- */
+        function calculatePanForAnatomicalPoint(focusY, targetScale) {
             const m = getAvatarLayoutMetrics();
             const isMobile = window.innerWidth <= 500;
             const titlebar = document.getElementById('desktopTitlebar');
             const titlebarH = (!isMobile && titlebar && window.getComputedStyle(titlebar).display !== 'none') ? titlebar.offsetHeight : 0;
             const totalH = appContainer ? appContainer.clientHeight : (m.h + titlebarH);
-            const sheetH = sheetHOverride !== null ? sheetHOverride : (bottomSheet ? bottomSheet.offsetHeight : 106);
+            const baseSheetH = getMinHeight();
 
+            // Ponto de centro estático e estável (não é empurrado pela abertura da gaveta)
             const blueTop = titlebarH;
-            const redTop = Math.max(blueTop + 60, totalH - sheetH);
+            const redTop = Math.max(blueTop + 60, totalH - baseSheetH);
             const greenTop = Math.round((blueTop + redTop) / 2);
             
             // Centro de visão da câmera relativo ao viewportCanvas
@@ -2562,9 +2563,10 @@
 
         function selectCameraSession(sessionName) {
             activeSessionName = sessionName;
-            const minH = getMinHeight();
-            bottomSheet.style.height = minH + 'px';
-            updateSheetState(minH);
+            const initialH = getInitialHeight();
+            bottomSheet.style.transition = 'height 0.28s cubic-bezier(0.22, 1, 0.36, 1)';
+            bottomSheet.style.height = initialH + 'px';
+            updateSheetState(initialH);
             applySessionCameraPreset(sessionName, 350);
             updateCameraHudDOM();
 
@@ -3565,16 +3567,31 @@
 
         function selectFooterTab(el) {
             const tabName = el.getAttribute('data-tab');
+            const isAlreadyActive = el.classList.contains('active');
             const minH = getMinHeight();
+            const initialH = getInitialHeight();
+            const currentH = bottomSheet ? bottomSheet.clientHeight : minH;
+            const isCurrentlyClosed = currentH <= minH + 15;
 
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             el.classList.add('active');
 
-            // Carrega o conteúdo e mantém a gaveta 100% estática na base (sem abrir nem mover o avatar)
-            loadTabContent(tabName);
-            bottomSheet.style.height = minH + 'px';
-            updateSheetState(minH);
+            let targetH;
+            if (isAlreadyActive) {
+                // Se já estava selecionado, alterna abre/fecha a gaveta!
+                targetH = isCurrentlyClosed ? initialH : minH;
+            } else {
+                // Ao trocar de categoria, carrega o conteúdo e abre a gaveta na altura ideal
+                loadTabContent(tabName);
+                targetH = initialH;
+            }
 
+            // Abre ou fecha a gaveta suavemente
+            bottomSheet.style.transition = 'height 0.28s cubic-bezier(0.22, 1, 0.36, 1)';
+            bottomSheet.style.height = targetH + 'px';
+            updateSheetState(targetH);
+
+            // Posiciona a câmera no preset da sessão (com enquadramento fixo e estável, imune à gaveta)
             applySessionCameraPreset(tabName, 350);
             updateCameraHudDOM();
         }
