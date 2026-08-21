@@ -1615,8 +1615,13 @@
             border-radius: 36px;
         }
         .desktop-debug-wrapper.debug-active ~ .phone-wrapper #debugVisualOverlays,
-        .debug-visible-overlays #debugVisualOverlays {
-            display: block;
+        .debug-visible-overlays #debugVisualOverlays,
+        body.debug-visible-overlays #debugVisualOverlays,
+        body.debug-visible-overlays .debug-visual-overlays {
+            display: block !important;
+        }
+        body.debug-visible-overlays .dbg-anatomy-ruler {
+            display: block !important;
         }
 
         .dbg-line {
@@ -2554,6 +2559,7 @@
             const vRect = viewportCanvas ? viewportCanvas.getBoundingClientRect() : { top: 38, height: m.h };
             const aRect = appContainer ? appContainer.getBoundingClientRect() : { top: 0, height: m.h + 38 };
             const sRect = bottomSheet ? bottomSheet.getBoundingClientRect() : { top: aRect.top + aRect.height - 106 };
+            const appH = aRect.height || (m.h + 38);
 
             // Posição Y Real da Linha Azul (Topo do Canvas no appContainer)
             const blueTop = Math.max(0, Math.round(vRect.top - aRect.top));
