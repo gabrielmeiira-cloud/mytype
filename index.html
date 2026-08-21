@@ -1592,6 +1592,7 @@
             height: 2px;
             z-index: 92;
             pointer-events: none !important;
+            transition: top 0.28s cubic-bezier(0.22, 1, 0.36, 1);
         }
         .dbg-line-label {
             position: absolute;
@@ -2563,13 +2564,13 @@
                 }
             });
 
-            // Atualização de Telemetria ao Vivo (Cálculo Preciso e Determinístico)
+            // Atualização de Telemetria ao Vivo (Cálculo Preciso e Determinístico com sheetHOverride)
             const m = getAvatarLayoutMetrics();
             const isMobile = window.innerWidth <= 500;
             const titlebar = document.getElementById('desktopTitlebar');
             const titlebarH = (!isMobile && titlebar && window.getComputedStyle(titlebar).display !== 'none') ? titlebar.offsetHeight : 0;
             const totalH = appContainer ? appContainer.clientHeight : (m.h + titlebarH);
-            const sheetH = bottomSheet ? bottomSheet.offsetHeight : 106;
+            const sheetH = sheetHOverride !== null ? sheetHOverride : (bottomSheet ? bottomSheet.offsetHeight : 106);
 
             // 1. Topo da Tela Útil (Exatamente no limite inferior da barra de título)
             const blueTop = titlebarH;
@@ -3298,6 +3299,7 @@
             bottomSheet.style.height = newHeight + 'px';
             updateSheetState(newHeight);
             applySessionCameraPreset(activeSessionName, 0, newHeight);
+            updateCameraHudDOM(newHeight);
         });
 
         sheetHeader.addEventListener('pointerup', (e) => {
@@ -3651,27 +3653,27 @@
             const isAlreadyActive = el.classList.contains('active');
             const minH = getMinHeight();
             const initialH = getInitialHeight();
-            const isCurrentlyClosed = bottomSheet.clientHeight <= minH + 15;
+            const currentH = bottomSheet ? bottomSheet.clientHeight : minH;
+            const isCurrentlyClosed = currentH <= minH + 15;
 
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             el.classList.add('active');
 
+            let targetH;
             if (isAlreadyActive) {
                 // Se já estava selecionado, alterna abre/fecha a gaveta!
-                const targetH = isCurrentlyClosed ? initialH : minH;
-                bottomSheet.style.transition = 'height 0.28s cubic-bezier(0.22, 1, 0.36, 1)';
-                bottomSheet.style.height = targetH + 'px';
-                updateSheetState(targetH);
-                applySessionCameraPreset(tabName, 280, targetH);
+                targetH = isCurrentlyClosed ? initialH : minH;
             } else {
                 // Ao trocar de categoria, carrega o conteúdo e abre na altura ideal
                 loadTabContent(tabName);
-                const targetH = initialH;
-                bottomSheet.style.transition = 'height 0.28s cubic-bezier(0.22, 1, 0.36, 1)';
-                bottomSheet.style.height = targetH + 'px';
-                updateSheetState(targetH);
-                applySessionCameraPreset(tabName, 350, targetH);
+                targetH = initialH;
             }
+
+            bottomSheet.style.transition = 'height 0.28s cubic-bezier(0.22, 1, 0.36, 1)';
+            bottomSheet.style.height = targetH + 'px';
+            updateSheetState(targetH);
+            applySessionCameraPreset(tabName, 280, targetH);
+            updateCameraHudDOM(targetH);
         }
 
         // Recalcula o enquadramento responsivo em rotação ou redimensionamento de janela
