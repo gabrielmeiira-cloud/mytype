@@ -1609,30 +1609,33 @@
         /* 1. Topo da Tela Útil (Azul Ciano) */
         .dbg-screen-top {
             border-top: 2px solid #06b6d4 !important;
-            background: rgba(6, 182, 212, 0.25) !important;
+            background: rgba(6, 182, 212, 0.3) !important;
             z-index: 96;
+            display: block !important;
         }
         .dbg-screen-top .dbg-line-label {
             top: 5px !important;
             background: #0891b2 !important;
         }
 
-        /* 2. Meio da Tela Útil (Verde Esmeralda) */
+        /* 2. Meio da Tela Útil (Verde Esmeralda - Ponto Médio) */
         .dbg-view-center {
             border-top: 2px dashed #10b981 !important;
-            background: rgba(16, 185, 129, 0.15) !important;
+            background: rgba(16, 185, 129, 0.2) !important;
             z-index: 95;
+            display: block !important;
         }
         .dbg-view-center .dbg-line-label {
             top: -22px !important;
             background: #059669 !important;
         }
 
-        /* 3. Limite da Gaveta (Vermelho) */
+        /* 3. Limite da Gaveta (Vermelho - Topo da Aba) */
         .dbg-sheet-limit {
             border-top: 2px solid #ef4444 !important;
-            background: rgba(239, 68, 68, 0.2) !important;
+            background: rgba(239, 68, 68, 0.3) !important;
             z-index: 96;
+            display: block !important;
         }
         .dbg-sheet-limit .dbg-line-label {
             top: -22px !important;
@@ -1642,8 +1645,9 @@
         /* 4. Fundo da Tela Útil / Base (Azul Ciano) */
         .dbg-screen-bottom {
             border-top: 2px solid #06b6d4 !important;
-            background: rgba(6, 182, 212, 0.25) !important;
+            background: rgba(6, 182, 212, 0.3) !important;
             z-index: 96;
+            display: block !important;
         }
         .dbg-screen-bottom .dbg-line-label {
             top: -24px !important;
@@ -2421,15 +2425,17 @@
         /* --- FÓRMULA MATEMÁTICA ANATÔMICA CENTRALIZADORA --- */
         function calculatePanForAnatomicalPoint(focusY, targetScale, sheetHOverride = null) {
             const m = getAvatarLayoutMetrics();
-            const vRect = viewportCanvas ? viewportCanvas.getBoundingClientRect() : { top: 38, height: m.h };
-            const aRect = appContainer ? appContainer.getBoundingClientRect() : { top: 0, height: m.h + 38 };
-            const sRect = bottomSheet ? bottomSheet.getBoundingClientRect() : { top: aRect.top + aRect.height - 106 };
+            const isMobile = window.innerWidth <= 500;
+            const titlebar = document.getElementById('desktopTitlebar');
+            const titlebarH = (!isMobile && titlebar && window.getComputedStyle(titlebar).display !== 'none') ? titlebar.offsetHeight : 0;
+            const totalH = appContainer ? appContainer.clientHeight : (m.h + titlebarH);
+            const sheetH = sheetHOverride !== null ? sheetHOverride : (bottomSheet ? bottomSheet.offsetHeight : 106);
 
-            const blueTop = Math.max(0, vRect.top - aRect.top);
-            const redTop = Math.max(blueTop + 60, sRect.top - aRect.top);
+            const blueTop = titlebarH;
+            const redTop = Math.max(blueTop + 60, totalH - sheetH);
             const greenTop = Math.round((blueTop + redTop) / 2);
             
-            // Centro de visão da câmera dentro do viewportCanvas
+            // Centro de visão da câmera relativo ao viewportCanvas
             const viewCenterY = greenTop - blueTop;
 
             const modelPtY = m.offsetY + (m.renderedH * focusY);
@@ -2557,22 +2563,26 @@
                 }
             });
 
-            // Atualização de Telemetria ao Vivo (Coordenadas Reais do Navegador)
+            // Atualização de Telemetria ao Vivo (Cálculo Preciso e Determinístico)
             const m = getAvatarLayoutMetrics();
-            const vRect = viewportCanvas ? viewportCanvas.getBoundingClientRect() : { top: 38, height: m.h };
-            const aRect = appContainer ? appContainer.getBoundingClientRect() : { top: 0, height: m.h + 38 };
-            const sRect = bottomSheet ? bottomSheet.getBoundingClientRect() : { top: aRect.top + aRect.height - 106 };
-            const appH = aRect.height || (m.h + 38);
+            const isMobile = window.innerWidth <= 500;
+            const titlebar = document.getElementById('desktopTitlebar');
+            const titlebarH = (!isMobile && titlebar && window.getComputedStyle(titlebar).display !== 'none') ? titlebar.offsetHeight : 0;
+            const totalH = appContainer ? appContainer.clientHeight : (m.h + titlebarH);
+            const sheetH = bottomSheet ? bottomSheet.offsetHeight : 106;
 
-            // Posição Y Real da Linha Azul (Topo do Canvas no appContainer)
-            const blueTop = Math.max(0, Math.round(vRect.top - aRect.top));
+            // 1. Topo da Tela Útil (Exatamente no limite inferior da barra de título)
+            const blueTop = titlebarH;
             
-            // Posição Y Real da Linha Vermelha (Topo Exato da Gaveta no appContainer)
-            const redTop = Math.max(blueTop + 60, Math.round(sRect.top - aRect.top));
+            // 2. Limite da Gaveta (Exatamente no topo superior da gaveta)
+            const redTop = Math.max(blueTop + 60, Math.round(totalH - sheetH));
             
-            // Posição Y Real da Linha Verde (Ponto Médio Exato entre Azul e Vermelho)
+            // 3. Meio da Tela Útil (Ponto Médio Exato entre a Linha Azul e a Linha Vermelha)
             const greenTop = Math.round((blueTop + redTop) / 2);
             
+            // 4. Base do Aparelho (Fundo)
+            const bottomTop = Math.max(0, Math.round(totalH - 2));
+
             // Centro de câmera relativo ao viewportCanvas
             const viewCenterY = greenTop - blueTop;
 
@@ -2594,16 +2604,28 @@
             if (tZoom) tZoom.innerText = `${zoomVal}x (${Math.round(avatarScale * 100)}%)`;
             if (tPan) tPan.innerText = `X: ${Math.round(avatarPanX)}px | Y: ${Math.round(avatarPanY)}px`;
 
-            // Atualização dos Overlays Visuais na Tela da Modelo (Sobrepostos por Cima com Z-INDEX 65)
+            // Atualização dos 4 Overlays Visuais na Tela (Z-INDEX 100)
             const lineTop = document.getElementById('dbgScreenTopLine');
-            const lineBottom = document.getElementById('dbgScreenBottomLine');
             const lineCenter = document.getElementById('dbgViewCenterLine');
             const lineSheet = document.getElementById('dbgSheetLimitLine');
+            const lineBottom = document.getElementById('dbgScreenBottomLine');
 
-            if (lineTop) lineTop.style.top = `${blueTop}px`;
-            if (lineBottom) lineBottom.style.top = `${Math.max(0, Math.round(appH - 2))}px`;
-            if (lineCenter) lineCenter.style.top = `${greenTop}px`;
-            if (lineSheet) lineSheet.style.top = `${redTop}px`;
+            if (lineTop) {
+                lineTop.style.top = `${blueTop}px`;
+                lineTop.style.display = 'block';
+            }
+            if (lineCenter) {
+                lineCenter.style.top = `${greenTop}px`;
+                lineCenter.style.display = 'block';
+            }
+            if (lineSheet) {
+                lineSheet.style.top = `${redTop}px`;
+                lineSheet.style.display = 'block';
+            }
+            if (lineBottom) {
+                lineBottom.style.top = `${bottomTop}px`;
+                lineBottom.style.display = 'block';
+            }
 
             updateRulerMarkersDOM();
             const currentFocusMarker = document.getElementById('dbgCurrentFocusMarker');
