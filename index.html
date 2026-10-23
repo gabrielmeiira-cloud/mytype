@@ -1275,8 +1275,8 @@
         <!-- Conceitos Identificados -->
         <div class="reasoning-bar" id="reasoning-bar"></div>
 
-        <!-- Carrossel de Pílulas Rápidas -->
-        <div class="pills-scroll" id="pills-scroll">
+        <!-- Carrossel de Pílulas Rápidas (Desativado por padrão) -->
+        <div class="pills-scroll" id="pills-scroll" style="display: none;">
           <button type="button" class="quick-pill" data-query="loira">👱‍♀️ Loiras</button>
           <button type="button" class="quick-pill" data-query="morena">👩 Morenas</button>
           <button type="button" class="quick-pill" data-query="ruiva">👩‍🦰 Ruivas</button>
@@ -1549,12 +1549,12 @@
           this.bindEvents();
           this.updateWelcomePrompt();
 
-          // Carrega preferência de sugestões e pílulas
+          // Carrega preferência de sugestões e pílulas (Desativadas por padrão)
           const savedPref = localStorage.getItem('mytype_suggestions_enabled');
-          this.suggestionsEnabled = (savedPref !== null) ? (savedPref === 'true') : true;
+          this.suggestionsEnabled = (savedPref !== null) ? (savedPref === 'true') : false;
           this.applySuggestionsVisibility();
 
-          // Carrega preferência do LED da logo
+          // Carrega preferência do LED da logo (Ativado por padrão)
           const savedLed = localStorage.getItem('mytype_logo_led_enabled');
           this.logoLedEnabled = (savedLed !== null) ? (savedLed === 'true') : true;
           const savedHeartOnly = localStorage.getItem('mytype_logo_heart_only');
