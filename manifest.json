@@ -2,7 +2,7 @@
   "name": "My Type - Busca Semântica",
   "short_name": "MyType",
   "description": "Plataforma móvel de busca semântica inteligente e catálogo de vídeos.",
-  "start_url": "/mytype.html",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#000000",
@@ -41,7 +41,7 @@
       "name": "Busca Semântica",
       "short_name": "Buscar",
       "description": "Acessar buscador semântico",
-      "url": "/mytype.html",
+      "url": "/",
       "icons": [
         {
           "src": "/icons/icon-192.png",

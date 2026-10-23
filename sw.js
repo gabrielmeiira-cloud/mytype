@@ -3,11 +3,11 @@
 // Cache inteligente: App Shell offline + Network First para dados dinâmicos
 // ==============================================================================
 
-const CACHE_NAME = 'mytype-pwa-v47';
+const CACHE_NAME = 'mytype-pwa-v48';
 
 const STATIC_ASSETS = [
   '/',
-  '/mytype.html',
+  '/index.html',
   '/manifest.json',
   '/favicon.svg',
   '/favicon.ico',
@@ -70,7 +70,7 @@ self.addEventListener('fetch', (event) => {
         .catch(() => {
           return caches.match(request).then((cachedResponse) => {
             if (cachedResponse) return cachedResponse;
-            return caches.match('/mytype.html');
+            return caches.match('/') || caches.match('/index.html');
           });
         })
     );

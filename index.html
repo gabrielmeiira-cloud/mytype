@@ -2330,7 +2330,7 @@
       let deferredPrompt = null;
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js?v=47')
+          navigator.serviceWorker.register('/sw.js?v=48')
             .then(reg => console.log('[PWA] Service Worker registrado no escopo:', reg.scope))
             .catch(err => console.warn('[PWA] Falha ao registrar Service Worker:', err));
         });

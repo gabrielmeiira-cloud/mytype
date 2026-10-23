@@ -1,0 +1,2370 @@
+<!DOCTYPE html>
+<html lang="pt-BR" style="background-color: #000000; background: #000000; height: 100%; width: 100%;">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-visual">
+  <title>My Type - Busca Semântica Mobile</title>
+
+  <!-- PWA & Mobile App Configuration -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#000000">
+  <meta name="color-scheme" content="dark">
+  <meta name="navigation-bar-color" content="#000000">
+  <meta name="msapplication-navbutton-color" content="#000000">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MyType">
+  <meta name="application-name" content="MyType">
+  <!-- Favicon do Site & Navegadores (Desktop: Contorno 100% | Mobile: Ícone Oficial do App) -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=47">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icons/favicon-192.png?v=47">
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png?v=47">
+  <link rel="alternate icon" href="/favicon.ico?v=47">
+
+  <!-- Ícone Oficial do App para Instalação (PWA e iOS Home Screen) -->
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=47">
+  
+  <style>
+    /* ==========================================================================
+       MY TYPE MOBILE - DESIGN SYSTEM ULTRA-LEVE & MODERNO
+       ========================================================================== */
+    :root {
+      --bg-dark: #090c15;
+      --bg-card: #131726;
+      --bg-input: #1a1f33;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-pink: rgba(255, 43, 133, 0.4);
+      --pink: #ff2b85;
+      --pink-glow: rgba(255, 43, 133, 0.35);
+      --purple: #8b5cf6;
+      --cyan: #38bdf8;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-pill: 9999px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-top: env(safe-area-inset-top, 0px);
+      --dock-bleed: 15px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #000000 !important;
+      background: #000000 !important;
+      color: var(--text-main);
+      user-select: none;
+      -webkit-user-select: none;
+      overscroll-behavior: none;
+    }
+
+    /* Container de App Edge-to-Edge: ocupa toda a tela física do dispositivo incluindo insets */
+    .app-viewport {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 0%, rgba(255, 43, 133, 0.06), transparent 50%),
+                  linear-gradient(180deg, #090c15 0%, #0d111d 100%);
+    }
+
+    /* --------------------------------------------------------------------------
+       1. Top Header Mobile
+       -------------------------------------------------------------------------- */
+    .app-header {
+      flex-shrink: 0;
+      display: grid;
+      grid-template-columns: 44px 1fr 44px;
+      align-items: center;
+      padding: max(10px, var(--safe-top)) 14px 10px 14px;
+      background: rgba(9, 12, 21, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-subtle);
+      z-index: 50;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    .header-center {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .btn-sidebar-toggle {
+      background: transparent;
+      border: none;
+      color: #cbd5e1;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      padding: 0;
+      transition: all 0.15s ease;
+    }
+
+    .btn-sidebar-toggle:active {
+      color: var(--pink);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    /* Botão de Usuário / Cadastro Discreto (+35% no ícone) */
+    .btn-user-toggle {
+      background: transparent;
+      border: none;
+      color: #cbd5e1;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      padding: 0;
+      transition: all 0.15s ease;
+    }
+
+    .btn-user-toggle svg {
+      width: 30px;
+      height: 30px;
+      transition: transform 0.15s ease;
+    }
+
+    .btn-user-toggle:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .btn-user-toggle:active {
+      color: var(--pink);
+      background: rgba(255, 255, 255, 0.08);
+      transform: scale(0.94);
+    }
+
+    /* Controle do LED Neon da Logo */
+    body.logo-led-off .heart-logo-svg {
+      filter: none !important;
+    }
+
+    body.logo-led-off .logo-pink {
+      filter: none !important;
+      text-shadow: none !important;
+    }
+
+    body.logo-led-off .welcome-heart-svg {
+      filter: none !important;
+      animation-name: heartPulseClean !important;
+    }
+
+    /* Modo Apenas Coração com Neon (Texto Type limpo sem glow) */
+    body.logo-neon-heart-only .logo-pink {
+      filter: none !important;
+      text-shadow: none !important;
+    }
+
+    @keyframes heartPulseClean {
+      0% {
+        transform: scale(1);
+      }
+      14% {
+        transform: scale(1.12);
+      }
+      28% {
+        transform: scale(1.02);
+      }
+      42% {
+        transform: scale(1.16);
+      }
+      56% {
+        transform: scale(1);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    /* Menu Lateral (Sidebar Drawer) */
+    .sidebar-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .sidebar-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .sidebar-drawer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 270px;
+      max-width: 80vw;
+      background: #0f1322;
+      border-right: 1px solid var(--border-subtle);
+      z-index: 210;
+      transform: translateX(-100%);
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      padding: max(12px, var(--safe-top)) 16px max(16px, var(--safe-bottom)) 16px;
+      box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .sidebar-drawer.open {
+      transform: translateX(0);
+    }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      padding-top: 16px;
+    }
+
+    .brand-topbar {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      user-select: none;
+      cursor: pointer;
+      transition: opacity 0.15s ease;
+    }
+
+    .brand-topbar:active {
+      opacity: 0.75;
+    }
+
+    .heart-logo-svg {
+      width: 25px;
+      height: 25px;
+      filter: drop-shadow(0 0 8px rgba(255, 43, 133, 0.7));
+      flex-shrink: 0;
+    }
+
+    .logo-title {
+      display: flex;
+      align-items: baseline;
+      gap: 1px;
+      line-height: 1;
+    }
+
+    .logo-white {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-pink {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--pink);
+      letter-spacing: -0.5px;
+      text-shadow: 0 0 12px var(--pink-glow);
+    }
+
+    /* --------------------------------------------------------------------------
+       2. Tela de Início / Hero Estilo ChatGPT & Gemini (Estado Pré-Busca)
+       -------------------------------------------------------------------------- */
+    .welcome-hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 0 14px 92px 14px;
+      height: 100%;
+      max-height: 100%;
+      box-sizing: border-box;
+      margin: 0 auto;
+      overflow: hidden;
+      touch-action: none;
+      overscroll-behavior: none;
+      animation: heroFadeIn 0.35s ease-out;
+      transform: translateY(calc(-0.48 * var(--keyboard-offset, 0px)));
+      transition: opacity 0.28s cubic-bezier(0.2, 0, 0, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform, opacity;
+    }
+
+    .welcome-hero.fade-out {
+      opacity: 0;
+      transform: translateY(calc(-10px - 0.48 * var(--keyboard-offset, 0px)));
+      pointer-events: none;
+    }
+
+    @keyframes heroFadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .welcome-logo-wrap {
+      position: relative;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .welcome-heart-svg {
+      width: 50px;
+      height: 44px;
+      overflow: visible;
+      filter: drop-shadow(0 0 5px rgba(255, 43, 133, 0.45));
+      animation: heartPulseAlive 2.2s ease-in-out infinite;
+      z-index: 1;
+    }
+
+    /* Batimento cardíaco clássico de 2 passos (lub-dub duplo com pausa) */
+    @keyframes heartPulseAlive {
+      0% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 5px rgba(255, 43, 133, 0.45));
+      }
+      14% {
+        transform: scale(1.12);
+        filter: drop-shadow(0 0 11px rgba(255, 43, 133, 0.85));
+      }
+      28% {
+        transform: scale(1.02);
+        filter: drop-shadow(0 0 6px rgba(255, 43, 133, 0.55));
+      }
+      42% {
+        transform: scale(1.16);
+        filter: drop-shadow(0 0 13px rgba(255, 43, 133, 0.95));
+      }
+      56% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 5px rgba(255, 43, 133, 0.45));
+      }
+      100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 5px rgba(255, 43, 133, 0.45));
+      }
+    }
+
+    .welcome-headline {
+      font-size: 1.40rem;
+      font-weight: 800;
+      line-height: 1.25;
+      letter-spacing: -0.4px;
+      background: linear-gradient(135deg, #ffffff 30%, #ff80b7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+      max-width: 340px;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    .welcome-subtitle {
+      font-size: 0.82rem;
+      color: #94a3b8;
+      line-height: 1.4;
+      max-width: 300px;
+      margin-bottom: 18px;
+    }
+
+    /* Cards de Inspiração / Sugestão Rápida (Prompt Cards) */
+    .prompt-suggestions-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 7px;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    .prompt-suggestion-card {
+      background: rgba(19, 23, 38, 0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 8px 12px;
+      font-size: 0.80rem;
+      font-weight: 600;
+      color: #cbd5e1;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.16s ease;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .prompt-suggestion-card:active {
+      transform: scale(0.97);
+      border-color: rgba(255, 43, 133, 0.45);
+      background: rgba(255, 43, 133, 0.14);
+      color: #fff;
+    }
+
+    .prompt-card-icon {
+      font-size: 1.15rem;
+      flex-shrink: 0;
+    }
+
+    .results-wrapper {
+      width: 100%;
+    }
+
+    /* --------------------------------------------------------------------------
+       3. Feed de Vídeos Ranqueados (Scroll Nativo 60fps)
+       -------------------------------------------------------------------------- */
+    .feed-container {
+      flex: 1 1 0%;
+      min-height: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 12px 14px;
+      /* Conteúdo desce e flui através da área de navegação abaixo da barra de pesquisa */
+      padding-bottom: calc(145px + var(--safe-bottom));
+      scroll-behavior: smooth;
+    }
+
+    .feed-container.no-scroll {
+      overflow: hidden !important;
+      padding-bottom: 0 !important;
+      touch-action: none !important;
+      overscroll-behavior: none !important;
+      height: 100% !important;
+    }
+
+    .feed-info-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding: 0 4px;
+    }
+
+    .feed-count {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .feed-count span {
+      color: var(--pink);
+    }
+
+    .feed-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Card de Vídeo Mobile */
+    .video-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+      cursor: pointer;
+      transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.18s ease;
+    }
+
+    .video-card:active {
+      transform: scale(0.985);
+      border-color: var(--border-pink);
+    }
+
+    .thumb-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #111420;
+      overflow: hidden;
+    }
+
+    .thumb-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: opacity 0.3s ease;
+    }
+
+    .badge-duration {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .badge-quality {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(19, 23, 38, 0.8);
+      backdrop-filter: blur(4px);
+      color: #38bdf8;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 5px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .badge-match {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      color: #fff;
+      background: linear-gradient(135deg, #ff2b85, #ec4899);
+      box-shadow: 0 2px 10px rgba(255, 43, 133, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .badge-match.catalog {
+      background: rgba(255, 43, 133, 0.2);
+      color: #ff94c2;
+      border-color: rgba(255, 43, 133, 0.35);
+      box-shadow: none;
+    }
+
+    /* Marcador Semicírculo Discreto e Proporcional (180° Arch / Speedometer) */
+    .badge-match-gauge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(9, 12, 21, 0.88);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 3px 5px 2px 5px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .match-gauge-wrap {
+      position: relative;
+      width: 36px;
+      height: 20px;
+    }
+
+    .match-gauge-svg {
+      width: 36px;
+      height: 20px;
+      display: block;
+    }
+
+    .match-gauge-bg {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.14);
+      stroke-width: 2.6;
+      stroke-linecap: round;
+    }
+
+    .match-gauge-fill {
+      fill: none;
+      stroke: #ff2b85;
+      stroke-width: 2.6;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 2.5px rgba(255, 43, 133, 0.9));
+      transition: stroke-dashoffset 0.35s ease;
+    }
+
+    .match-gauge-val {
+      position: absolute;
+      bottom: 0px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 9.5px;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1;
+      letter-spacing: -0.3px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .match-gauge-val span {
+      font-size: 7px;
+      color: #ff80b7;
+      font-weight: 700;
+      margin-left: 0.5px;
+    }
+
+    .card-body {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .video-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      line-height: 1.35;
+      color: #f1f5f9;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .video-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.74rem;
+      color: var(--text-muted);
+    }
+
+    .uploader-name {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-weight: 600;
+      color: #cbd5e1;
+      max-width: 65%;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .chips-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 2px;
+    }
+
+    .card-chip {
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      color: #94a3b8;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .card-chip.matched {
+      background: rgba(255, 43, 133, 0.15);
+      color: #ff80b7;
+      border-color: rgba(255, 43, 133, 0.3);
+    }
+
+    /* Estado Vazio */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-icon {
+      width: 56px;
+      height: 56px;
+      margin-bottom: 16px;
+      color: rgba(255, 43, 133, 0.4);
+    }
+
+    .empty-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 6px;
+    }
+
+    .empty-desc {
+      font-size: 0.85rem;
+      line-height: 1.4;
+      max-width: 280px;
+    }
+
+    /* --------------------------------------------------------------------------
+       3. Barra Flutuante Mobile de Busca Semântica
+       -------------------------------------------------------------------------- */
+    .search-bottom-dock {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      pointer-events: none;
+      padding: 24px 12px calc(var(--dock-bleed) + var(--safe-bottom)) 12px;
+      background: linear-gradient(180deg, 
+        rgba(9, 12, 21, 0) 0%, 
+        rgba(9, 12, 21, 0.15) 30%, 
+        rgba(9, 12, 21, 0.55) 75%, 
+        rgba(9, 12, 21, 0.85) 100%);
+      transform: translateY(calc(-1 * var(--keyboard-offset, 0px)));
+      transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform;
+    }
+
+    .dock-content {
+      pointer-events: auto;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* Conceitos identificados na pesquisa */
+    .reasoning-bar {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      color: #c084fc;
+      overflow-x: auto;
+      white-space: nowrap;
+      padding: 3px 6px;
+      scrollbar-width: none;
+    }
+    .reasoning-bar::-webkit-scrollbar { display: none; }
+
+    .reasoning-badge {
+      background: rgba(192, 132, 252, 0.15);
+      border: 1px solid rgba(192, 132, 252, 0.3);
+      padding: 2px 7px;
+      border-radius: var(--radius-pill);
+      font-weight: 600;
+    }
+
+    /* Carrossel Horizontal de Pílulas Rápidas */
+    .pills-scroll {
+      display: flex;
+      gap: 7px;
+      overflow-x: auto;
+      padding: 2px 2px 4px 2px;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .pills-scroll::-webkit-scrollbar { display: none; }
+
+    .quick-pill {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 6px 13px;
+      border-radius: var(--radius-pill);
+      background: rgba(26, 31, 51, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: #cbd5e1;
+      border: 1px solid var(--border-subtle);
+      cursor: pointer;
+      transition: all 0.16s ease;
+    }
+
+    .quick-pill:active {
+      transform: scale(0.95);
+    }
+
+    .quick-pill.active {
+      background: linear-gradient(135deg, var(--pink), #ec4899);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.3);
+      box-shadow: 0 2px 10px var(--pink-glow);
+    }
+
+    /* Caixa de Input de Busca (Altura aumentada em 25%: de 48px para 60px) */
+    .input-box {
+      display: flex;
+      align-items: center;
+      background: rgba(19, 23, 38, 0.96);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1.5px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-pill);
+      padding: 8px 14px 8px 18px;
+      min-height: 60px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.75);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .input-box:focus-within {
+      border-color: var(--pink);
+      box-shadow: 0 0 20px var(--pink-glow), 0 8px 30px rgba(0, 0, 0, 0.6);
+    }
+
+    .search-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: #fff;
+      font-size: 1.06rem;
+      font-weight: 500;
+      line-height: 1.3;
+      padding: 8px 0;
+    }
+
+    /* Remove o X nativo pequeno/azul de navegadores WebKit/Chromium/iOS para evitar duplicidade */
+    .search-input::-webkit-search-cancel-button,
+    .search-input::-webkit-search-decoration,
+    .search-input::-webkit-search-results-button,
+    .search-input::-webkit-search-results-decoration {
+      -webkit-appearance: none;
+      appearance: none;
+      display: none !important;
+    }
+
+    .search-input::placeholder {
+      color: #64748b;
+    }
+
+    /* Menu Lateral: Preferências de Recomendações e Pílulas */
+    .sidebar-settings-group {
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 14px;
+    }
+
+    .sidebar-group-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 12px;
+    }
+
+    .setting-toggle-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .setting-text-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .setting-item-label {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #f1f5f9;
+    }
+
+    .setting-item-desc {
+      font-size: 0.74rem;
+      color: #94a3b8;
+      line-height: 1.3;
+    }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background-color: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 24px;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .toggle-slider::before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 2px;
+      bottom: 2px;
+      background-color: #cbd5e1;
+      border-radius: 50%;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+      background-color: var(--pink);
+      border-color: var(--pink);
+      box-shadow: 0 0 10px var(--pink-glow);
+    }
+
+    .toggle-switch input:checked + .toggle-slider::before {
+      transform: translateX(20px);
+      background-color: #ffffff;
+    }
+
+    .clear-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: #cbd5e1;
+      cursor: pointer;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      margin-left: 6px;
+      flex-shrink: 0;
+    }
+
+    .clear-btn:active {
+      background: rgba(255, 43, 133, 0.3);
+      color: #fff;
+    }
+
+    /* --------------------------------------------------------------------------
+       4. Modal / Player Bottom Sheet Mobile
+       -------------------------------------------------------------------------- */
+    .player-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    .player-modal-backdrop.open {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      opacity: 1;
+    }
+
+    .player-sheet {
+      background: #111524;
+      border-top-left-radius: 22px;
+      border-top-right-radius: 22px;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      max-height: 90dvh;
+      overflow-y: auto;
+      padding: 16px 16px max(16px, var(--safe-bottom)) 16px;
+      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.8);
+      transform: translateY(100%);
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .player-modal-backdrop.open .player-sheet {
+      transform: translateY(0);
+    }
+
+    .sheet-handle {
+      width: 38px;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.25);
+      margin: 0 auto 14px auto;
+    }
+
+    .sheet-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+      gap: 12px;
+    }
+
+    .sheet-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.3;
+    }
+
+    .sheet-close-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: #94a3b8;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .sheet-close-btn:active {
+      color: #fff;
+      background: rgba(255, 43, 133, 0.3);
+    }
+
+    .player-frame-box {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      margin-bottom: 14px;
+      position: relative;
+    }
+
+    .player-frame-box iframe,
+    .player-frame-box video {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    .sheet-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .sheet-badge {
+      font-size: 0.74rem;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.06);
+      color: #cbd5e1;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .sheet-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .btn-action {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      padding: 12px;
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--pink), #ec4899);
+      color: #fff;
+      box-shadow: 0 4px 15px var(--pink-glow);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #e2e8f0;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Skeleton Loading */
+    .skeleton-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+    }
+    .skeleton-thumb {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: linear-gradient(90deg, #131726 25%, #1d2238 50%, #131726 75%);
+      background-size: 200% 100%;
+      animation: pulseSkeleton 1.4s infinite;
+    }
+    .skeleton-line {
+      height: 14px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #181d30 25%, #242b47 50%, #181d30 75%);
+      background-size: 200% 100%;
+      animation: pulseSkeleton 1.4s infinite;
+      margin: 10px 12px;
+    }
+    @keyframes pulseSkeleton {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+  </style>
+</head>
+<body style="background-color: #000000; background: #000000; height: 100%; width: 100%;">
+
+  <div class="app-viewport">
+    
+    <!-- 1. HEADER MOBILE -->
+    <header class="app-header">
+      <div class="header-left">
+        <button type="button" class="btn-sidebar-toggle" onclick="MyTypeApp.toggleSidebar()" title="Menu Principal" aria-label="Menu Principal">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="header-center">
+        <div class="brand-topbar" onclick="MyTypeApp.toggleLogoLed()" title="Toque para ligar/desligar o LED da logo" role="button" tabindex="0">
+          <svg class="heart-logo-svg" viewBox="0 0 36 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 29.5C18 29.5 2.5 19.5 2.5 9.5C2.5 4.8 6.3 1 11 1C14 1 16.7 2.6 18 5C19.3 2.6 22 1 25 1C29.7 1 33.5 4.8 33.5 9.5C33.5 19.5 18 29.5 18 29.5Z" 
+                  stroke="#ff2b85" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+          <div class="brand-text-wrap">
+            <div class="logo-title">
+              <span class="logo-white">My</span><span class="logo-pink">Type</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <button type="button" class="btn-user-toggle" id="header-user-btn" onclick="/* Perfil / Cadastro em breve */" title="Entrar / Cadastro" aria-label="Perfil de Usuário">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9.5"></circle>
+            <circle cx="12" cy="9.5" r="3"></circle>
+            <path d="M6.5 18.5c0-3 2.5-4.5 5.5-4.5s5.5 1.5 5.5 4.5"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- 2. FEED DE VÍDEOS & TELA INICIAL (ESTILO CHATGPT / GEMINI) -->
+    <main class="feed-container no-scroll" id="feed-container">
+      
+      <!-- HERO DE BOAS-VINDAS (Visível antes de digitar) -->
+      <section class="welcome-hero" id="welcome-hero">
+        <div class="welcome-logo-wrap">
+          <svg class="welcome-heart-svg" viewBox="-2 -2 40 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 29.5C18 29.5 2.5 19.5 2.5 9.5C2.5 4.8 6.3 1 11 1C14 1 16.7 2.6 18 5C19.3 2.6 22 1 25 1C29.7 1 33.5 4.8 33.5 9.5C33.5 19.5 18 29.5 18 29.5Z" 
+                  stroke="#ff2b85" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+        </div>
+
+        <h2 class="welcome-headline" id="welcome-dynamic-prompt">Qual o tipo de gostosa que você quer ver hoje?</h2>
+        <p class="welcome-subtitle">Descreva traços, fisionomia, estilo ou fantasias. A inteligência semântica encontra os melhores vídeos pra você.</p>
+
+        <!-- Sugestões de Prompt Rápidas (Estilo ChatGPT / Gemini) -->
+        <div class="prompt-suggestions-grid" id="prompt-suggestions-grid">
+          <button type="button" class="prompt-suggestion-card" onclick="MyTypeApp.applyPromptSuggestion('morena academia cintura fina')">
+            <span class="prompt-card-icon">🍑</span>
+            <span>Morenas de academia com bumbum grande e cintura fina</span>
+          </button>
+          <button type="button" class="prompt-suggestion-card" onclick="MyTypeApp.applyPromptSuggestion('loira peituda namoradinha')">
+            <span class="prompt-card-icon">👱‍♀️</span>
+            <span>Loiras peitudas estilo namoradinha safada</span>
+          </button>
+          <button type="button" class="prompt-suggestion-card" onclick="MyTypeApp.applyPromptSuggestion('novinha magrinha carinhosa')">
+            <span class="prompt-card-icon">✨</span>
+            <span>Novinhas magrinhas com cara de santinha</span>
+          </button>
+          <button type="button" class="prompt-suggestion-card" onclick="MyTypeApp.applyPromptSuggestion('ruiva tatuada piercing')">
+            <span class="prompt-card-icon">💉</span>
+            <span>Ruivas tatuadas com atitude e fetiche</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- RESULTADOS RANQUEADOS (Indexados e exibidos após o usuário digitar) -->
+      <div class="results-wrapper" id="results-wrapper" style="display: none;">
+        <div class="feed-info-bar">
+          <div class="feed-count">
+            <span id="results-count">0</span> Vídeos Ranqueados
+          </div>
+        </div>
+
+        <div class="feed-grid" id="videos-grid"></div>
+      </div>
+
+    </main>
+
+    <!-- 3. BARRA DE BUSCA FLUTUANTE INFERIOR -->
+    <div class="search-bottom-dock">
+      <div class="dock-content">
+        
+        <!-- Conceitos Identificados -->
+        <div class="reasoning-bar" id="reasoning-bar"></div>
+
+        <!-- Carrossel de Pílulas Rápidas (Desativado por padrão) -->
+        <div class="pills-scroll" id="pills-scroll" style="display: none;">
+          <button type="button" class="quick-pill" data-query="loira">👱‍♀️ Loiras</button>
+          <button type="button" class="quick-pill" data-query="morena">👩 Morenas</button>
+          <button type="button" class="quick-pill" data-query="ruiva">👩‍🦰 Ruivas</button>
+          <button type="button" class="quick-pill" data-query="peituda">🍒 Peitudas</button>
+          <button type="button" class="quick-pill" data-query="bunduda">🍑 Bundudas</button>
+          <button type="button" class="quick-pill" data-query="cintura violao">⌛ Violão</button>
+          <button type="button" class="quick-pill" data-query="novinha">✨ Novinhas</button>
+          <button type="button" class="quick-pill" data-query="coroa">👑 Coroas</button>
+          <button type="button" class="quick-pill" data-query="magrinha">💎 Magrinhas</button>
+          <button type="button" class="quick-pill" data-query="tatuada">💉 Tatuadas</button>
+          <button type="button" class="quick-pill" data-query="raspadinha">✨ Raspadinhas</button>
+          <button type="button" class="quick-pill" data-query="cacheada">🌀 Cacheadas</button>
+        </div>
+
+        <!-- Input Box -->
+        <div class="input-box">
+          <input 
+            type="search" 
+            id="search-input" 
+            class="search-input" 
+            placeholder="Me fale seu tipo de mulher..." 
+            autocomplete="off" 
+            autocorrect="off" 
+            autocapitalize="off" 
+            spellcheck="false"
+          >
+          <button type="button" class="clear-btn" id="btn-clear" onclick="MyTypeApp.clearSearch()" title="Limpar">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Menu Lateral (Sidebar Drawer) -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="MyTypeApp.closeSidebar()"></div>
+  <aside class="sidebar-drawer" id="sidebar-drawer">
+    <div class="sidebar-header">
+      <button type="button" class="btn-sidebar-toggle" onclick="MyTypeApp.closeSidebar()" title="Fechar Menu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <div class="brand-topbar" onclick="MyTypeApp.toggleLogoLed()" title="Toque para ligar/desligar o LED da logo" role="button" tabindex="0">
+        <svg class="heart-logo-svg" viewBox="0 0 36 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 29.5C18 29.5 2.5 19.5 2.5 9.5C2.5 4.8 6.3 1 11 1C14 1 16.7 2.6 18 5C19.3 2.6 22 1 25 1C29.7 1 33.5 4.8 33.5 9.5C33.5 19.5 18 29.5 18 29.5Z" 
+                stroke="#ff2b85" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+        <div class="brand-text-wrap">
+          <div class="logo-title">
+            <span class="logo-white">My</span><span class="logo-pink">Type</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-content">
+      <!-- Seção de Preferências / Personalização -->
+      <div class="sidebar-settings-group">
+        <div class="sidebar-group-title">Personalização</div>
+        
+        <!-- Toggle do LED Neon da Logo -->
+        <div class="setting-toggle-item">
+          <div class="setting-text-wrap">
+            <div class="setting-item-label">LED Neon Geral</div>
+            <div class="setting-item-desc">Ligar ou desligar a iluminação neon</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="pref-toggle-led" checked onchange="MyTypeApp.toggleLogoLed(this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <!-- Toggle Apenas Coração com Neon -->
+        <div class="setting-toggle-item" id="setting-heart-only-wrap" style="transition: opacity 0.2s ease;">
+          <div class="setting-text-wrap">
+            <div class="setting-item-label">Apenas Coração com Neon</div>
+            <div class="setting-item-desc">Neon no coração e tipografia Type lisa</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="pref-toggle-heart-only" onchange="MyTypeApp.toggleHeartOnlyNeon(this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-toggle-item">
+          <div class="setting-text-wrap">
+            <div class="setting-item-label">Recomendações e Pílulas</div>
+            <div class="setting-item-desc">Sugestões na busca e na tela inicial</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="pref-toggle-suggestions" onchange="MyTypeApp.toggleSuggestionsPref(this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Opção de Instalação PWA -->
+      <div id="pwa-install-wrapper" style="display: none; padding: 14px 0 8px 0;">
+        <button type="button" id="btn-pwa-install" class="btn-action btn-primary" style="width: 100%; font-size: 0.85rem; padding: 10px 14px; gap: 8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Instalar Aplicativo (PWA)</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 4. MODAL PLAYER MOBILE -->
+  <div class="player-modal-backdrop" id="player-modal" onclick="MyTypeApp.closeModal(event)">
+    <div class="player-sheet" onclick="event.stopPropagation()">
+      <div class="sheet-handle"></div>
+      
+      <div class="sheet-header">
+        <h3 class="sheet-title" id="sheet-title">Detalhes do Vídeo</h3>
+        <button type="button" class="sheet-close-btn" onclick="MyTypeApp.closeModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="player-frame-box" id="player-frame-box">
+        <!-- Renderizado dinamicamente -->
+      </div>
+
+      <div class="sheet-meta-row" id="sheet-meta-row">
+        <!-- Tags e metadados -->
+      </div>
+
+      <div class="sheet-actions">
+        <a id="btn-watch-origin" href="#" target="_blank" rel="noopener noreferrer" class="btn-action btn-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          <span>Assistir na Origem</span>
+        </a>
+        <button type="button" class="btn-action btn-secondary" onclick="MyTypeApp.closeModal()">
+          <span>Fechar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       LOGICA JS ULTRA-RÁPIDA (BUSCA SEMÂNTICA & BANCO DE DADOS)
+       ========================================================================== -->
+  <script>
+    (function(window) {
+      'use strict';
+
+      // Supabase & Local Server Config
+      const SUPABASE_URL = 'https://kqtjyhokpjlmxzwkyjzm.supabase.co';
+      const SUPABASE_KEY = 'sb_publishable_b0fWetiKOA06l90kSPKu5g_Brjgwn49';
+      const STORAGE_KEY = 'mytype_mobile_cache_v4';
+      const DEFAULT_THUMB = 'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=800&auto=format&fit=crop&q=80';
+
+      // Dicionário de Sinônimos e Mapeamento Semântico
+      const SYNONYMS = {
+        'loira': ['blonde', 'blond', 'loiro'],
+        'loiro': ['blonde', 'blond', 'loira'],
+        'morena': ['brunette', 'castanho', 'morenas'],
+        'ruiva': ['redhead', 'ruivo', 'red'],
+        'preto': ['black', 'negra', 'dark'],
+        'cacheada': ['curly', 'crespa', 'ondulada'],
+        'lisa': ['straight', 'liso'],
+        'curto': ['short', 'pixie'],
+        'longo': ['long'],
+        'peituda': ['bigtits', 'boobs', 'tits', 'breasts', 'peitos', 'peito', 'seios'],
+        'peitos': ['bigtits', 'boobs', 'tits', 'breasts', 'peituda'],
+        'peito': ['bigtits', 'boobs', 'tits', 'breasts', 'peituda'],
+        'bunduda': ['ass', 'booty', 'butt', 'pawg', 'bunda', 'rabo', 'popozuda'],
+        'bunda': ['ass', 'booty', 'butt', 'pawg', 'bunduda', 'rabo'],
+        'rabo': ['ass', 'booty', 'butt', 'bunda'],
+        'violao': ['hourglass', 'curvy', 'fina', 'cintura'],
+        'cintura': ['hourglass', 'fina', 'violao'],
+        'magra': ['skinny', 'petite', 'slim', 'magrinha'],
+        'magrinha': ['petite', 'skinny', 'slim', 'magra'],
+        'novinha': ['teen', 'young', 'amateur', '18', 'jovem'],
+        'coroa': ['milf', 'mature', 'madura'],
+        'milf': ['coroa', 'mature', 'madura'],
+        'tatuada': ['tattoo', 'tattoos', 'tattooed', 'tatuagem'],
+        'tatuagem': ['tattoo', 'tattoos', 'tatuada'],
+        'raspadinha': ['shaved', 'smooth', 'depilada', 'depilacao'],
+        'depilada': ['shaved', 'smooth', 'raspadinha'],
+        'peludinha': ['hairy', 'natural'],
+        'latina': ['brazilian', 'brasileira', 'latina'],
+        'brasileira': ['brazilian', 'latina'],
+        'branca': ['white', 'caucasian'],
+        'negra': ['ebony', 'black'],
+        'ebony': ['negra', 'black'],
+        'asiatica': ['asian', 'oriental', 'japanese'],
+        'calcinha': ['panties', 'lingerie', 'underwear'],
+        'lingerie': ['panties', 'underwear', 'calcinha', 'sutia']
+      };
+
+      const MyTypeApp = {
+        videos: [],
+        currentQuery: '',
+        searchTimeout: null,
+        activePill: null,
+
+        // Normalização de texto (remove acentos, pontuação, trim)
+        normalize(str) {
+          if (!str) return '';
+          return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+        },
+
+        // Distância de Levenshtein simples para tolerância a pequenos erros de digitação
+        levenshtein(a, b) {
+          if (a.length === 0) return b.length;
+          if (b.length === 0) return a.length;
+          const matrix = [];
+          for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+          for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+          for (let i = 1; i <= b.length; i++) {
+            for (let j = 1; j <= a.length; j++) {
+              if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                matrix[i][j] = matrix[i - 1][j - 1];
+              } else {
+                matrix[i][j] = Math.min(
+                  matrix[i - 1][j - 1] + 1,
+                  matrix[i][j - 1] + 1,
+                  matrix[i - 1][j] + 1
+                );
+              }
+            }
+          }
+          return matrix[b.length][a.length];
+        },
+
+        // Verifica similaridade entre um token e um texto alvo
+        isSimilar(token, target) {
+          if (!target) return false;
+          if (target.includes(token)) return true;
+          if (token.length < 4) return false;
+
+          const words = target.split(/[\s\-_,]+/);
+          for (let w of words) {
+            if (Math.abs(w.length - token.length) > 2) continue;
+            const dist = this.levenshtein(token, w);
+            const maxAllowed = token.length <= 6 ? 1 : 2;
+            if (dist <= maxAllowed) return true;
+          }
+          return false;
+        },
+
+        // Expansão de tokens com sinônimos
+        expandTokens(tokens) {
+          const expanded = new Set(tokens);
+          tokens.forEach(t => {
+            if (SYNONYMS[t]) {
+              SYNONYMS[t].forEach(syn => expanded.add(syn));
+            }
+          });
+          return Array.from(expanded);
+        },
+
+        // ----------------------------------------------------------------------
+        // INICIALIZAÇÃO
+        // ----------------------------------------------------------------------
+        init() {
+          this.bindEvents();
+          this.updateWelcomePrompt();
+
+          // Carrega preferência de sugestões e pílulas (Desativadas por padrão)
+          const savedPref = localStorage.getItem('mytype_suggestions_enabled');
+          this.suggestionsEnabled = (savedPref !== null) ? (savedPref === 'true') : false;
+          this.applySuggestionsVisibility();
+
+          // Carrega preferência do LED da logo (Ativado por padrão)
+          const savedLed = localStorage.getItem('mytype_logo_led_enabled');
+          this.logoLedEnabled = (savedLed !== null) ? (savedLed === 'true') : true;
+          const savedHeartOnly = localStorage.getItem('mytype_logo_heart_only');
+          this.logoHeartOnly = (savedHeartOnly === 'true');
+          this.applyLogoLed();
+
+          // 1. Tenta carregar do cache local imediatamente para dados prontos na memória
+          const cached = localStorage.getItem(STORAGE_KEY);
+          if (cached) {
+            try {
+              this.videos = JSON.parse(cached);
+              if (this.videos.length > 0) {
+                this.updateBadgeCount(this.videos.length);
+              }
+            } catch (e) {
+              console.warn('[Cache Parse Error]:', e);
+            }
+          }
+
+          // 2. Busca dados frescos do banco de dados (Server ou Supabase)
+          this.reloadDatabase();
+        },
+
+        bindEvents() {
+          const input = document.getElementById('search-input');
+          const clearBtn = document.getElementById('btn-clear');
+
+          input.addEventListener('input', (e) => {
+            const val = e.target.value;
+            clearBtn.style.display = val.length > 0 ? 'flex' : 'none';
+            this.currentQuery = val;
+            this.handleSearchTransition(val);
+          });
+
+          input.addEventListener('search', () => {
+            if (!input.value) this.clearSearch();
+          });
+
+          // Pílulas Rápidas
+          const pills = document.querySelectorAll('.quick-pill');
+          pills.forEach(btn => {
+            btn.addEventListener('click', () => {
+              const query = btn.dataset.query;
+              if (btn.classList.contains('active')) {
+                btn.classList.remove('active');
+                input.value = '';
+                this.clearSearch();
+              } else {
+                pills.forEach(p => p.classList.remove('active'));
+                btn.classList.add('active');
+                input.value = query;
+                clearBtn.style.display = 'flex';
+                this.currentQuery = query;
+                this.handleSearchTransition(query);
+              }
+            });
+          });
+
+          // ----------------------------------------------------------------------
+          // SINCRONIZAÇÃO DA BARRA DE PESQUISA COM O TECLADO MOBILE (PADRÃO LOBE CHAT / CHATGPT NEXT WEB)
+          // Em navegadores modernos com 'interactive-widget=resizes-content' (Android), o layout redimensiona nativamente.
+          // Em navegadores onde o teclado atua como overlay (iOS Safari), o VisualViewport API calcula o deslocamento exato.
+          // Mantém a sangria exata (--dock-bleed: 10px) constante acima do teclado em qualquer dispositivo.
+          // ----------------------------------------------------------------------
+          const dockEl = document.querySelector('.search-bottom-dock');
+          const feedEl = document.getElementById('feed-container');
+
+          // Calcula dinamicamente o safe-area-inset-bottom do dispositivo
+          let safeBottom = 0;
+          try {
+            const probe = document.createElement('div');
+            probe.style.cssText = 'position:fixed;bottom:0;height:env(safe-area-inset-bottom, 0px);visibility:hidden;pointer-events:none;';
+            document.body.appendChild(probe);
+            safeBottom = probe.offsetHeight || 0;
+            document.body.removeChild(probe);
+          } catch (e) {
+            safeBottom = 0;
+          }
+
+          let isInputFocused = false;
+          let lastVKHeight = 0;
+
+          // 2. REFERÊNCIA BASE DE ALTURA DA TELA (Sem teclado aberto)
+          let baseScreenHeight = window.visualViewport 
+            ? window.visualViewport.height 
+            : (window.innerHeight || document.documentElement.clientHeight);
+
+          const updateBaseScreenHeight = () => {
+            if (!isInputFocused && document.activeElement !== input) {
+              const h = window.visualViewport 
+                ? window.visualViewport.height 
+                : (window.innerHeight || document.documentElement.clientHeight);
+              if (h > 250) baseScreenHeight = h;
+            }
+          };
+
+          // 3. MOTOR UNIVERSAL DE SINCRONIZAÇÃO CONDICIONADO AO TECLADO (PADRÃO LLMS / TELEGRAM WEB)
+          // Combina todos os sensores do aparelho: VisualViewport (iOS/Chrome) + VirtualKeyboard API (Android OS) + Layout Diff
+          // Escolhendo sempre a medição que inclui a barra de recomendação de palavras do teclado mobile.
+          const applyUniversalKeyboardSync = () => {
+            if (!dockEl) return;
+            const layoutH = window.innerHeight || document.documentElement.clientHeight;
+
+            // Se o teclado estiver fechado / input não ativo: repouso perfeito (offset = 0)
+            if (!isInputFocused && document.activeElement !== input) {
+              document.documentElement.style.setProperty('--keyboard-offset', '0px');
+              dockEl.style.setProperty('--keyboard-offset', '0px');
+              return;
+            }
+
+            // Sensor A: Redução da viewport visual (detecta área útil real, incluindo barra de previsão de palavras)
+            const vv = window.visualViewport;
+            const vvReduction = vv ? Math.max(0, baseScreenHeight - vv.height) : 0;
+
+            // Sensor B: Redução da altura do layout (para navegadores com resize nativo)
+            const currentH = window.innerHeight || document.documentElement.clientHeight;
+            const layoutReduction = Math.max(0, baseScreenHeight - currentH);
+
+            // Sensor C: Altura reportada diretamente pelo sistema operacional Android via VirtualKeyboard API
+            const vkReported = lastVKHeight;
+
+            // O maior valor detectado entre todos os sensores garante que a barra de sugestões de palavras nunca fique de fora
+            const trueKeyboardHeight = Math.max(vvReduction, layoutReduction, vkReported);
+
+            let offset = 0;
+            if (trueKeyboardHeight > 35) {
+              // Desconta safeBottom para compensar o padding do dock e posicionar a barra
+              // exatamente rente ao topo do teclado sem margem dupla
+              offset = Math.max(0, Math.round(trueKeyboardHeight - safeBottom));
+              // Limite seguro universal (até 420px ou 48% da tela)
+              const maxAllowed = Math.min(420, Math.round(layoutH * 0.48));
+              offset = Math.min(offset, maxAllowed);
+            }
+
+            document.documentElement.style.setProperty('--keyboard-offset', `${offset}px`);
+            dockEl.style.setProperty('--keyboard-offset', `${offset}px`);
+          };
+
+          // Ativação da VirtualKeyboard API nativa (Chromium / Android PWA)
+          if ('virtualKeyboard' in navigator) {
+            try {
+              navigator.virtualKeyboard.overlaysContent = true;
+              navigator.virtualKeyboard.addEventListener('geometrychange', (e) => {
+                lastVKHeight = e.target.boundingRect ? e.target.boundingRect.height : 0;
+                applyUniversalKeyboardSync();
+              });
+            } catch (err) {}
+          }
+
+          // Escuta eventos universais de viewport visual (iOS Safari, Samsung Internet, Chrome)
+          if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', () => {
+              updateBaseScreenHeight();
+              applyUniversalKeyboardSync();
+            });
+            window.visualViewport.addEventListener('scroll', applyUniversalKeyboardSync);
+          }
+          window.addEventListener('resize', () => {
+            updateBaseScreenHeight();
+            applyUniversalKeyboardSync();
+          });
+
+          // Disparos sincronizados ao focar no campo de busca
+          input.addEventListener('focus', () => {
+            isInputFocused = true;
+            window.scrollTo(0, 0);
+            if (document.body) document.body.scrollTop = 0;
+            if (document.documentElement) document.documentElement.scrollTop = 0;
+
+            applyUniversalKeyboardSync();
+
+            // Polling de garantia durante a animação nos primeiros 550ms para 60fps constante
+            const startTime = Date.now();
+            const pollAnim = () => {
+              applyUniversalKeyboardSync();
+              if (isInputFocused && Date.now() - startTime < 550) {
+                requestAnimationFrame(pollAnim);
+              }
+            };
+            requestAnimationFrame(pollAnim);
+          });
+
+          input.addEventListener('click', () => {
+            isInputFocused = true;
+            applyUniversalKeyboardSync();
+          });
+
+          input.addEventListener('blur', () => {
+            isInputFocused = false;
+            applyUniversalKeyboardSync();
+            setTimeout(updateBaseScreenHeight, 350);
+          });
+
+          // Permite rolar o feed livremente mesmo com o teclado aberto (estilo ChatGPT)
+          // O teclado NÃO fecha ao tocar na tela ou rolar os vídeos
+          if (feedEl) {
+            feedEl.addEventListener('touchmove', (e) => {
+              if (feedEl.classList.contains('no-scroll')) {
+                e.preventDefault();
+              }
+            }, { passive: false });
+            feedEl.addEventListener('wheel', (e) => {
+              if (feedEl.classList.contains('no-scroll')) {
+                e.preventDefault();
+              }
+            }, { passive: false });
+          }
+        },
+
+        // Transição suave com espera da animação de esmaecer antes de indexar resultados
+        handleSearchTransition(query) {
+          const trimmed = (query || '').trim();
+          const welcomeHero = document.getElementById('welcome-hero');
+          const resultsWrapper = document.getElementById('results-wrapper');
+          const feedContainer = document.getElementById('feed-container');
+
+          if (!trimmed) {
+            if (this.heroFadeTimer) {
+              clearTimeout(this.heroFadeTimer);
+              this.heroFadeTimer = null;
+            }
+            this.clearSearch();
+            return;
+          }
+
+          const isHeroVisible = welcomeHero && welcomeHero.style.display !== 'none';
+
+          if (isHeroVisible) {
+            // Tela de boas-vindas visível: inicia o esmaecer suave e ESPERA a animação terminar antes de indexar!
+            welcomeHero.classList.add('fade-out');
+
+            if (!this.heroFadeTimer) {
+              this.heroFadeTimer = setTimeout(() => {
+                this.heroFadeTimer = null;
+                if (this.currentQuery && this.currentQuery.trim().length > 0) {
+                  welcomeHero.style.display = 'none';
+                  if (feedContainer) feedContainer.classList.remove('no-scroll');
+                  if (resultsWrapper) resultsWrapper.style.display = 'block';
+                  // Indexa os resultados APENAS após a animação de esmaecer ter concluído!
+                  this.executeSearch(this.currentQuery);
+                }
+              }, 280);
+            }
+          } else {
+            // Tela de boas-vindas já esmaeceu: indexação em tempo real instantânea
+            this.executeSearch(query);
+          }
+        },
+
+        clearSearch() {
+          if (this.heroFadeTimer) {
+            clearTimeout(this.heroFadeTimer);
+            this.heroFadeTimer = null;
+          }
+          const input = document.getElementById('search-input');
+          const clearBtn = document.getElementById('btn-clear');
+          if (input) input.value = '';
+          if (clearBtn) clearBtn.style.display = 'none';
+          document.querySelectorAll('.quick-pill').forEach(p => p.classList.remove('active'));
+          this.currentQuery = '';
+          const reasoningBar = document.getElementById('reasoning-bar');
+          if (reasoningBar) reasoningBar.style.display = 'none';
+
+          // Sorteia uma nova pergunta estimulante para o início
+          this.updateWelcomePrompt();
+
+          const welcomeHero = document.getElementById('welcome-hero');
+          const resultsWrapper = document.getElementById('results-wrapper');
+          const feedContainer = document.getElementById('feed-container');
+
+          if (resultsWrapper) resultsWrapper.style.display = 'none';
+          if (feedContainer) feedContainer.classList.add('no-scroll');
+
+          if (welcomeHero) {
+            welcomeHero.style.display = 'flex';
+            requestAnimationFrame(() => {
+              welcomeHero.classList.remove('fade-out');
+            });
+          }
+
+          this.renderFeed([]);
+        },
+
+        updateWelcomePrompt() {
+          const headlineEl = document.getElementById('welcome-dynamic-prompt');
+          if (!headlineEl) return;
+          const questions = [
+            "Qual o tipo de gostosa que você quer ver hoje?",
+            "Em que tipo de garota você está pensando?",
+            "Qual é a sua fantasia mais secreta agora?",
+            "Que estilo de mulher faz a sua mente pirar?",
+            "Qual o seu tipo dos sonhos para hoje?",
+            "Conta pra mim: o que te dá mais tesão?",
+            "Qual tipo de mulher você quer admirar agora?"
+          ];
+          const current = headlineEl.textContent;
+          let next = current;
+          for (let i = 0; i < 5; i++) {
+            next = questions[Math.floor(Math.random() * questions.length)];
+            if (next !== current) break;
+          }
+          headlineEl.style.opacity = '0';
+          headlineEl.style.transform = 'translateY(6px)';
+          setTimeout(() => {
+            headlineEl.textContent = next;
+            headlineEl.style.opacity = '1';
+            headlineEl.style.transform = 'translateY(0)';
+          }, 150);
+        },
+
+        applyPromptSuggestion(text) {
+          const input = document.getElementById('search-input');
+          const clearBtn = document.getElementById('btn-clear');
+          if (input) {
+            input.value = text;
+            if (clearBtn) clearBtn.style.display = 'flex';
+            this.currentQuery = text;
+            this.handleSearchTransition(text);
+          }
+        },
+
+        toggleSuggestionsPref(enabled) {
+          this.suggestionsEnabled = !!enabled;
+          try {
+            localStorage.setItem('mytype_suggestions_enabled', this.suggestionsEnabled ? 'true' : 'false');
+          } catch (e) {}
+          this.applySuggestionsVisibility();
+        },
+
+        applySuggestionsVisibility() {
+          const pillsScroll = document.getElementById('pills-scroll');
+          const promptGrid = document.getElementById('prompt-suggestions-grid');
+          const reasoningBar = document.getElementById('reasoning-bar');
+          const toggleInput = document.getElementById('pref-toggle-suggestions');
+
+          if (toggleInput) {
+            toggleInput.checked = this.suggestionsEnabled;
+          }
+
+          if (pillsScroll) {
+            pillsScroll.style.display = this.suggestionsEnabled ? 'flex' : 'none';
+          }
+          if (promptGrid) {
+            promptGrid.style.display = this.suggestionsEnabled ? 'grid' : 'none';
+          }
+          if (reasoningBar && !this.suggestionsEnabled) {
+            reasoningBar.style.display = 'none';
+          }
+        },
+
+        toggleLogoLed(enabled) {
+          if (typeof enabled === 'boolean') {
+            this.logoLedEnabled = enabled;
+          } else {
+            // Ciclo ao tocar na logo: Neon Total -> Apenas Coração -> Desligado -> Neon Total
+            if (this.logoLedEnabled && !this.logoHeartOnly) {
+              this.logoHeartOnly = true;
+            } else if (this.logoLedEnabled && this.logoHeartOnly) {
+              this.logoLedEnabled = false;
+              this.logoHeartOnly = false;
+            } else {
+              this.logoLedEnabled = true;
+              this.logoHeartOnly = false;
+            }
+          }
+          this.saveLogoPreferences();
+          this.applyLogoLed();
+        },
+
+        toggleHeartOnlyNeon(enabled) {
+          if (typeof enabled === 'boolean') {
+            this.logoHeartOnly = enabled;
+          } else {
+            this.logoHeartOnly = !this.logoHeartOnly;
+          }
+          if (this.logoHeartOnly) {
+            this.logoLedEnabled = true;
+          }
+          this.saveLogoPreferences();
+          this.applyLogoLed();
+        },
+
+        saveLogoPreferences() {
+          try {
+            localStorage.setItem('mytype_logo_led_enabled', this.logoLedEnabled ? 'true' : 'false');
+            localStorage.setItem('mytype_logo_heart_only', this.logoHeartOnly ? 'true' : 'false');
+          } catch (e) {}
+        },
+
+        applyLogoLed() {
+          const toggle = document.getElementById('pref-toggle-led');
+          const toggleHeart = document.getElementById('pref-toggle-heart-only');
+          const heartWrap = document.getElementById('setting-heart-only-wrap');
+
+          if (toggle) toggle.checked = this.logoLedEnabled;
+          if (toggleHeart) toggleHeart.checked = this.logoHeartOnly;
+          if (heartWrap) {
+            heartWrap.style.opacity = this.logoLedEnabled ? '1' : '0.4';
+            heartWrap.style.pointerEvents = this.logoLedEnabled ? 'auto' : 'none';
+          }
+
+          if (!this.logoLedEnabled) {
+            document.body.classList.add('logo-led-off');
+            document.body.classList.remove('logo-neon-heart-only');
+          } else {
+            document.body.classList.remove('logo-led-off');
+            if (this.logoHeartOnly) {
+              document.body.classList.add('logo-neon-heart-only');
+            } else {
+              document.body.classList.remove('logo-neon-heart-only');
+            }
+          }
+        },
+
+        // ----------------------------------------------------------------------
+        // CARREGAMENTO DO BANCO DE DADOS (SUPABASE & BACKEND LOCAL)
+        // ----------------------------------------------------------------------
+        async reloadDatabase() {
+          let loadedVideos = [];
+
+          // 1. Tenta carregar do Supabase em nuvem
+          if (SUPABASE_URL && SUPABASE_KEY && !SUPABASE_URL.includes('placeholder')) {
+            try {
+              const resSupa = await fetch(`${SUPABASE_URL}/rest/v1/videos?select=*`, {
+                headers: {
+                  'apikey': SUPABASE_KEY,
+                  'Authorization': `Bearer ${SUPABASE_KEY}`
+                },
+                signal: AbortSignal.timeout(3500)
+              });
+              if (resSupa.ok) {
+                const supaData = await resSupa.json();
+                if (Array.isArray(supaData) && supaData.length > 0) {
+                  loadedVideos = supaData.map(sv => ({
+                    id: sv.id,
+                    title: sv.title || 'Sem Título',
+                    duration: typeof sv.duration === 'number' ? this.formatDuration(sv.duration) : (sv.duration || '12:00'),
+                    uploader: sv.channel || 'MyType Acervo',
+                    tags: (sv.metadata && sv.metadata.tags) || [],
+                    categories: (sv.metadata && sv.metadata.categories) || [],
+                    cast: (sv.metadata && sv.metadata.cast) || [],
+                    views: (sv.metadata && sv.metadata.views) || '1.2M',
+                    resolution: (sv.metadata && sv.metadata.resolution) || '1080p',
+                    selectedThumb: sv.cover_url || (sv.metadata && sv.metadata.selectedThumb) || DEFAULT_THUMB,
+                    webpageUrl: sv.url || '#',
+                    embedUrl: (sv.metadata && sv.metadata.embedUrl) || ''
+                  }));
+                  console.log('✅ [Database] Dados carregados do Supabase:', loadedVideos.length);
+                }
+              }
+            } catch (supaErr) {
+              console.log('[Info] Supabase em nuvem indisponível ou em pausa. Carregando catálogo /data/videos.json...');
+            }
+          }
+
+          // 2. Se o Supabase falhou ou não respondeu, carrega o catálogo nativo /data/videos.json
+          if (loadedVideos.length === 0) {
+            try {
+              const resStatic = await fetch('/data/videos.json?v=' + Date.now(), { signal: AbortSignal.timeout(3000) });
+              if (resStatic.ok) {
+                const staticData = await resStatic.json();
+                if (Array.isArray(staticData) && staticData.length > 0) {
+                  loadedVideos = staticData;
+                  console.log('✅ [Database] Catálogo nativo /data/videos.json carregado:', loadedVideos.length);
+                }
+              }
+            } catch (e) {
+              console.warn('[Data Load] Erro ao carregar /data/videos.json:', e);
+            }
+          }
+
+          // 3. Fallback de API local se rodando no computador (localhost)
+          if (loadedVideos.length === 0 && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+            try {
+              const resLocal = await fetch('/api/db/load', { signal: AbortSignal.timeout(2000) });
+              if (resLocal.ok) {
+                const localData = await resLocal.json();
+                const all = [...(localData.curation || []), ...(localData.approved || []), ...(localData.processing || [])];
+                if (all.length > 0) loadedVideos = all;
+              }
+            } catch (e) {}
+          }
+
+          if (loadedVideos.length > 0) {
+            // Remove duplicatas por ID
+            const uniqueMap = new Map();
+            loadedVideos.forEach(v => {
+              if (v.id && !uniqueMap.has(String(v.id))) {
+                uniqueMap.set(String(v.id), v);
+              }
+            });
+            this.videos = Array.from(uniqueMap.values());
+
+            // Salva no cache local
+            try {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(this.videos));
+            } catch (err) {}
+
+            if (this.currentQuery && this.currentQuery.trim().length > 0) {
+              this.executeSearch(this.currentQuery);
+            }
+          }
+        },
+
+        updateBadgeCount(count) {
+          // Marcador de contagem do cabeçalho removido conforme layout minimalista
+        },
+
+        formatDuration(sec) {
+          if (!sec || isNaN(sec)) return '12:00';
+          const m = Math.floor(sec / 60);
+          const s = Math.floor(sec % 60);
+          return `${m}:${s < 10 ? '0' : ''}${s}`;
+        },
+
+        // ----------------------------------------------------------------------
+        // MOTOR DE BUSCA SEMÂNTICA (INDEXAÇÃO APENAS APÓS DIGITAR)
+        // ----------------------------------------------------------------------
+        executeSearch(query) {
+          const trimmed = (query || '').trim();
+          const reasoningBar = document.getElementById('reasoning-bar');
+          const welcomeHero = document.getElementById('welcome-hero');
+          const resultsWrapper = document.getElementById('results-wrapper');
+          const feedContainer = document.getElementById('feed-container');
+
+          if (!trimmed) {
+            this.clearSearch();
+            return;
+          }
+
+          if (welcomeHero) welcomeHero.style.display = 'none';
+          if (resultsWrapper) resultsWrapper.style.display = 'block';
+          if (feedContainer) feedContainer.classList.remove('no-scroll');
+
+          const rawTokens = this.normalize(trimmed).split(/\s+/).filter(t => t.length >= 2);
+          if (rawTokens.length === 0) {
+            this.renderFeed(this.videos);
+            return;
+          }
+
+          const smartTokens = this.expandTokens(rawTokens);
+          const matchedConcepts = new Set();
+
+          const scored = this.videos.map(video => {
+            let score = 0;
+            const title = this.normalize(video.title);
+            const desc = this.normalize(video.description);
+            const tags = (video.tags || []).map(t => this.normalize(t));
+            const cats = (video.categories || []).map(c => this.normalize(c));
+            const cast = (video.cast || []).map(c => this.normalize(c));
+            const uploader = this.normalize(video.uploader);
+
+            smartTokens.forEach(token => {
+              if (this.isSimilar(token, title)) {
+                score += 15;
+                matchedConcepts.add(token);
+              }
+              tags.forEach(t => {
+                if (this.isSimilar(token, t)) {
+                  score += 12;
+                  matchedConcepts.add(t);
+                }
+              });
+              cats.forEach(c => {
+                if (this.isSimilar(token, c)) {
+                  score += 10;
+                  matchedConcepts.add(c);
+                }
+              });
+              cast.forEach(c => {
+                if (this.isSimilar(token, c)) {
+                  score += 8;
+                  matchedConcepts.add(c);
+                }
+              });
+              if (this.isSimilar(token, uploader)) {
+                score += 6;
+                matchedConcepts.add(uploader);
+              }
+              if (this.isSimilar(token, desc)) {
+                score += 3;
+              }
+            });
+
+            return { video, score };
+          });
+
+          // Mostra conceitos identificados (apenas se recomendações estiverem ativadas)
+          if (reasoningBar) {
+            if (matchedConcepts.size > 0 && this.suggestionsEnabled) {
+              reasoningBar.innerHTML = `<span>💡 Conceitos:</span> ${Array.from(matchedConcepts).slice(0, 6).map(c => `<span class="reasoning-badge">${c}</span>`).join('')}`;
+              reasoningBar.style.display = 'flex';
+            } else {
+              reasoningBar.style.display = 'none';
+            }
+          }
+
+          const results = scored
+            .filter(item => item.score > 0)
+            .sort((a, b) => b.score - a.score);
+
+          this.renderFeed(results, true);
+        },
+
+        // ----------------------------------------------------------------------
+        // RENDERIZAÇÃO DO FEED DE VÍDEOS
+        // ----------------------------------------------------------------------
+        renderFeed(items, isSearchResult = false) {
+          const grid = document.getElementById('videos-grid');
+          const countEl = document.getElementById('results-count');
+          if (!grid) return;
+
+          const list = isSearchResult ? items.map(i => i.video) : items;
+          if (countEl) countEl.textContent = list.length;
+
+          if (list.length === 0) {
+            grid.innerHTML = `
+              <div class="empty-state">
+                <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="8" y1="15" x2="16" y2="15"></line>
+                  <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                  <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                </svg>
+                <div class="empty-title">Nenhum vídeo encontrado</div>
+                <div class="empty-desc">Tente outros termos como "loira", "ruiva", "peituda", "novinha", etc.</div>
+              </div>
+            `;
+            return;
+          }
+
+          const maxScore = isSearchResult && items.length > 0 ? items[0].score : 1;
+
+          grid.innerHTML = list.map((v, idx) => {
+            const rawThumb = v.selectedThumb || v.thumbnail || v.cover_url || DEFAULT_THUMB;
+            const thumbUrl = (rawThumb && (rawThumb.startsWith('http') || rawThumb.startsWith('//') || rawThumb.startsWith('/') || rawThumb.startsWith('data:'))) ? rawThumb : DEFAULT_THUMB;
+            const duration = v.duration || '12:00';
+            const safeTitle = (v.title || 'Vídeo').replace(/"/g, '&quot;');
+            
+            let badgeHtml = '';
+            if (isSearchResult) {
+              const score = items[idx]?.score || 0;
+              const pct = Math.min(100, Math.round((score / maxScore) * 100));
+              const offset = (47.12 * (1 - (pct / 100))).toFixed(1);
+              badgeHtml = `
+                <div class="badge-match-gauge" title="Match: ${pct}%">
+                  <div class="match-gauge-wrap">
+                    <svg class="match-gauge-svg" viewBox="0 0 36 20">
+                      <path class="match-gauge-bg" d="M 3 17 A 15 15 0 0 1 33 17" />
+                      <path class="match-gauge-fill" d="M 3 17 A 15 15 0 0 1 33 17" stroke-dasharray="47.12" stroke-dashoffset="${offset}" />
+                    </svg>
+                    <div class="match-gauge-val">${pct}<span>%</span></div>
+                  </div>
+                </div>`;
+            } else {
+              badgeHtml = `<div class="badge-match catalog">Catálogo</div>`;
+            }
+
+            const tagsList = (v.tags || []).slice(0, 3);
+            const chipsHtml = tagsList.map(t => `<span class="card-chip">${t}</span>`).join('');
+            const fallbackSrc = (v.originalCover && v.originalCover.startsWith('http')) ? v.originalCover : (thumbUrl.startsWith('http') ? `/api/proxy-image?url=${encodeURIComponent(thumbUrl)}` : DEFAULT_THUMB);
+
+            return `
+              <div class="video-card" onclick="MyTypeApp.openModal('${v.id}')">
+                <div class="thumb-wrapper">
+                  <img class="thumb-img" src="${thumbUrl}" alt="${safeTitle}" loading="lazy" referrerpolicy="no-referrer" onerror="if(!this.dataset.tried){this.dataset.tried='1';this.src='${fallbackSrc}';}else{this.src='${DEFAULT_THUMB}';}">
+                  <span class="badge-duration">${duration}</span>
+                  ${v.resolution ? `<span class="badge-quality">${v.resolution}</span>` : ''}
+                  ${badgeHtml}
+                </div>
+                <div class="card-body">
+                  <div class="video-title">${v.title}</div>
+                  <div class="video-meta">
+                    <span class="uploader-name">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                      ${v.uploader || 'Criador'}
+                    </span>
+                    <span>👁️ ${v.views || '1.2M'}</span>
+                  </div>
+                  ${chipsHtml ? `<div class="chips-row">${chipsHtml}</div>` : ''}
+                </div>
+              </div>
+            `;
+          }).join('');
+        },
+
+        // ----------------------------------------------------------------------
+        // MODAL / PLAYER BOTTOM SHEET
+        // ----------------------------------------------------------------------
+        openModal(videoId) {
+          const video = this.videos.find(v => String(v.id) === String(videoId));
+          if (!video) return;
+
+          const modal = document.getElementById('player-modal');
+          const title = document.getElementById('sheet-title');
+          const frameBox = document.getElementById('player-frame-box');
+          const metaRow = document.getElementById('sheet-meta-row');
+          const watchBtn = document.getElementById('btn-watch-origin');
+
+          title.textContent = video.title;
+
+          // Se tiver embedUrl usa iframe, caso contrário exibe a capa com link direto
+          if (video.embedUrl) {
+            frameBox.innerHTML = `<iframe src="${video.embedUrl}" frameborder="0" allowfullscreen allow="autoplay"></iframe>`;
+          } else {
+            const rawThumb = video.selectedThumb || video.thumbnail || video.cover_url || DEFAULT_THUMB;
+            frameBox.innerHTML = `
+              <img src="${rawThumb}" alt="${video.title}" style="width: 100%; height: 100%; object-fit: cover;" referrerpolicy="no-referrer">
+              <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="#ff2b85"><path d="M8 5v14l11-7z"/></svg>
+              </div>
+            `;
+          }
+
+          // Metadados e Tags
+          const allTags = [...(video.categories || []), ...(video.tags || [])];
+          metaRow.innerHTML = `
+            <span class="sheet-badge">⏱️ ${video.duration || '12:00'}</span>
+            <span class="sheet-badge">👤 ${video.uploader || 'Criador'}</span>
+            ${video.resolution ? `<span class="sheet-badge">📺 ${video.resolution}</span>` : ''}
+            ${allTags.slice(0, 8).map(t => `<span class="sheet-badge" style="color: #ff80b7; border-color: rgba(255,43,133,0.25);">${t}</span>`).join('')}
+          `;
+
+          // Botão Assistir na Origem
+          const destUrl = video.webpageUrl || video.url || '#';
+          watchBtn.href = destUrl;
+          if (destUrl === '#') {
+            watchBtn.style.display = 'none';
+          } else {
+            watchBtn.style.display = 'flex';
+          }
+
+          modal.classList.add('open');
+          document.body.style.overflow = 'hidden';
+        },
+
+        closeModal(e) {
+          if (e && e.target && e.target.classList.contains('player-sheet')) return;
+          const modal = document.getElementById('player-modal');
+          const frameBox = document.getElementById('player-frame-box');
+          modal.classList.remove('open');
+          if (frameBox) frameBox.innerHTML = '';
+          document.body.style.overflow = '';
+        },
+
+        // ----------------------------------------------------------------------
+        // MENU LATERAL (SIDEBAR DRAWER)
+        // ----------------------------------------------------------------------
+        toggleSidebar() {
+          const drawer = document.getElementById('sidebar-drawer');
+          const backdrop = document.getElementById('sidebar-backdrop');
+          if (drawer && drawer.classList.contains('open')) {
+            this.closeSidebar();
+          } else if (drawer) {
+            drawer.classList.add('open');
+            if (backdrop) backdrop.classList.add('open');
+            document.body.style.overflow = 'hidden';
+          }
+        },
+
+        closeSidebar() {
+          const drawer = document.getElementById('sidebar-drawer');
+          const backdrop = document.getElementById('sidebar-backdrop');
+          if (drawer) drawer.classList.remove('open');
+          if (backdrop) backdrop.classList.remove('open');
+          document.body.style.overflow = '';
+        }
+      };
+
+      // ------------------------------------------------------------------------
+      // PWA: REGISTRO DO SERVICE WORKER & PROMPT DE INSTALAÇÃO
+      // ------------------------------------------------------------------------
+      let deferredPrompt = null;
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js?v=48')
+            .then(reg => console.log('[PWA] Service Worker registrado no escopo:', reg.scope))
+            .catch(err => console.warn('[PWA] Falha ao registrar Service Worker:', err));
+        });
+      }
+
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        const installWrapper = document.getElementById('pwa-install-wrapper');
+        const installBtn = document.getElementById('btn-pwa-install');
+        if (installWrapper) installWrapper.style.display = 'block';
+
+        if (installBtn) {
+          installBtn.onclick = async () => {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log('[PWA] Escolha de instalação do usuário:', outcome);
+            deferredPrompt = null;
+            installWrapper.style.display = 'none';
+          };
+        }
+      });
+
+      window.addEventListener('appinstalled', () => {
+        console.log('[PWA] Aplicativo MyType instalado com sucesso!');
+        const installWrapper = document.getElementById('pwa-install-wrapper');
+        if (installWrapper) installWrapper.style.display = 'none';
+      });
+
+      window.MyTypeApp = MyTypeApp;
+      document.addEventListener('DOMContentLoaded', () => MyTypeApp.init());
+
+    })(window);
+  </script>
+</body>
+</html>

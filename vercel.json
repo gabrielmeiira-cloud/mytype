@@ -1,6 +1,11 @@
 {
   "version": 2,
   "cleanUrls": true,
+  "rewrites": [
+    { "source": "/mytype", "destination": "/index.html" },
+    { "source": "/mytype.html", "destination": "/index.html" },
+    { "source": "/((?!icons|covers|data|.*\\..*).*)", "destination": "/index.html" }
+  ],
   "headers": [
     {
       "source": "/(sw.js|manifest.json)",
